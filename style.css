@@ -1,57 +1,492 @@
+:root {
+    --primary-color: #0066cc;
+    --primary-light: #e6f2ff;
+    --secondary-color: #4a90e2;
+    --accent-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --text-dark: #2c3e50;
+    --text-light: #6c757d;
+    --background-light: #f8f9fa;
+    --border-light: #e9ecef;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 25px rgba(0,0,0,0.15);
+    --border-radius: 12px;
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #f9f9f9;
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 0 20px;
-  color: #333;
-  line-height: 1.6;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    line-height: 1.6;
+    color: var(--text-dark);
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
 }
 
-header {
-  border-bottom: 2px solid #0078d4;
-  padding-bottom: 10px;
-  margin-bottom: 30px;
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
-h1, h2 {
-  color: #0078d4;
+/* Header Styles */
+.hero-section {
+    padding: 40px 0;
+    margin-bottom: 40px;
 }
 
-a {
-  color: #0056b3;
-  text-decoration: none;
+.welcome-badge {
+    text-align: center;
+    margin-bottom: 40px;
 }
 
-a:hover {
-  text-decoration: underline;
+.welcome-badge h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-top: 10px;
 }
 
-ul {
-  list-style: none;
-  padding-left: 0;
+.icon {
+    font-size: 1.5rem;
+    margin-right: 8px;
 }
 
-ul li {
-  margin-bottom: 10px;
+/* Checklist Section */
+.checklist-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 30px;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow-md);
 }
 
-.diagram {
-  background-color: #e8f4fd;
-  padding: 10px 15px;
-  border-left: 4px solid #0078d4;
-  margin-top: 10px;
-  font-size: 1.1em;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-  justify-content: flex-start;
+.checklist-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 10px;
 }
 
-footer {
-  margin-top: 60px;
-  text-align: center;
-  font-size: 0.9em;
-  color: #777;
+.checklist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px;
+    background: var(--background-light);
+    border-radius: var(--border-radius);
+    border-left: 4px solid var(--primary-color);
+}
+
+.step-number {
+    background: var(--primary-color);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.step-content h3 {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+/* Workflow Section */
+.workflow-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 30px;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow-md);
+}
+
+.workflow-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 10px;
+}
+
+.workflow-diagram {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    overflow-x: auto;
+    padding: 20px 0;
+}
+
+.workflow-step {
+    text-align: center;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.step-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.step-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.step-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.arrow {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+/* Phase Sections */
+.phase-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-md);
+}
+
+.phase-section.preparation {
+    border-left: 4px solid var(--primary-color);
+}
+
+.phase-section.construction {
+    border-left: 4px solid var(--warning-color);
+}
+
+.phase-section.reporting {
+    border-left: 4px solid var(--accent-color);
+}
+
+.phase-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-light);
+}
+
+.phase-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+}
+
+.phase-number {
+    background: var(--primary-color);
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 15px;
+}
+
+.phase-icon {
+    font-size: 2rem;
+}
+
+/* Resources Grid */
+.resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.resource-card {
+    background: var(--background-light);
+    border-radius: var(--border-radius);
+    padding: 25px;
+    transition: var(--transition);
+    border: 1px solid var(--border-light);
+}
+
+.resource-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.resource-card.training {
+    border-left: 4px solid var(--accent-color);
+}
+
+.resource-card.tool {
+    border-left: 4px solid var(--primary-color);
+}
+
+.resource-card.apps {
+    border-left: 4px solid var(--secondary-color);
+}
+
+.resource-card.contacts {
+    border-left: 4px solid var(--warning-color);
+}
+
+.resource-card.coming-soon {
+    border-left: 4px solid var(--text-light);
+    opacity: 0.7;
+}
+
+.card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.resource-card h3 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.resource-card p {
+    color: var(--text-light);
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: var(--background-light);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+
+.btn-secondary:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--primary-light);
+    color: var(--primary-color);
+}
+
+.status-badge.priority {
+    background: var(--warning-color);
+    color: white;
+}
+
+.coming-soon-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--text-light);
+    color: white;
+}
+
+/* App Links */
+.app-links {
+    display: flex;
+    gap: 10px;
+}
+
+.app-link {
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.app-link.android {
+    background: #34a853;
+    color: white;
+}
+
+.app-link.ios {
+    background: #007aff;
+    color: white;
+}
+
+.app-link:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
+/* Contact List */
+.contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.contact-item {
+    font-size: 0.9rem;
+}
+
+.contact-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.contact-item a:hover {
+    text-decoration: underline;
+}
+
+/* Footer */
+.footer {
+    margin-top: 60px;
+    padding: 30px 0;
+    border-top: 1px solid var(--border-light);
+    background: white;
+    border-radius: var(--border-radius);
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+
+    .welcome-badge h1 {
+        font-size: 2rem;
+    }
+
+    .checklist-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .workflow-diagram {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .arrow {
+        transform: rotate(90deg);
+        margin: 10px 0;
+    }
+
+    .resources-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .phase-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .app-links {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        padding: 20px 0;
+    }
+
+    .checklist-section,
+    .workflow-section,
+    .phase-section {
+        padding: 20px;
+    }
+
+    .resource-card {
+        padding: 20px;
+    }
+
+    .workflow-step {
+        min-width: 100px;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .hero-section {
+        break-inside: avoid;
+    }
+    
+    .phase-section {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    
+    .resource-card {
+        break-inside: avoid;
+    }
 }
