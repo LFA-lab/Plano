@@ -51,6 +51,42 @@ header {
     padding: var(--spacing-xl);
     margin-bottom: var(--spacing-xl);
     text-align: center;
+    position: relative;
+}
+
+/* Sélecteur de langue */
+.language-selector {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+}
+
+.language-btn {
+    padding: 6px 12px;
+    background: var(--background-white);
+    border: 1px solid var(--border-gray);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    color: var(--text-gray);
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.language-btn:hover {
+    background: var(--light-blue);
+    color: var(--primary-blue);
+}
+
+.language-current {
+    padding: 6px 12px;
+    background: var(--primary-blue);
+    color: white;
+    border-radius: var(--border-radius);
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
 .header-logo {
@@ -281,6 +317,21 @@ header p {
     color: var(--text-light);
 }
 
+.language-footer {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.language-footer a {
+    text-decoration: none;
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+}
+
+.language-footer a:hover {
+    transform: scale(1.1);
+}
+
 .company-info {
     font-weight: 600;
 }
@@ -321,6 +372,10 @@ header p {
         flex-direction: column;
         gap: var(--spacing-xs);
         text-align: center;
+    }
+
+    .language-footer {
+        justify-content: center;
     }
 
     .contact-grid {
