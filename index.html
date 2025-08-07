@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parcours Onboarding</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="views/style.css">
 </head>
 <body>
     <div class="container">
@@ -204,7 +204,7 @@
             const macrosContainer = document.getElementById('macros-list');
             
             try {
-                const response = await fetch('../macros/manifest.json');
+                const response = await fetch('./macros/manifest.json');
                 
                 if (!response.ok) {
                     throw new Error(`Erreur HTTP: ${response.status}`);
@@ -227,17 +227,17 @@
                     macroCard.innerHTML = `
                         <div class="macro-header">
                             <h5 class="macro-title">
-                                <a href="../macros/${encodedHtmlFile}" target="_blank" class="macro-link">
+                                <a href="./macros/${encodedHtmlFile}" target="_blank" class="macro-link">
                                     ${macro.title}
                                 </a>
                             </h5>
                         </div>
                         <p class="macro-description">${macro.description}</p>
                         <div class="macro-actions">
-                            <a href="../macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
+                            <a href="./macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
                                 📖 Documentation
                             </a>
-                            <a href="../macros/${encodedBasFile}" download class="btn btn-primary btn-small">
+                            <a href="./macros/${encodedBasFile}" download class="btn btn-primary btn-small">
                                 💾 Télécharger
                             </a>
                         </div>
