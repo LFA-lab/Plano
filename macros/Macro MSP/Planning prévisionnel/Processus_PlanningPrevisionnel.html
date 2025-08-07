@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processus - Macro Export Plan & Unités de Pointe</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            margin: 0 auto;
+            max-width: 1100px;
+            padding: 24px;
+        }
+        .header {
+            background: linear-gradient(135deg, #194466 80%, #30bff1 100%);
+            color: white;
+            padding: 38px 20px 24px 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 32px;
+            box-shadow: 0 5px 18px rgba(0,0,0,0.13);
+        }
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 8px;
+        }
+        .header p {
+            font-size: 1.15em;
+            opacity: 0.93;
+        }
+        .section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+            padding: 32px 24px;
+            margin-bottom: 22px;
+        }
+        .section h2 {
+            color: #1e3c72;
+            border-bottom: 3px solid #1e3c72;
+            margin-bottom: 18px;
+            padding-bottom: 7px;
+        }
+        .process-box {
+            background: linear-gradient(90deg, #e8f4fa 60%, #fff 100%);
+            border-left: 5px solid #1e3c72;
+            padding: 20px 28px;
+            margin: 26px 0;
+            border-radius: 0 12px 12px 0;
+        }
+        .data-box {
+            background: #f8fafd;
+            border: 2px solid #d6ecfa;
+            border-radius: 8px;
+            padding: 18px;
+            font-family: 'Courier New', monospace;
+            margin: 18px 0;
+        }
+        .alert-box {
+            padding: 15px 18px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            margin: 16px 0;
+        }
+        .alert-blue {
+            background: #e6f0fa;
+            border: 1px solid #c5e2f5;
+            color: #22609c;
+        }
+        .alert-yellow {
+            background: #fffbe8;
+            border: 1px solid #fff0a6;
+            color: #857c02;
+        }
+        .alert-red {
+            background: #fae6e6;
+            border: 1px solid #f5c6cb;
+            color: #a12222;
+        }
+        .userform {
+            background: #f3f9fd;
+            border: 2px solid #b8e0ea;
+            padding: 18px 20px;
+            border-radius: 9px;
+            margin: 18px 0 12px 0;
+        }
+        ol, ul {
+            padding-left: 25px;
+            margin-bottom: 0;
+        }
+        .formula-box {
+            background: #fffbe8;
+            border: 2px solid #ffeaa7;
+            padding: 14px;
+            border-radius: 7px;
+            margin: 18px 0;
+            text-align: center;
+            font-size: 1.08em;
+        }
+        .result-box {
+            background: #e8f4f8;
+            border: 2px solid #1e3c72;
+            padding: 18px;
+            border-radius: 8px;
+            margin: 15px 0 0 0;
+            text-align: center;
+            font-size: 1.09em;
+        }
+        .result-box strong {
+            color: #1e3c72;
+            font-size: 1.16em;
+        }
+        @media (max-width: 700px) {
+            body { padding: 4vw; }
+            .section { padding: 5vw 3vw; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗂️ Processus d’Utilisation - Macro Export Plan & Unités de Pointe</h1>
+        <p>
+            Optimisez la préparation de chantier grâce à la macro Excel/Project : visualisez les besoins main d’œuvre au quotidien pour vos réunions planning.
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>1. Objectif de l’Outil</h2>
+        <div class="data-box">
+            <strong>But :</strong> Exporter automatiquement votre planning MS Project <b>avec les unités de pointe</b> (pic d'effectif requis chaque jour), dans un fichier Excel formaté et prêt à l’emploi.<br><br>
+            <strong>Finalité métier :</strong> <span style="color:#22609c">Aider le responsable à préparer ses besoins en main d’œuvre</span> et anticiper les pics de ressources pour les réunions d’organisation du chantier (synthèse hebdo, gestion RH, arbitrages).
+        </div>
+        <div class="alert-box alert-yellow">
+            <b>Pourquoi ce process ?</b>&nbsp;→&nbsp;Parce que la gestion des pics d’effectif est critique pour éviter les retards, les surcoûts et les conflits de planning entre équipes.
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. Comprendre les "Unités de Pointe"</h2>
+        <p>
+            <b>Définition :</b> Les <b>unités de pointe</b> correspondent au besoin maximal d’effectif requis pour réaliser une tâche donnée sur une journée (ou une période donnée).
+            Elles traduisent en chiffres le <b>besoin humain</b> réel du chantier à chaque instant.
+        </p>
+        <div class="formula-box">
+            <b>Unité de Pointe (pour un jour donné) = Nombre de personnes nécessaires pour réaliser toutes les tâches planifiées ce jour-là</b>
+        </div>
+        <p>
+            En pratique, l’export de la macro indique pour chaque journée :
+            <ul>
+                <li>Le détail par tâche (ligne = tâche, colonne = jour ou semaine)</li>
+                <li>Le cumul des besoins sur la ligne "Total"</li>
+            </ul>
+        </p>
+        <div class="alert-box alert-blue">
+            <b>À retenir :</b>&nbsp;L’outil traduit la charge théorique en besoins RH concrets, compréhensibles par tous (chefs d’équipes, RH, planificateur).
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>3. Conséquences & Usages Concrets</h2>
+        <ul>
+            <li><b>Anticipation :</b> Vous visualisez facilement les journées à risque (pics de main d’œuvre, sous-effectif...)</li>
+            <li><b>Préparation réunion :</b> Support visuel lors des réunions de planning hebdomadaires / réunions de chantier</li>
+            <li><b>Arbitrage :</b> Décidez du renfort/ajustement des équipes AVANT la crise (et pas quand il est trop tard)</li>
+            <li><b>Communication :</b> Échange facilité avec le client, la maîtrise d’œuvre et les RH</li>
+        </ul>
+        <div class="alert-box alert-red">
+            <b>⚠️ Un pic non anticipé = Retard, heures supplémentaires ou arrêt de chantier.</b>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>4. Processus d’Utilisation</h2>
+        <div class="process-box">
+            <ol>
+                <li>Ouvrez votre projet dans <b>MS Project</b></li>
+                <li>Lancez la macro <b>"Export_Plan_Et_UnitesDePointe"</b> depuis le ruban ou Alt+F8</li>
+                <li>Laissez la macro générer le fichier Excel (2 vues : <b>Jours</b> & <b>Semaines</b>)</li>
+                <li>Onglet <b>Jours</b> : chaque colonne = un jour, chaque ligne = une tâche</li>
+                <li>Pour chaque jour, la macro <b>incrémente les unités de pointe</b> selon les besoins cumulés</li>
+                <li>En haut, une ligne "Total" indique le besoin global en effectif pour le jour</li>
+                <li><b>Analysez les pics :</b> repérez les colonnes où le "Total" atteint un maximum</li>
+                <li><b>Utilisez ce planning</b> pour préparer la réunion d’organisation et anticiper les ajustements d’équipe</li>
+            </ol>
+        </div>
+        <div class="userform">
+            <b>Astuce :</b> Le fichier Excel reste modifiable et partageable. Ajoutez des filtres, couleurs ou commentaires selon vos besoins pour la réunion.
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>5. Exemple Visuel d’Export</h2>
+        <div class="data-box">
+            <strong>Extrait simplifié du fichier généré :</strong><br><br>
+            <table style="width:100%; border-collapse: collapse;">
+                <tr style="background: #d6ecfa;">
+                    <th style="padding: 6px;">Tâche</th>
+                    <th style="padding: 6px;">10/09</th>
+                    <th style="padding: 6px;">11/09</th>
+                    <th style="padding: 6px;">12/09</th>
+                </tr>
+                <tr>
+                    <td style="padding: 6px;">Tirage câbles AC</td>
+                    <td style="padding: 6px; text-align: center;">6</td>
+                    <td style="padding: 6px; text-align: center;">8</td>
+                    <td style="padding: 6px; text-align: center;">4</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px;">Pose armoires</td>
+                    <td style="padding: 6px; text-align: center;">3</td>
+                    <td style="padding: 6px; text-align: center;">3</td>
+                    <td style="padding: 6px; text-align: center;">2</td>
+                </tr>
+                <tr style="background: #e8f4fa;">
+                    <td style="padding: 6px; font-weight: bold;">TOTAL</td>
+                    <td style="padding: 6px; text-align: center; font-weight: bold;">9</td>
+                    <td style="padding: 6px; text-align: center; font-weight: bold;">11</td>
+                    <td style="padding: 6px; text-align: center; font-weight: bold;">6</td>
+                </tr>
+            </table>
+        </div>
+        <div class="result-box">
+            <b>Interprétez le total : </b><br>
+            Le "11" du 11/09 = <b>jour de pointe</b> : prévoyez au moins 11 personnes ce jour-là pour ne pas bloquer le chantier !
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>6. Points de Vigilance</h2>
+        <div class="alert-box alert-yellow">
+            <ul>
+                <li><b>Données MS Project :</b> Bien renseigner affectations et rendements pour chaque tâche, sinon les unités de pointe ne reflèteront pas la réalité.</li>
+                <li><b>Mise à jour :</b> Refaire l’export régulièrement pour coller à l’avancement réel (réajustements à chaque réunion planning).</li>
+                <li><b>Pics rapprochés :</b> Si plusieurs journées "pointe" sont trop rapprochées, risque de fatigue ou d’absence à anticiper !</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section" style="background: #1e3c72; color: white;">
+        <h2 style="color: #fff; border-bottom: 2px solid #fff;">✔️ Conclusion - Bénéfices</h2>
+        <ul style="color: #fff; font-size: 1.13em;">
+            <li>Gain de temps et de clarté dans la préparation des réunions chantier</li>
+            <li>Meilleure anticipation des ressources critiques</li>
+            <li>Réduction du risque de retard ou de surcoût</li>
+            <li>Facilite la communication avec tous les acteurs du projet</li>
+        </ul>
+        <div style="margin-top:18px;font-size:1.12em;background:rgba(255,255,255,0.09);padding:15px 16px;border-radius:7px;">
+            <b>À tester dès le prochain chantier !</b>
+        </div>
+    </div>
+</body>
+</html>

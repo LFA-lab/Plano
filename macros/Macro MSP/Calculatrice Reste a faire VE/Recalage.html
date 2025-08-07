@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Complet - Recalage de Tâches MS Project</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .nav {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .nav h2 {
+            margin-top: 0;
+            color: #2a5298;
+        }
+        
+        .nav ul {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            list-style: none;
+            padding: 0;
+        }
+        
+        .nav a {
+            display: block;
+            padding: 10px 15px;
+            background: #f0f7ff;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #2a5298;
+            transition: all 0.3s;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .nav a:hover {
+            background: #2a5298;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .section {
+            background: white;
+            padding: 30px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .section h2 {
+            color: #2a5298;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .data-box {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .process-box {
+            background: linear-gradient(to right, #f0f7ff, #ffffff);
+            border-left: 5px solid #2a5298;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .formula-box {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+        .userform {
+            background: #e8f4f8;
+            border: 2px solid #b8e0ea;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .userform input {
+            width: 150px;
+            padding: 5px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .userform button {
+            background: #2a5298;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: background 0.3s;
+        }
+        
+        .userform button:hover {
+            background: #1e3c72;
+        }
+        
+        .path-indicator {
+            display: inline-block;
+            background: #2a5298;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .alert-box {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .alert-red {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-yellow {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+        
+        .alert-green {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .flow-step {
+            background: #f0f7ff;
+            border: 2px solid #2a5298;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 10px;
+            min-width: 150px;
+        }
+        
+        .flow-arrow {
+            font-size: 2em;
+            color: #2a5298;
+            margin: 0 10px;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .comparison-table th {
+            background: #2a5298;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .comparison-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .icon {
+            display: inline-block;
+            width: 30px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        
+        .result-box {
+            background: #e8f4f8;
+            border: 2px solid #2a5298;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        
+        .result-box strong {
+            color: #2a5298;
+            font-size: 1.3em;
+        }
+        
+        @media (max-width: 768px) {
+            .flow-diagram {
+                flex-direction: column;
+            }
+            
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Guide Complet : Recalage de Tâches MS Project</h1>
+        <p>Processus de Pilotage pour Responsables d'Affaires BTP/Énergie</p>
+    </div>
+    
+    <div class="nav">
+        <h2>📚 Sommaire</h2>
+        <ul>
+            <li><a href="#contexte">🎯 Contexte et Objectifs</a></li>
+            <li><a href="#chemin-a">🔧 Chemin A - Rendement Réel</a></li>
+            <li><a href="#chemin-b">📊 Chemin B - Budget Initial</a></li>
+            <li><a href="#chemin-c">⚖️ Chemin C - Ajustement Combiné</a></li>
+            <li><a href="#chemin-d">🎯 Chemin D - Date Cible</a></li>
+            <li><a href="#userform">💻 UserForm et Automatisation</a></li>
+            <li><a href="#annexes">📖 Annexes et Références</a></li>
+        </ul>
+    </div>
+    
+    <div class="section" id="contexte">
+        <h2>🎯 1. Contexte et Objectifs</h2>
+        
+        <h3>Projet Exemple : Tirage Câble Solaire 1×6mm²</h3>
+        
+        <div class="data-box">
+            <strong>DONNÉES INITIALES PROJET</strong><br><br>
+            📏 Quantité totale : 130 524 mètres<br>
+            📊 Rendement prévu : 5 480,11 m/jour équipe<br>
+            👥 Ressources : 3 monteurs × 9h/jour = 27h équipe/j<br>
+            💰 Budget initial : 643,08 heures<br>
+            📅 Période : 10/07/2025 → 13/08/2025
+        </div>
+        
+        <h3>Problématique de Pilotage</h3>
+        
+        <div class="alert-box alert-red">
+            <span class="icon">🔴</span>
+            <div>
+                <strong>Dérive de Performance :</strong> Le rendement réel (2 005 m/jour) est <strong>3 fois plus lent</strong> que prévu (5 480 m/jour)
+            </div>
+        </div>
+        
+        <div class="alert-box alert-red">
+            <span class="icon">💸</span>
+            <div>
+                <strong>Impact Budgétaire :</strong> Risque de dépassement massif des 643h budgétées
+            </div>
+        </div>
+        
+        <div class="alert-box alert-yellow">
+            <span class="icon">⏰</span>
+            <div>
+                <strong>Respect des Délais :</strong> Comment tenir la date de livraison du 13/08/2025 ?
+            </div>
+        </div>
+        
+        <div class="alert-box alert-yellow">
+            <span class="icon">👨‍💼</span>
+            <div>
+                <strong>Décisions d'Arbitrage :</strong> Faut-il renforcer l'équipe ou accepter le retard ?
+            </div>
+        </div>
+    </div>
+    
+    <div class="section" id="chemin-a">
+        <span class="path-indicator">CHEMIN A</span>
+        <h2>🔧 2. Rendement Réel → Travail Restant</h2>
+        
+        <h3>Principe : Recalcul basé sur la Performance Réelle</h3>
+        <p>Ce chemin utilise le rendement constaté pour recalculer le travail restant.</p>
+        
+        <div class="flow-diagram">
+            <div class="flow-step">
+                <strong>1️⃣ POINTAGE</strong><br>
+                2 005 m posés<br>
+                27h réelles
+            </div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">
+                <strong>2️⃣ CALCUL</strong><br>
+                128 519 m restants<br>
+                ÷ 2 005 m/jour
+            </div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">
+                <strong>3️⃣ RÉSULTAT</strong><br>
+                1 730,4 heures<br>
+                de travail restant
+            </div>
+        </div>
+        
+        <div class="userform">
+            <h4>Interface UserForm - Chemin A</h4>
+            <div>
+                Quantité restante (m) : <input type="text" value="128519" /><br>
+                Rendement réel (m/jour) : <input type="text" value="2005" /><br>
+                Nombre de personnes : <input type="text" value="3" /><br>
+                Durée journalière (h) : <input type="text" value="9" /><br>
+                <button>Calculer le Travail</button>
+                <div class="result-box" style="margin-top: 15px;">
+                    Résultat : <strong>1 730,4 heures</strong>
+                </div>
+            </div>
+        </div>
+        
+        <div class="formula-box">
+            Travail Restant = (Quantité Restante ÷ Rendement Réel) × Heures Équipe/Jour<br>
+            = (128 519 m ÷ 2 005 m/j) × (3 pers × 9h/j) = <strong>1 730,4 heures</strong>
+        </div>
+        
+        <div class="process-box">
+            <h4>📌 Actions dans MS Project</h4>
+            <ol>
+                <li>Coller <strong>1 730,4h</strong> dans la colonne "Travail restant"</li>
+                <li>Project recalcule automatiquement la durée et la date de fin</li>
+                <li>Nouvelle date de fin : <strong>12/09/2025</strong> ❌</li>
+                <li>Dépassement budget : <strong>+1 127 heures</strong></li>
+            </ol>
+        </div>
+    </div>
+    
+    <div class="section" id="chemin-b">
+        <span class="path-indicator">CHEMIN B</span>
+        <h2>📊 3. Budget Initial + Variations d'Effectif</h2>
+        
+        <h3>Principe : Test d'Allocation de Ressources sur Budget Fixe</h3>
+        <p>Ce chemin conserve le budget initial (643h) mais teste différents niveaux d'effectif.</p>
+        
+        <div class="flow-diagram">
+            <div class="flow-step">
+                <strong>💰 BUDGET FIXE</strong><br>
+                643,08 heures<br>
+                (pas de modification)
+            </div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">
+                <strong>👥 TEST EFFECTIFS</strong><br>
+                100% (3 pers)<br>
+                200% (6 pers)<br>
+                300% (9 pers)
+            </div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">
+                <strong>📅 DATES RÉSULTANTES</strong><br>
+                Observer colonne "Fin"<br>
+                pour chaque scénario
+            </div>
+        </div>
+        
+        <div class="data-box">
+            <strong>RÉSULTATS CHEMIN B - Budget fixe : 643,08 heures</strong><br><br>
+            👥 3 personnes (100%) → 📅 Fin : 31/07/2025 ✅<br>
+            👥 6 personnes (200%) → 📅 Fin : 23/07/2025 ✅<br>
+            👥 9 personnes (300%) → 📅 Fin : 18/07/2025 ✅<br><br>
+            💡 <strong>CONCLUSION :</strong> Budget initial sous-estimé ! Le rendement prévu était trop optimiste.
+        </div>
+        
+        <div class="process-box">
+            <h4>📌 Actions dans MS Project</h4>
+            <ol>
+                <li><strong>Conserver</strong> la valeur "Travail restant" (643,08h)</li>
+                <li><strong>Modifier</strong> la colonne "Unités" : 100% → 200% → 300%</li>
+                <li><strong>Observer</strong> la colonne "Fin" pour chaque modification</li>
+                <li><strong>Choisir</strong> le pourcentage optimal selon vos contraintes</li>
+            </ol>
+        </div>
+    </div>
+    
+    <div class="section" id="chemin-c">
+        <span class="path-indicator">CHEMIN C</span>
+        <h2>⚖️ 4. Ajustement Combiné</h2>
+        
+        <h3>Principe : Nouveau Rendement + Nouvelle Allocation</h3>
+        <p>Ce chemin anticipe une amélioration du rendement ET ajuste l'effectif.</p>
+        
+        <div class="flow-diagram">
+            <div class="flow-step">
+                <strong>📈 AMÉLIORATION</strong><br>
+                Rendement anticipé<br>
+                3 000 m/jour<br>
+                (vs 2 005 actuel)
+            </div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">
+                <strong>🔄 COMBINAISONS</strong><br>
+                3 pers + 3000 m/j<br>
+                4 pers + 3000 m/j<br>
+                5 pers + 3000 m/j
+            </div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">
+                <strong>⚖️ OPTIMISATION</strong><br>
+                Arbitrage<br>
+                rendement vs effectif
+            </div>
+        </div>
+        
+        <div class="data-box">
+            <strong>Exemple : 4 personnes + Rendement 3 000 m/jour</strong><br><br>
+            Travail Restant = (128 519 m ÷ 3 000 m/j) × (4 pers × 9h/j)<br>
+            = 42,84 jours × 36h/jour<br>
+            = <strong>1 542,2 heures</strong><br><br>
+            Date de fin = 10/07/2025 + 42,84 jours = <strong>21/08/2025</strong> ❌ (retard)
+        </div>
+        
+        <div class="process-box">
+            <h4>📌 Actions dans MS Project</h4>
+            <ol>
+                <li><strong>Modifier</strong> "Travail restant" (nouveau calcul)</li>
+                <li><strong>Modifier</strong> "Unités" (nouvel effectif)</li>
+                <li><strong>Observer</strong> la colonne "Fin"</li>
+                <li><strong>Itérer</strong> jusqu'à obtenir la date souhaitée</li>
+            </ol>
+        </div>
+    </div>
+    
+    <div class="section" id="chemin-d">
+        <span class="path-indicator">CHEMIN D</span>
+        <h2>🎯 5. Back-calculation Date Cible</h2>
+        
+        <h3>Principe : Date Impérative → Calcul Ressources Nécessaires</h3>
+        <p>Ce chemin part d'une contrainte de livraison pour calculer l'effectif requis.</p>
+        
+        <div class="flow-diagram">
+            <div class="flow-step">
+                <strong>📅 CONTRAINTE</strong><br>
+                Date fin IMPÉRATIVE<br>
+                13/08/2025<br>
+                (24 jours ouvrés)
+            </div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">
+                <strong>🧮 CALCUL</strong><br>
+                1 730,4h ÷<br>
+                (24j × 9h)<br>
+                = 8,01 personnes
+            </div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-step">
+                <strong>👥 RÉSULTAT</strong><br>
+                9 personnes<br>
+                nécessaires<br>
+                (arrondi sup.)
+            </div>
+        </div>
+        
+        <div class="userform">
+            <h4>Interface UserForm - Chemin D</h4>
+            <div>
+                Quantité restante (m) : <input type="text" value="128519" /><br>
+                Rendement réel (m/jour) : <input type="text" value="2005" /><br>
+                Durée journalière (h) : <input type="text" value="9" /><br>
+                Date de début : <input type="date" value="2025-07-10" /><br>
+                Date de fin cible : <input type="date" value="2025-08-13" style="border: 2px solid #ff6b6b;" /><br>
+                <button>Calculer</button>
+                <div class="result-box" style="margin-top: 15px;">
+                    Résultat : <strong>9 personnes nécessaires</strong>
+                </div>
+            </div>
+        </div>
+        
+        <div class="formula-box">
+            Personnes Nécessaires = Travail Restant ÷ (NETWORKDAYS × h/pers/jour)<br>
+            = 1 730,4h ÷ (24 jours × 9h/jour) = 8,01 → <strong>9 personnes</strong>
+        </div>
+    </div>
+    
+    <div class="section" id="userform">
+        <h2>💻 6. UserForm et Automatisation</h2>
+        
+        <h3>Interface Unifiée - Tous Chemins</h3>
+        
+        <div class="userform" style="background: #f0f7ff;">
+            <h4 style="text-align: center; color: #2a5298;">USERFORM INTÉGRÉ</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    Quantité restante (m) : <input type="text" /><br>
+                    Rendement réel (m/jour) : <input type="text" /> ← Modifiable<br>
+                    Nombre de personnes : <input type="text" /> ← Modifiable<br>
+                </div>
+                <div>
+                    Durée journalière (h) : <input type="text" /><br>
+                    Date de début : <input type="date" /><br>
+                    Date de fin cible : <input type="date" /> ← Optionnelle<br>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button>Calculer le Travail</button>
+                <button>Copier & Fermer</button>
+            </div>
+            <div class="result-box" style="margin-top: 20px;">
+                📊 Travail estimé : <strong>1730,4 heures</strong><br>
+                📅 Fin estimée : <strong>12/09/2025</strong><br>
+                🎯 Pour tenir jusqu'au 13/08/2025 (24 jours ouvrés)<br>
+                il faut : <strong>9 personnes</strong>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section" id="annexes">
+        <h2>📖 7. Annexes - Formules et Références</h2>
+        
+        <h3>Tableau de Synthèse des 4 Chemins</h3>
+        
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>ASPECT</th>
+                    <th>CHEMIN A</th>
+                    <th>CHEMIN B</th>
+                    <th>CHEMIN C</th>
+                    <th>CHEMIN D</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>INPUT PRINCIPAL</strong></td>
+                    <td>Rendement réel</td>
+                    <td>Budget fixe 643h</td>
+                    <td>Rendement amélioré</td>
+                    <td>Date cible 13/08/2025</td>
+                </tr>
+                <tr>
+                    <td><strong>COLONNE MODIFIÉE</strong></td>
+                    <td>Travail restant<br>1730h</td>
+                    <td>Unités<br>100%-300%</td>
+                    <td>Travail restant +<br>Unités</td>
+                    <td>Unités<br>900%</td>
+                </tr>
+                <tr>
+                    <td><strong>DATE FIN RÉSULTAT</strong></td>
+                    <td>12/09/2025</td>
+                    <td>Variable selon Units</td>
+                    <td>Variable selon hyp.</td>
+                    <td>13/08/2025 (FIXE)</td>
+                </tr>
+                <tr>
+                    <td><strong>USAGE TYPIQUE</strong></td>
+                    <td>Réaliste après pointage</td>
+                    <td>Budget contraint</td>
+                    <td>Prévisionnel amélioration</td>
+                    <td>Contrainte client</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Indicateurs de Pilotage Clés</h3>
+        
+        <div class="alert-box alert-red">
+            <span class="icon">🔴</span>
+            <div>
+                <strong>ALERTES CRITIQUES :</strong><br>
+                • Travail Restant > 150% budget initial<br>
+                • Colonne "Fin" > Date contractuelle + 1 semaine<br>
+                • Rendement réel < 60% rendement prévu<br>
+                • Coût supplémentaire > 20% budget initial
+            </div>
+        </div>
+        
+        <div class="alert-box alert-yellow">
+            <span class="icon">🟡</span>
+            <div>
+                <strong>VIGILANCE :</strong><br>
+                • Travail Restant entre 110%-150% budget<br>
+                • Écart planning entre 3-7 jours<br>
+                • Rendement réel entre 60%-80% prévu
+            </div>
+        </div>
+        
+        <div class="alert-box alert-green">
+            <span class="icon">🟢</span>
+            <div>
+                <strong>SOUS CONTRÔLE :</strong><br>
+                • Travail Restant < 110% budget<br>
+                • Planning respecté ± 3 jours<br>
+                • Rendement réel > 80% prévu
+            </div>
+        </div>
+        
+        <h3>Colonnes MS Project - Noms Français</h3>
+        
+        <div class="data-box">
+            <strong>COLONNES PRINCIPALES MS PROJECT</strong><br><br>
+            • Nom de la tâche<br>
+            • Durée<br>
+            • Début<br>
+            • Fin<br>
+            • Travail<br>
+            • <strong style="color: #2a5298;">Travail restant ← COLONNE CLÉ</strong><br>
+            • Travail réel<br>
+            • % Achevé<br>
+            • % Travail achevé<br>
+            • <strong style="color: #2a5298;">Unités ← COLONNE CLÉ</strong><br>
+            • Coût<br>
+            • Contrainte
+        </div>
+    </div>
+    
+    <div class="section" style="background: #2a5298; color: white;">
+        <h2 style="color: white; border-bottom: 3px solid white;">🎯 CONCLUSION</h2>
+        
+        <p>Ce guide fournit <strong>4 approches complémentaires</strong> pour piloter efficacement vos tâches MS Project. Chaque chemin répond à un besoin spécifique du responsable d'affaires :</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 20px 0;">
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                ✅ <strong>Chemin A</strong><br>
+                Pour la réalité terrain (rendement constaté)
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                ✅ <strong>Chemin B</strong><br>
+                Pour les contraintes budgétaires (budget fixe)
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                ✅ <strong>Chemin C</strong><br>
+                Pour l'amélioration continue (optimisation)
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                ✅ <strong>Chemin D</strong><br>
+                Pour les engagements clients (dates impératives)
+            </div>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 8px
