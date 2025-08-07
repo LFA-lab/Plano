@@ -150,20 +150,33 @@
             </section>
 
             <section class="resources-section">
-                <h3>Ressources complémentaires</h3>
-                <div class="resource-grid">
-                    <div class="resource-item">
-                        <h4>Macros MS Project</h4>
-                        <a href="https://vincienergies.sharepoint.com/:f:/r/sites/GO-PlanificationPMO/Documents%20partages/General/Macro%20MSP?csf=1&web=1&e=jBa7Dm" target="_blank" class="btn btn-primary">
-                            Ouvrir la plateforme
-                        </a>
+                <h3>📚 Ressources complémentaires</h3>
+                
+                <!-- Section Macros VBA dynamique -->
+                <div class="macros-section">
+                    <h4>🔧 Macros VBA</h4>
+                    <div id="macros-list" class="macros-grid">
+                        <div class="loading-message">Chargement des macros...</div>
                     </div>
-                    
-                    <div class="resource-item">
-                        <h4>Planificateur Teams: Plan EPC de base à mettre dans votre GO-Chantier</h4>
-                        <a href="https://teams.microsoft.com/l/entity/com.microsoft.teamspace.tab.planner/_djb2_msteams_prefix_2069474311?context=%7b%22channelId%22:%2219:wx8Wq7bAiJYyJIBtjJE7KQIqqJL9N1JgmejNB9D6Nnc1%40thread.tacv2%22%7d&tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a" target="_blank" class="btn btn-primary">
-                            Ouvrir Teams
-                        </a>
+                </div>
+                
+                <!-- Autres ressources existantes -->
+                <div class="other-resources">
+                    <h4>🔗 Autres ressources</h4>
+                    <div class="resource-grid">
+                        <div class="resource-item">
+                            <h5>Macros MS Project (SharePoint)</h5>
+                            <a href="https://vincienergies.sharepoint.com/:f:/r/sites/GO-PlanificationPMO/Documents%20partages/General/Macro%20MSP?csf=1&web=1&e=jBa7Dm" target="_blank" class="btn btn-primary">
+                                Ouvrir la plateforme
+                            </a>
+                        </div>
+                        
+                        <div class="resource-item">
+                            <h5>Planificateur Teams: Plan EPC de base à mettre dans votre GO-Chantier</h5>
+                            <a href="https://teams.microsoft.com/l/entity/com.microsoft.teamspace.tab.planner/_djb2_msteams_prefix_2069474311?context=%7b%22channelId%22:%2219:wx8Wq7bAiJYyJIBtjJE7KQIqqJL9N1JgmejNB9D6Nnc1%40thread.tacv2%22%7d&tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a" target="_blank" class="btn btn-primary">
+                                Ouvrir Teams
+                            </a>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -184,5 +197,68 @@
             </div>
         </footer>
     </div>
+
+    <script>
+        // Chargement dynamique des macros depuis manifest.json
+        async function loadMacros() {
+            const macrosContainer = document.getElementById('macros-list');
+            
+            try {
+                const response = await fetch('../macros/manifest.json');
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Vider le message de chargement
+                macrosContainer.innerHTML = '';
+                
+                // Générer les cartes de macros
+                data.macros.forEach(macro => {
+                    const macroCard = document.createElement('div');
+                    macroCard.className = 'macro-card';
+                    
+                    // Encoder les URLs pour gérer les espaces et caractères spéciaux
+                    const encodedHtmlFile = encodeURIComponent(macro.htmlFile).replace(/%2F/g, '/');
+                    const encodedBasFile = encodeURIComponent(macro.basFile).replace(/%2F/g, '/');
+                    
+                    macroCard.innerHTML = `
+                        <div class="macro-header">
+                            <h5 class="macro-title">
+                                <a href="../macros/${encodedHtmlFile}" target="_blank" class="macro-link">
+                                    ${macro.title}
+                                </a>
+                            </h5>
+                        </div>
+                        <p class="macro-description">${macro.description}</p>
+                        <div class="macro-actions">
+                            <a href="../macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
+                                📖 Documentation
+                            </a>
+                            <a href="../macros/${encodedBasFile}" download class="btn btn-primary btn-small">
+                                💾 Télécharger
+                            </a>
+                        </div>
+                    `;
+                    
+                    macrosContainer.appendChild(macroCard);
+                });
+                
+            } catch (error) {
+                console.error('Erreur lors du chargement des macros:', error);
+                macrosContainer.innerHTML = `
+                    <div class="error-message">
+                        ❌ Impossible de charger les macros VBA
+                        <br><small>Vérifiez que le fichier manifest.json est accessible</small>
+                    </div>
+                `;
+            }
+        }
+        
+        // Charger les macros au chargement de la page
+        document.addEventListener('DOMContentLoaded', loadMacros);
+    </script>
 </body>
 </html>

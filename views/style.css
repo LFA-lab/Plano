@@ -405,3 +405,166 @@ header p {
         width: auto;
     }
 }
+
+/* === STYLES POUR LES MACROS VBA === */
+
+/* Section des macros */
+.macros-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.macros-section h4 {
+    color: var(--primary-blue);
+    margin-bottom: var(--spacing-md);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.other-resources {
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 2px solid var(--border-light);
+}
+
+.other-resources h4 {
+    color: var(--primary-blue);
+    margin-bottom: var(--spacing-md);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+/* Grille des macros */
+.macros-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+/* Carte de macro individuelle */
+.macro-card {
+    background: var(--background-white);
+    border: 1px solid var(--border-gray);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow-subtle);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.macro-card:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(-2px);
+    border-color: var(--secondary-blue);
+}
+
+/* En-tête de la carte macro */
+.macro-header {
+    margin-bottom: var(--spacing-sm);
+}
+
+.macro-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.macro-link {
+    color: var(--primary-blue);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.macro-link:hover {
+    color: var(--secondary-blue);
+    text-decoration: underline;
+}
+
+/* Description de la macro */
+.macro-description {
+    color: var(--text-gray);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: var(--spacing-md);
+    flex-grow: 1;
+}
+
+/* Actions de la macro */
+.macro-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: auto;
+    flex-wrap: wrap;
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+}
+
+/* Messages d'état */
+.loading-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-light);
+    font-style: italic;
+    background: var(--background-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+}
+
+.error-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--spacing-lg);
+    color: #d32f2f;
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+}
+
+.error-message small {
+    color: #757575;
+    font-weight: normal;
+    font-size: 0.85rem;
+}
+
+/* Responsive pour les macros */
+@media (max-width: 768px) {
+    .macros-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .macro-actions {
+        flex-direction: column;
+    }
+    
+    .btn-small {
+        min-width: unset;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .macro-card {
+        padding: var(--spacing-sm);
+    }
+    
+    .macro-title {
+        font-size: 1rem;
+    }
+    
+    .macro-description {
+        font-size: 0.9rem;
+    }
+}
