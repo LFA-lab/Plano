@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processus de création MS Project</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+        }
+        
+        .main-section {
+            background-color: #f4f6f8;
+            border-left: 5px solid #5d7289;
+            margin: 25px 0;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .section-title {
+            color: #5d7289;
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-number {
+            background-color: #5d7289;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+        
+        .subsection {
+            background-color: white;
+            border: 1px solid #e1e8ed;
+            margin: 15px 0;
+            padding: 18px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .subsection-title {
+            color: #34495e;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .subsection-letter {
+            background-color: #7f8c8d;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        
+        .step-detail {
+            background-color: #f8f9fb;
+            border: 1px solid #d6dbdf;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        
+        .step-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .step-content {
+            margin-left: 20px;
+        }
+        
+        .data-list {
+            background-color: white;
+            border: 1px solid #bdc3c7;
+            padding: 12px 15px;
+            border-radius: 3px;
+            margin: 8px 0;
+        }
+        
+        .data-list li {
+            margin: 5px 0;
+            color: #555;
+        }
+        
+        .macro-code {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        
+        .criteria {
+            font-weight: 600;
+            color: #e74c3c;
+            background-color: #fdf2f2;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 4px solid #e74c3c;
+            margin: 10px 0;
+        }
+        
+        .final-steps {
+            background-color: #e8f5e8;
+            border: 1px solid #27ae60;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .final-step {
+            color: #27ae60;
+            font-weight: 600;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .step-letter {
+            background-color: #27ae60;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        
+        .arrow {
+            text-align: center;
+            font-size: 24px;
+            color: #3498db;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ Processus de création de votre projet MS Project</h1>
+        
+        <div class="main-section">
+            <div class="section-title">
+                <div class="section-number">1</div>
+                Création de votre projet MS Project
+            </div>
+            
+            <div class="subsection">
+                <div class="subsection-title">
+                    <div class="subsection-letter">a</div>
+                    Chantier en-dessous de 10 MW
+                </div>
+                <div class="criteria">⚡ Critère : Puissance &lt; 10 MW</div>
+                
+                <div class="step-detail">
+                    <div class="step-title">a.1 Prendre le fichier d'import simple :</div>
+                    <div class="step-content">
+                        <ul class="data-list">
+                            <li><strong>Noms des tâches</strong> - Définition des activités du projet</li>
+                            <li><strong>Quantités</strong> - Volumes de travail à réaliser</li>
+                            <li><strong>Nombre de personnes</strong> - Ressources humaines nécessaires</li>
+                            <li><strong>Heures Budgetées</strong> - Temps alloué par tâche</li>
+                        </ul>
+                        <p><strong>🔧 Macro à utiliser :</strong> <span class="macro-code">ImportSimple.bas</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="subsection">
+                <div class="subsection-title">
+                    <div class="subsection-letter">b</div>
+                    Chantier au-dessus de 10 MW
+                </div>
+                <div class="criteria">⚡ Critère : Puissance ≥ 10 MW</div>
+                
+                <div class="step-detail">
+                    <div class="step-title">b.1 Prendre le fichier d'import complexe :</div>
+                    <div class="step-content">
+                        <ul class="data-list">
+                            <li><strong>Noms des tâches</strong> - Définition des activités du projet</li>
+                            <li><strong>Quantités</strong> - Volumes de travail à réaliser</li>
+                            <li><strong>Nombre de personnes</strong> - Ressources humaines nécessaires</li>
+                            <li><strong>Heures Budgetées</strong> - Temps alloué par tâche</li>
+                            <li><strong>Onduleur_ID</strong> - Identifiants des onduleurs</li>
+                            <li><strong>Nb_strings</strong> - Nombre de chaînes photovoltaïques</li>
+                            <li><strong>Mètres</strong> - Distances et longueurs</li>
+                        </ul>
+                        <p><strong>🔧 Macro à utiliser :</strong> <span class="macro-code">ImportComplexe.bas</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="arrow">⬇️</div>
+        
+        <div class="main-section">
+            <div class="section-title">
+                <div class="section-number">2</div>
+                Obtention de votre MS Project
+            </div>
+            
+            <div class="final-steps">
+                <div class="final-step">
+                    <div class="step-letter">a</div>
+                    Mettez vos prédécesseurs & successeurs
+                </div>
+                <div style="margin-left: 30px; color: #555; font-size: 14px; margin-bottom: 15px;">
+                    Définir les liens logiques entre les tâches du projet
+                </div>
+                
+                <div class="final-step">
+                    <div class="step-letter">b</div>
+                    Mettez vos dates de début à chacune de vos tâches
+                </div>
+                <div style="margin-left: 30px; color: #555; font-size: 14px; margin-bottom: 15px;">
+                    Planifier le calendrier d'exécution du projet
+                </div>
+                
+                <div class="final-step">
+                    <div class="step-letter">c</div>
+                    Validez votre planning de référence
+                </div>
+                <div style="margin-left: 30px; color: #555; font-size: 14px;">
+                    Figer le planning initial pour le suivi et contrôle
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px; padding: 20px; background-color: #e8f4f8; border-radius: 5px; border: 1px solid #3498db;">
+            <strong style="color: #2980b9;">✅ Votre projet MS Project est maintenant prêt !</strong>
+        </div>
+    </div>
+</body>
+</html>
