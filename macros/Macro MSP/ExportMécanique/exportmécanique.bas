@@ -53,22 +53,17 @@ Sub ExportMecaniqueComplet()
     
     Dim fileName As String, downloadPath As String
     Dim startDate As Date, endDate As Date
-    Dim res As Resource, assn As Assignment
-    Dim resName As Variant, dateKey As String
-    Dim tsv As TimeScaleValues
     Dim xlApp As Object, xlBook As Object, xlRecapSheet As Object, xlDetailSheet As Object
     
     ' Collections pour les données
     Dim resList As Collection
     Dim resAssignments As Object
-    Dim dataDict As Object  ' Pour les données détaillées (dates réelles)
-    Dim dateDict As Object  ' Pour tracker les dates
-    Dim recapData As Collection  ' Pour le récapitulatif
+    Dim totalPlanned As Object
+    Dim dailyActual As Object
+    Dim cumActual As Object
+    Dim datesAsc As Variant, datesDesc As Variant
+    Dim recapData As Collection
 
-    Set resList = New Collection
-    Set resAssignments = CreateObject("Scripting.Dictionary")
-    Set dataDict = CreateObject("Scripting.Dictionary")
-    Set dateDict = CreateObject("Scripting.Dictionary")
     Set recapData = New Collection
 
     On Error GoTo ErrorHandler
@@ -84,86 +79,39 @@ Sub ExportMecaniqueComplet()
     startDate = ActiveProject.ProjectStart
     endDate = ActiveProject.ProjectFinish
 
-    Debug.Print "=== ÉTAPE 1: Collecte des ressources mécaniques ==="
+    Debug.Print "=== ÉTAPE 1: Collecte et tri des ressources mécaniques ==="
+    Set resList = GetSortedMechanicalResources(ActiveProject)
     
-    ' Collecter les ressources du groupe Mécanique
-    For Each res In ActiveProject.Resources
-        If Not res Is Nothing Then
-            Dim cleanGroup As String
-            cleanGroup = Trim(Replace(Replace(res.Group, Chr(160), ""), Chr(32), " "))
-            
-            If (res.Type = 1 Or res.Type = 2) And _
-               (cleanGroup = "Mécanique" Or cleanGroup = "Mécanique" Or _
-                UCase(cleanGroup) = "Mécanique" Or UCase(cleanGroup) = "Mécanique") Then
-                
-                Debug.Print "Ressource trouvée: " & res.Name
-                resList.Add res.Name
-                Set resAssignments(res.Name) = New Collection
-                Set dataDict(res.Name) = CreateObject("Scripting.Dictionary")
-            End If
-        End If
-    Next res
-
     If resList.Count = 0 Then
         MsgBox "?? Aucune ressource du groupe Mécanique trouvée dans le projet.", vbExclamation
         Exit Sub
     End If
 
     Debug.Print "=== ÉTAPE 2: Collecte des assignations ==="
-    
-    ' Collecter toutes les assignations des ressources mécaniques
-    For Each res In ActiveProject.Resources
-        If Not res Is Nothing And resAssignments.exists(res.Name) Then
-            For Each assn In res.Assignments
-                resAssignments(res.Name).Add assn
-            Next
-        End If
-    Next
+    Set resAssignments = MapAssignmentsByResource(resList)
 
-    Debug.Print "=== ÉTAPE 3: Calcul des données détaillées (dates réelles) ==="
-    
-    ' Collecter les données détaillées avec dates réelles uniquement
-    For Each resName In resList
-        For Each assn In resAssignments(resName)
-            Set tsv = assn.TimeScaleData(startDate, endDate + 1, pjAssignmentTimescaledActualWork, pjTimescaleDays)
-            Dim i As Integer
-            For i = 1 To tsv.Count
-                If Not tsv(i) Is Nothing And IsNumeric(tsv(i).value) Then
-                    If tsv(i).value <> 0 Then
-                        dateKey = Format(tsv(i).startDate, "yyyy-mm-dd")
-                        
-                        ' Accumuler les valeurs pour cette ressource/date
-                        If dataDict(resName).exists(dateKey) Then
-                            dataDict(resName)(dateKey) = dataDict(resName)(dateKey) + tsv(i).value
-                        Else
-                            dataDict(resName)(dateKey) = tsv(i).value
-                        End If
-                        
-                        ' Tracker les dates uniques
-                        If Not dateDict.exists(dateKey) Then dateDict.Add dateKey, True
-                    End If
-                End If
-            Next i
-        Next
-    Next
+    Debug.Print "=== ÉTAPE 3: Calcul des données ==="
+    Set totalPlanned = ComputeTotalPlannedWork(resAssignments)
+    Set dailyActual = ComputeDailyActualWork(resAssignments, startDate, endDate)
+    datesAsc = BuildActualDatesIndex(dailyActual, True)
+    Set cumActual = ComputeCumulativeActual(dailyActual, datesAsc)
+    datesDesc = ReverseArray(datesAsc)
 
     Debug.Print "=== ÉTAPE 4: Calcul du récapitulatif global ==="
     
-    ' Calculer le récapitulatif global
+    ' Calculer le récapitulatif global (utilise totalPlanned et cumActual)
+    Dim resName As Variant
     For Each resName In resList
-        Dim recapTotalWork As Double: recapTotalWork = 0
+        Dim recapTotalWork As Double: recapTotalWork = totalPlanned(resName)
         Dim recapTotalActual As Double: recapTotalActual = 0
-
-        For Each assn In resAssignments(resName)
-            recapTotalWork = recapTotalWork + assn.Work
-            
-            Set tsv = assn.TimeScaleData(startDate, endDate + 1, pjAssignmentTimescaledActualWork, pjTimescaleDays)
-            For i = 1 To tsv.Count
-                If Not tsv(i) Is Nothing And IsNumeric(tsv(i).value) Then
-                    recapTotalActual = recapTotalActual + tsv(i).value
-                End If
-            Next i
-        Next
+        
+        ' Calculer le total réel (maximum du cumul)
+        If Not IsEmpty(datesAsc) And UBound(datesAsc) >= LBound(datesAsc) Then
+            Dim lastDate As String: lastDate = datesAsc(UBound(datesAsc))
+            If cumActual(resName).exists(lastDate) Then
+                recapTotalActual = cumActual(resName)(lastDate)
+            End If
+        End If
 
         Dim recapPercent As Double
         If recapTotalWork > 0 Then
@@ -182,11 +130,6 @@ Sub ExportMecaniqueComplet()
     Next
 
     Debug.Print "=== ÉTAPE 5: Création du fichier Excel ==="
-
-    ' Tri des dates
-    Dim sortedDates As Variant
-    sortedDates = dateDict.Keys
-    Call QuickSort(sortedDates, LBound(sortedDates), UBound(sortedDates))
 
     ' Créer Excel avec 2 onglets
     Set xlApp = CreateObject("Excel.Application")
@@ -261,47 +204,25 @@ Sub ExportMecaniqueComplet()
     Debug.Print "=== ONGLET 2: Écriture des données détaillées ==="
     
     ' === ONGLET 2 : DONNÉES DÉTAILLÉES ===
-    With xlDetailSheet
-        ' En-têtes
-        .Cells(1, 1).value = "Date"
-        Dim c As Integer: c = 2
-        Dim resColMap As Object: Set resColMap = CreateObject("Scripting.Dictionary")
-        
-        For Each resName In resList
-            .Cells(1, c).value = resName
-            resColMap(resName) = c
-            c = c + 1
-        Next
-        
-        ' Données par date (uniquement dates avec valeurs réelles)
-        Dim r As Integer: r = 2
-        Dim d As Variant
-        For Each d In sortedDates
-            .Cells(r, 1).value = Format(CDate(d), "dd/mm/yyyy")
-            For Each resName In resList
-                If dataDict(resName).exists(d) Then
-                    .Cells(r, resColMap(resName)).value = Round(dataDict(resName)(d), 2)
-                End If
-            Next
-            r = r + 1
-        Next
-        
-        ' Mise en forme données détaillées
-        .Range("A1").Resize(1, c - 1).Interior.Color = RGB(68, 114, 196)
-        .Range("A1").Resize(1, c - 1).Font.Color = RGB(255, 255, 255)
-        .Range("A1").Resize(1, c - 1).Font.Bold = True
-        .Columns.AutoFit
-    End With
+    Call WriteDetailSheet(xlDetailSheet, datesDesc, resList, totalPlanned, dailyActual, cumActual)
+    Call FormatDetailSheet(xlDetailSheet)
 
     ' Sauvegarder et ouvrir
     xlBook.SaveAs fileName
     xlRecapSheet.Activate
     xlApp.Visible = True
     
+    Dim dateCount As String
+    If Not IsEmpty(datesAsc) And UBound(datesAsc) >= LBound(datesAsc) Then
+        dateCount = CStr(UBound(datesAsc) + 1) & " dates réelles"
+    Else
+        dateCount = "0 dates réelles"
+    End If
+    
     MsgBox "? Export terminé :" & vbCrLf & _
            "?? Fichier Excel : " & fileName & vbCrLf & _
            "?? Onglet 1 : Récapitulatif (" & recapData.Count & " ressources)" & vbCrLf & _
-           "?? Onglet 2 : Données détaillées (" & UBound(sortedDates) + 1 & " dates réelles)" & vbCrLf & _
+           "?? Onglet 2 : Données détaillées (" & dateCount & ")" & vbCrLf & _
            "?? " & resList.Count & " ressource(s) mécanique(s) exportée(s)", vbInformation
     
     Shell "explorer.exe /select,""" & fileName & """", vbNormalFocus
@@ -343,5 +264,424 @@ Private Sub QuickSort(arr As Variant, first As Long, last As Long)
     Loop
     If first < high Then QuickSort arr, first, high
     If low < last Then QuickSort arr, low, last
+End Sub
+
+' === NOUVELLES FONCTIONS REFACTORISÉES ===
+
+' Tri des ressources mécaniques par ID de tâche ascendant
+Private Function GetSortedMechanicalResources(proj As Project) As Collection
+    Dim resInfo As Object
+    Set resInfo = CreateObject("System.Collections.ArrayList")
+
+    Dim res As Resource
+    For Each res In proj.Resources
+        If Not res Is Nothing Then
+            Dim cleanGroup As String
+            cleanGroup = Trim(Replace(Replace(res.Group, Chr(160), ""), Chr(32), " "))
+            
+            If (res.Type = 1 Or res.Type = 2) And _
+               (cleanGroup = "Mécanique" Or UCase(cleanGroup) = "MÉCANIQUE") Then
+                
+                Dim minTaskId As Long
+                minTaskId = 2147483647 ' Max value for Long
+                
+                If res.Assignments.Count > 0 Then
+                    Dim assn As Assignment
+                    For Each assn In res.Assignments
+                        If assn.Task.ID < minTaskId Then
+                            minTaskId = assn.Task.ID
+                        End If
+                    Next assn
+                End If
+                
+                resInfo.Add Array(res.Name, minTaskId)
+            End If
+        End If
+    Next res
+
+    ' Tri
+    If resInfo.Count > 1 Then
+        Dim resArray As Variant
+        resArray = resInfo.ToArray()
+        QuickSortResources resArray, 0, resInfo.Count - 1
+        resInfo.Clear
+        
+        Dim i As Long
+        For i = 0 To UBound(resArray)
+            resInfo.Add resArray(i)
+        Next i
+    End If
+    
+    ' Créer la collection de noms de ressources triée
+    Dim sortedResList As Collection
+    Set sortedResList = New Collection
+    
+    Dim item As Variant
+    For Each item In resInfo
+        sortedResList.Add item(0)
+        Debug.Print "Ressource triée: " & item(0) & " (TaskID: " & item(1) & ")"
+    Next
+    
+    Set GetSortedMechanicalResources = sortedResList
+End Function
+
+' Quicksort pour l'array de ressources (array de arrays)
+Private Sub QuickSortResources(arr As Variant, first As Long, last As Long)
+    Dim low As Long, high As Long
+    Dim pivot As Long
+    Dim temp As Variant
+    
+    low = first
+    high = last
+    pivot = arr((first + last) \ 2)(1) ' Pivot sur le minTaskId
+
+    Do While low <= high
+        ' Chercher un élément à gauche qui devrait être à droite
+        Do While arr(low)(1) < pivot
+            low = low + 1
+        Loop
+        ' Chercher un élément à droite qui devrait être à gauche
+        Do While arr(high)(1) > pivot
+            high = high - 1
+        Loop
+        
+        If low <= high Then
+            ' Échanger
+            temp = arr(low)
+            arr(low) = arr(high)
+            arr(high) = temp
+            
+            low = low + 1
+            high = high - 1
+        End If
+    Loop
+
+    If first < high Then QuickSortResources arr, first, high
+    If low < last Then QuickSortResources arr, low, last
+End Sub
+
+
+' Index assignations par ressource
+Private Function MapAssignmentsByResource(resList As Collection) As Object
+    Dim resAssignments As Object
+    Set resAssignments = CreateObject("Scripting.Dictionary")
+    
+    Dim resName As Variant
+    For Each resName In resList
+        Set resAssignments(resName) = New Collection
+    Next
+    
+    Dim res As Resource, assn As Assignment
+    For Each res In ActiveProject.Resources
+        If Not res Is Nothing And resAssignments.exists(res.Name) Then
+            For Each assn In res.Assignments
+                resAssignments(res.Name).Add assn
+            Next
+        End If
+    Next
+    
+    Set MapAssignmentsByResource = resAssignments
+End Function
+
+' Totaux prévus par ressource (Work)
+Private Function ComputeTotalPlannedWork(resAssignments As Object) As Object
+    Dim totalPlanned As Object
+    Set totalPlanned = CreateObject("Scripting.Dictionary")
+    
+    Dim resName As Variant, assn As Assignment
+    For Each resName In resAssignments.Keys
+        Dim totalWork As Double: totalWork = 0
+        For Each assn In resAssignments(resName)
+            totalWork = totalWork + assn.Work
+        Next
+        totalPlanned(resName) = totalWork
+    Next
+    
+    Set ComputeTotalPlannedWork = totalPlanned
+End Function
+
+' Travail réel par jour : Dict(resName -> Dict("yyyy-mm-dd" -> Double))
+Private Function ComputeDailyActualWork(resAssignments As Object, startDate As Date, endDate As Date) As Object
+    Dim dailyActual As Object
+    Set dailyActual = CreateObject("Scripting.Dictionary")
+    
+    Dim resName As Variant, assn As Assignment
+    For Each resName In resAssignments.Keys
+        Set dailyActual(resName) = CreateObject("Scripting.Dictionary")
+        
+        For Each assn In resAssignments(resName)
+            Dim tsv As TimeScaleValues
+            Set tsv = assn.TimeScaleData(startDate, endDate + 1, pjAssignmentTimescaledActualWork, pjTimescaleDays)
+            
+            Dim i As Integer
+            For i = 1 To tsv.Count
+                If Not tsv(i) Is Nothing And IsNumeric(tsv(i).Value) Then
+                    If tsv(i).Value <> 0 Then
+                        Dim dateKey As String
+                        dateKey = Format(tsv(i).startDate, "yyyy-mm-dd")
+                        
+                        If dailyActual(resName).exists(dateKey) Then
+                            dailyActual(resName)(dateKey) = dailyActual(resName)(dateKey) + tsv(i).Value
+                        Else
+                            dailyActual(resName)(dateKey) = tsv(i).Value
+                        End If
+                    End If
+                End If
+            Next i
+        Next
+    Next
+    
+    Set ComputeDailyActualWork = dailyActual
+End Function
+
+' Dates où il y a du réel (union de toutes les ressources), triées
+Private Function BuildActualDatesIndex(dailyActual As Object, Optional ascending As Boolean = True) As Variant
+    Dim dateDict As Object
+    Set dateDict = CreateObject("Scripting.Dictionary")
+    
+    Dim resName As Variant, dateKey As Variant
+    For Each resName In dailyActual.Keys
+        For Each dateKey In dailyActual(resName).Keys
+            If Not dateDict.exists(dateKey) Then
+                dateDict.Add dateKey, True
+            End If
+        Next
+    Next
+    
+    If dateDict.Count = 0 Then
+        BuildActualDatesIndex = Array()
+        Exit Function
+    End If
+    
+    Dim sortedDates As Variant
+    sortedDates = dateDict.Keys
+    Call QuickSort(sortedDates, LBound(sortedDates), UBound(sortedDates))
+    
+    If Not ascending Then
+        sortedDates = ReverseArray(sortedDates)
+    End If
+    
+    BuildActualDatesIndex = sortedDates
+End Function
+
+' Cumul par ressource et par date (dans le sens chronologique)
+Private Function ComputeCumulativeActual(dailyActual As Object, orderedDatesAsc As Variant) As Object
+    Dim cumActual As Object
+    Set cumActual = CreateObject("Scripting.Dictionary")
+    
+    Dim resName As Variant
+    For Each resName In dailyActual.Keys
+        Set cumActual(resName) = CreateObject("Scripting.Dictionary")
+        
+        Dim cumSum As Double: cumSum = 0
+        Dim d As Variant
+        For Each d In orderedDatesAsc
+            If dailyActual(resName).exists(d) Then
+                cumSum = cumSum + dailyActual(resName)(d)
+            End If
+            cumActual(resName)(d) = cumSum
+        Next
+    Next
+    
+    Set ComputeCumulativeActual = cumActual
+End Function
+
+' Helper pour inverser un array
+Private Function ReverseArray(arr As Variant) As Variant
+    If IsEmpty(arr) Or UBound(arr) < LBound(arr) Then
+        ReverseArray = arr
+        Exit Function
+    End If
+    
+    Dim result As Variant
+    ReDim result(LBound(arr) To UBound(arr))
+    
+    Dim i As Long, j As Long
+    j = UBound(arr)
+    For i = LBound(arr) To UBound(arr)
+        result(i) = arr(j)
+        j = j - 1
+    Next
+    
+    ReverseArray = result
+End Function
+
+' Écriture onglet Données détaillées (Qté, Réel, Jour, %)
+Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
+    resOrder As Collection, totalPlanned As Object, dailyActual As Object, cumActual As Object)
+    
+    ' Déclarations de variables
+    Dim col As Integer
+    Dim resColMap As Object
+    Dim resName As Variant
+    Dim baseCol As Integer
+    Dim row As Integer
+    Dim d As Variant
+    Dim realValue As Double
+    Dim percentValue As Double
+    
+    ' En-têtes sur 2 lignes
+    ' Ligne 1 : A1 vide, puis noms de ressources fusionnés sur 4 colonnes
+    xlWs.Cells(1, 1).Value = ""
+    
+    col = 2
+    Set resColMap = CreateObject("Scripting.Dictionary")
+    
+    For Each resName In resOrder
+        ' Fusionner 4 cellules pour le nom de la ressource
+        xlWs.Range(xlWs.Cells(1, col), xlWs.Cells(1, col + 3)).Merge
+        xlWs.Cells(1, col).Value = resName
+        xlWs.Cells(1, col).HorizontalAlignment = -4108  ' xlCenter
+        
+        resColMap(resName) = col
+        col = col + 4
+    Next
+    
+    ' Ligne 2 : "Date" en A2, puis sous-en-têtes pour chaque ressource
+    xlWs.Cells(2, 1).Value = "Date"
+    
+    For Each resName In resOrder
+        baseCol = resColMap(resName)
+        xlWs.Cells(2, baseCol).Value = "Qté"
+        xlWs.Cells(2, baseCol + 1).Value = "Réel"
+        xlWs.Cells(2, baseCol + 2).Value = "Jour"
+        xlWs.Cells(2, baseCol + 3).Value = "%"
+    Next
+    
+    ' Données par date
+    If IsEmpty(orderedDatesDesc) Or UBound(orderedDatesDesc) < LBound(orderedDatesDesc) Then
+        xlWs.Cells(3, 1).Value = "Aucune donnée réelle trouvée"
+        Exit Sub
+    End If
+    
+    row = 3
+    For Each d In orderedDatesDesc
+        xlWs.Cells(row, 1).Value = Format(CDate(d), "dd/mm/yyyy")
+        
+        For Each resName In resOrder
+            baseCol = resColMap(resName)
+            
+            ' Qté (total prévu)
+            xlWs.Cells(row, baseCol).Value = totalPlanned(resName)
+            
+            ' Réel (cumul)
+            realValue = 0
+            If cumActual(resName).exists(d) Then
+                realValue = cumActual(resName)(d)
+                xlWs.Cells(row, baseCol + 1).Value = realValue
+            Else
+                xlWs.Cells(row, baseCol + 1).Value = 0
+            End If
+            
+            ' Jour (travail du jour)
+            If dailyActual(resName).exists(d) Then
+                xlWs.Cells(row, baseCol + 2).Value = dailyActual(resName)(d)
+            Else
+                xlWs.Cells(row, baseCol + 2).Value = 0
+            End If
+            
+            ' % (pourcentage Réel/Qté)
+            percentValue = 0
+            If totalPlanned(resName) > 0 Then
+                percentValue = Round((realValue / totalPlanned(resName)) * 100, 1)
+            End If
+            xlWs.Cells(row, baseCol + 3).Value = percentValue & "%"
+        Next
+        row = row + 1
+    Next
+End Sub
+
+' Mise en forme (fige ligne 1, formats, bordures)
+Private Sub FormatDetailSheet(xlWs As Object)
+    ' Figer la ligne 1
+    xlWs.Range("A2").Select
+    xlWs.Application.ActiveWindow.FreezePanes = True
+    
+    ' Mise en forme des en-têtes
+    Dim lastCol As Integer: lastCol = xlWs.UsedRange.Columns.Count
+    xlWs.Range("A1").Resize(1, lastCol).Interior.Color = RGB(68, 114, 196)
+    xlWs.Range("A1").Resize(1, lastCol).Font.Color = RGB(255, 255, 255)
+    xlWs.Range("A1").Resize(1, lastCol).Font.Bold = True
+    
+    ' Bordures fines
+    Dim lastRow As Integer: lastRow = xlWs.UsedRange.Rows.Count
+    If lastRow > 1 Then
+        xlWs.Range("A1").Resize(lastRow, lastCol).Borders.LineStyle = 1  ' xlContinuous
+        xlWs.Range("A1").Resize(lastRow, lastCol).Borders.Weight = 2     ' xlThin
+    End If
+    
+    ' AutoFit
+    xlWs.Columns.AutoFit
+    
+    ' === FORMAT D'AFFICHAGE SANS DÉCIMALES ===
+    ' Appliquer le format entier/pourcentage à toutes les colonnes de données
+    If lastRow > 2 Then ' S'il y a des données (au-delà des en-têtes)
+        Dim formatCol As Integer
+        
+        ' Parcourir toutes les colonnes de données (colonnes 2 et suivantes, par groupes de 4)
+        For formatCol = 2 To lastCol Step 4
+            If formatCol <= lastCol Then
+                ' Colonne "Qté" → format entier
+                xlWs.Range(xlWs.Cells(3, formatCol), xlWs.Cells(lastRow, formatCol)).NumberFormat = "0"
+            End If
+            
+            If formatCol + 1 <= lastCol Then
+                ' Colonne "Réel" → format entier
+                xlWs.Range(xlWs.Cells(3, formatCol + 1), xlWs.Cells(lastRow, formatCol + 1)).NumberFormat = "0"
+            End If
+            
+            If formatCol + 2 <= lastCol Then
+                ' Colonne "Jour" → format entier
+                xlWs.Range(xlWs.Cells(3, formatCol + 2), xlWs.Cells(lastRow, formatCol + 2)).NumberFormat = "0"
+            End If
+            
+            If formatCol + 3 <= lastCol Then
+                ' Colonne "%" → format pourcentage entier (mais les valeurs sont déjà en % textuel)
+                ' On garde le format texte car les valeurs contiennent déjà le symbole %
+                ' Si on voulait un vrai format pourcentage : xlWs.Range(...).NumberFormat = "0%"
+            End If
+        Next formatCol
+    End If
+End Sub
+
+' ===================================================================
+' FONCTIONS POUR BOUTON ET VISIBILITÉ DANS "PERSONNALISER LE RUBAN"
+' ===================================================================
+
+' Bouton "Ruban" (via Personnaliser le ruban > Macros)
+Public Sub ExportMeca_Bouton()
+    ' Lance l'export complet (2 onglets, logique existante)
+    ExportMecaniqueComplet
+End Sub
+
+' Crée un bouton dans l'onglet Compléments (Add-Ins) pour lancer l'export
+Public Sub InstallerBoutonExportMeca()
+    On Error Resume Next
+    ' Nettoyage si déjà présent
+    Application.CommandBars("ExportMeca").Delete
+    On Error GoTo 0
+
+    Dim cb As CommandBar
+    Dim btn As CommandBarButton
+
+    Set cb = Application.CommandBars.Add(Name:="ExportMeca", Position:=msoBarTop, Temporary:=True)
+    Set btn = cb.Controls.Add(Type:=msoControlButton)
+
+    With btn
+        .Caption = "Export Mécanique"
+        .OnAction = "ExportMeca_Bouton"  ' appelle le wrapper
+        .Style = msoButtonIconAndCaption
+        .FaceId = 176  ' icône standard Office ; changeable si besoin
+        .TooltipText = "Exporter Récapitulatif + Données détaillées (Mécanique)"
+    End With
+
+    cb.Visible = True
+End Sub
+
+' Optionnel : suppression du bouton Compléments
+Public Sub SupprimerBoutonExportMeca()
+    On Error Resume Next
+    Application.CommandBars("ExportMeca").Delete
+    On Error GoTo 0
 End Sub
 
