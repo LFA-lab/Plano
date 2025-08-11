@@ -94,7 +94,7 @@ Sub ExportMecaniqueComplet()
             
             If (res.Type = 1 Or res.Type = 2) And _
                (cleanGroup = "Mécanique" Or cleanGroup = "Mécanique" Or _
-                UCase(cleanGroup) = "MÉCANIQUE" Or UCase(cleanGroup) = "MECANIQUE") Then
+                UCase(cleanGroup) = "Mécanique" Or UCase(cleanGroup) = "Mécanique") Then
                 
                 Debug.Print "Ressource trouvée: " & res.Name
                 resList.Add res.Name
