@@ -19,17 +19,17 @@ Sub EcartPlanning()
 
     ' Colonnes vue macro (avec Statut et Action)
     Dim headersMacro As Variant
-    headersMacro = Array("Nom de la tâche", "Début référence", "Fin référence", _
-                         "Début prévu/actuel", "Fin prévu/actuel", _
-                         "Écart début (jours)", "Écart fin (jours)", _
+    headersMacro = Array("Nom de la tï¿½che", "Dï¿½but rï¿½fï¿½rence", "Fin rï¿½fï¿½rence", _
+                         "Dï¿½but prï¿½vu/actuel", "Fin prï¿½vu/actuel", _
+                         "ï¿½cart dï¿½but (jours)", "ï¿½cart fin (jours)", _
                          "Statut", "Action")
     nbColMacro = UBound(headersMacro) + 1
 
     ' Colonnes vue micro (sans Statut ni Action)
     Dim headersMicro As Variant
-    headersMicro = Array("Nom de la tâche", "Début référence", "Fin référence", _
-                         "Début prévu/actuel", "Fin prévu/actuel", _
-                         "Écart début (jours)", "Écart fin (jours)")
+    headersMicro = Array("Nom de la tï¿½che", "Dï¿½but rï¿½fï¿½rence", "Fin rï¿½fï¿½rence", _
+                         "Dï¿½but prï¿½vu/actuel", "Fin prï¿½vu/actuel", _
+                         "ï¿½cart dï¿½but (jours)", "ï¿½cart fin (jours)")
     nbColMicro = UBound(headersMicro) + 1
 
     Dim i As Integer
@@ -50,7 +50,7 @@ Sub EcartPlanning()
     ' EN-TETE BLEUE dynamique
     With feuilleMacro.Range(feuilleMacro.Cells(1, 1), feuilleMacro.Cells(1, nbColMacro))
         .Merge
-        .Value = "Suivi des tâches - Vue Macro"
+        .Value = "Suivi des tï¿½ches - Vue Macro"
         .Font.Size = 16
         .Font.Bold = True
         .HorizontalAlignment = -4108
@@ -61,7 +61,7 @@ Sub EcartPlanning()
     End With
     With feuilleMicro.Range(feuilleMicro.Cells(1, 1), feuilleMicro.Cells(1, nbColMicro))
         .Merge
-        .Value = "Suivi des tâches - Vue Micro"
+        .Value = "Suivi des tï¿½ches - Vue Micro"
         .Font.Size = 16
         .Font.Bold = True
         .HorizontalAlignment = -4108
@@ -83,7 +83,7 @@ Sub EcartPlanning()
         .Font.Color = RGB(255, 255, 255)
     End With
 
-    Application.StatusBar = "Extraction des tâches..."
+    Application.StatusBar = "Extraction des tï¿½ches..."
 
     For Each tache In ActiveProject.Tasks
         If Not tache Is Nothing Then
@@ -100,13 +100,13 @@ Sub EcartPlanning()
                     action = "Ne rien faire, surveiller"
                 ElseIf ecartFin < 0 Then
                     statutColor = RGB(255, 192, 0) ' JAUNE
-                    action = "Voir si on peut avancer la tâche suivante"
+                    action = "Voir si on peut avancer la tï¿½che suivante"
                 Else
                     statutColor = RGB(255, 0, 0) ' ROUGE pur, ou RGB(255, 80, 80) pour plus doux
                     If ecartFin > 7 Then
-                        action = "Alerte : vérifier la cause du retard + action corrective"
+                        action = "Alerteï¿½: vï¿½rifier la cause du retard + action corrective"
                     Else
-                        action = "Vérifier l'impact et agir immédiatement"
+                        action = "Vï¿½rifier l'impact et agir immï¿½diatement"
                     End If
                 End If
 
@@ -149,7 +149,7 @@ Sub EcartPlanning()
     feuilleMacro.Rows(2).AutoFilter
     feuilleMicro.Rows(2).AutoFilter
 
-    ' Centrage horizontal des dates colonnes B à E
+    ' Centrage horizontal des dates colonnes B ï¿½ E
     feuilleMacro.Range("B3:E" & feuilleMacro.Cells(feuilleMacro.Rows.Count, "B").End(-4162).row).HorizontalAlignment = -4108
     feuilleMicro.Range("B3:E" & feuilleMicro.Cells(feuilleMicro.Rows.Count, "B").End(-4162).row).HorizontalAlignment = -4108
 
@@ -287,3 +287,44 @@ Function GetBase64() As String
     parts(93) = "UUAFFFFABRRRQB//2Q=="
     GetBase64 = Join(parts, "")
 End Function
+
+' ===================================================================
+' FONCTIONS POUR BOUTON ET VISIBILITÃ‰ DANS "PERSONNALISER LE RUBAN"
+' ===================================================================
+
+' Bouton "Ruban" (via Personnaliser le ruban > Macros)
+Public Sub EcartPlanning_Bouton()
+    ' Lance l'analyse des Ã©carts de planning
+    EcartPlanning
+End Sub
+
+' CrÃ©e un bouton dans l'onglet ComplÃ©ments (Add-Ins) pour lancer l'analyse
+Public Sub InstallerBoutonEcartPlanning()
+    On Error Resume Next
+    ' Nettoyage si dÃ©jÃ  prÃ©sent
+    Application.CommandBars("EcartPlanning").Delete
+    On Error GoTo 0
+
+    Dim cb As CommandBar
+    Dim btn As CommandBarButton
+
+    Set cb = Application.CommandBars.Add(Name:="EcartPlanning", Position:=msoBarTop, Temporary:=True)
+    Set btn = cb.Controls.Add(Type:=msoControlButton)
+
+    With btn
+        .Caption = "Ã‰cart Planning"
+        .OnAction = "EcartPlanning_Bouton"  ' appelle le wrapper
+        .Style = msoButtonIconAndCaption
+        .FaceId = 253  ' icÃ´ne calendrier/planning
+        .TooltipText = "Analyser les Ã©carts de planning (dates dÃ©but/fin)"
+    End With
+
+    cb.Visible = True
+End Sub
+
+' Optionnel : suppression du bouton ComplÃ©ments
+Public Sub SupprimerBoutonEcartPlanning()
+    On Error Resume Next
+    Application.CommandBars("EcartPlanning").Delete
+    On Error GoTo 0
+End Sub

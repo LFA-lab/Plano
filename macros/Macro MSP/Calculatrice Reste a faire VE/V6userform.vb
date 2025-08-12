@@ -167,3 +167,44 @@ Private Function NbJoursOuvres(date1 As Date, date2 As Date, joursFeries As Vari
     Next d
     NbJoursOuvres = cpt
 End Function
+
+' ===================================================================
+' FONCTIONS POUR BOUTON ET VISIBILITÉ DANS "PERSONNALISER LE RUBAN"
+' ===================================================================
+
+' Bouton "Ruban" (via Personnaliser le ruban > Macros)
+Public Sub CalculatriceVE_Bouton()
+    ' Lance la calculatrice Reste à faire VE
+    datecalcul.Show
+End Sub
+
+' Crée un bouton dans l'onglet Compléments (Add-Ins) pour lancer la calculatrice
+Public Sub InstallerBoutonCalculatriceVE()
+    On Error Resume Next
+    ' Nettoyage si déjà présent
+    Application.CommandBars("CalculatriceVE").Delete
+    On Error GoTo 0
+
+    Dim cb As CommandBar
+    Dim btn As CommandBarButton
+
+    Set cb = Application.CommandBars.Add(Name:="CalculatriceVE", Position:=msoBarTop, Temporary:=True)
+    Set btn = cb.Controls.Add(Type:=msoControlButton)
+
+    With btn
+        .Caption = "Calculatrice VE"
+        .OnAction = "CalculatriceVE_Bouton"  ' appelle le wrapper
+        .Style = msoButtonIconAndCaption
+        .FaceId = 298  ' icône calculatrice Office
+        .TooltipText = "Calculatrice Reste à faire VE - Estimation travail et planning"
+    End With
+
+    cb.Visible = True
+End Sub
+
+' Optionnel : suppression du bouton Compléments
+Public Sub SupprimerBoutonCalculatriceVE()
+    On Error Resume Next
+    Application.CommandBars("CalculatriceVE").Delete
+    On Error GoTo 0
+End Sub

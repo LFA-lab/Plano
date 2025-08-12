@@ -5,24 +5,24 @@ Sub AvancementPhysiqueVsHeures()
     Dim assignment As assignment
     Dim physiquePct As Double
     Dim heuresPct As Double
-    Dim physiqueTrouvÈ As Boolean
-    Dim travailTrouvÈ As Boolean
+    Dim physiqueTrouvÔøΩ As Boolean
+    Dim travailTrouvÔøΩ As Boolean
     Dim ecart As Double
     Dim statut As String
     Dim today As Date
     Dim xlApp As Object, xlBook As Object, xlSheet As Object
     Dim ligne As Integer
 
-    ' Initialisation Excel en mode cachÈ
+    ' Initialisation Excel en mode cachÔøΩ
     Set xlApp = CreateObject("Excel.Application")
     xlApp.Visible = False
     Set xlBook = xlApp.Workbooks.Add
     Set xlSheet = xlBook.Sheets(1)
 
-    ' EntÍte stylisÈe
+    ' EntÔøΩte stylisÔøΩe
     With xlSheet.Range("A1:F1")
         .Merge
-        .Value = "Avancement physique vs heures rÈalisÈes"
+        .Value = "Avancement physique vs heures rÔøΩalisÔøΩes"
         .Font.Size = 16
         .Font.Bold = True
         .HorizontalAlignment = -4108 ' xlCenter
@@ -35,53 +35,53 @@ Sub AvancementPhysiqueVsHeures()
     ' Insertion du logo
     Call InsererLogoOmexom(xlSheet)
 
-    ' En-tÍtes du tableau
-    xlSheet.Cells(2, 1).Value = "Travail prÈvu (ex. Pose de c‚ble)"
-    xlSheet.Cells(2, 2).Value = "Date de dÈbut"
-    xlSheet.Cells(2, 3).Value = "% Avancement Physique (matÈriaux posÈs)"
-    xlSheet.Cells(2, 4).Value = "% Avancement des Heures (heures passÈes)"
-    xlSheet.Cells(2, 5).Value = "…cart díefficacitÈ (%)"
+    ' En-tÔøΩtes du tableau
+    xlSheet.Cells(2, 1).Value = "Travail prÔøΩvu (ex. Pose de cÔøΩble)"
+    xlSheet.Cells(2, 2).Value = "Date de dÔøΩbut"
+    xlSheet.Cells(2, 3).Value = "% Avancement Physique (matÔøΩriaux posÔøΩs)"
+    xlSheet.Cells(2, 4).Value = "% Avancement des Heures (heures passÔøΩes)"
+    xlSheet.Cells(2, 5).Value = "ÔøΩcart dÔøΩefficacitÔøΩ (%)"
     xlSheet.Cells(2, 6).Value = "Statut"
     xlSheet.Rows(2).Font.Bold = True
     ligne = 3
 
     today = Date
 
-    Application.StatusBar = "Export en cours†: gÈnÈration du bilan des heures..."
+    Application.StatusBar = "Export en coursÔøΩ: gÔøΩnÔøΩration du bilan des heures..."
 
-    ' Parcours des t‚ches
+    ' Parcours des tÔøΩches
     For Each tache In ActiveProject.Tasks
         If Not tache Is Nothing And Not tache.Summary Then
 
             physiquePct = -1
             heuresPct = -1
-            physiqueTrouvÈ = False
-            travailTrouvÈ = False
+            physiqueTrouvÔøΩ = False
+            travailTrouvÔøΩ = False
 
             For Each assignment In tache.Assignments
                 If Not assignment.Resource Is Nothing Then
                     If assignment.Resource.Type = pjResourceTypeMaterial Then
                         physiquePct = tache.PercentComplete
-                        physiqueTrouvÈ = True
+                        physiqueTrouvÔøΩ = True
                     ElseIf assignment.Resource.Type = pjResourceTypeWork Then
                         heuresPct = tache.PercentWorkComplete
-                        travailTrouvÈ = True
+                        travailTrouvÔøΩ = True
                     End If
                 End If
             Next assignment
 
-            If physiqueTrouvÈ And travailTrouvÈ Then
+            If physiqueTrouvÔøΩ And travailTrouvÔøΩ Then
 
                 ecart = heuresPct - physiquePct
 
-                ' Statut selon prioritÈ
+                ' Statut selon prioritÔøΩ
                 If physiquePct = 100 Then
-                    statut = "TerminÈe"
+                    statut = "TerminÔøΩe"
                     xlSheet.Range("A" & ligne & ":F" & ligne).Interior.Color = RGB(198, 239, 206)    ' Vert clair
 
                 ElseIf tache.Start > today And physiquePct = 0 And heuresPct = 0 Then
-                    statut = "¿ venir"
-                    xlSheet.Range("A" & ligne & ":F" & ligne).Interior.Color = RGB(221, 235, 247)    ' Bleu trËs clair
+                    statut = "ÔøΩ venir"
+                    xlSheet.Range("A" & ligne & ":F" & ligne).Interior.Color = RGB(221, 235, 247)    ' Bleu trÔøΩs clair
 
                 Else
                     If ecart > 5 Then
@@ -91,7 +91,7 @@ Sub AvancementPhysiqueVsHeures()
                         statut = "Bon rendement"
                         xlSheet.Range("A" & ligne & ":F" & ligne).Interior.Color = RGB(198, 239, 206)    ' Vert clair
                     Else
-                        statut = "¿ surveiller"
+                        statut = "ÔøΩ surveiller"
                         xlSheet.Range("A" & ligne & ":F" & ligne).Interior.Color = RGB(255, 235, 156)    ' Orange clair
                     End If
                 End If
@@ -118,7 +118,7 @@ Sub AvancementPhysiqueVsHeures()
 
     ' Fin du process
     xlApp.Visible = True
-    Application.StatusBar = "Export terminÈ†: " & (ligne - 3) & " t‚ches exportÈes."
+    Application.StatusBar = "Export terminÔøΩ: " & (ligne - 3) & " tÔøΩches exportÔøΩes."
 
 End Sub
 
@@ -258,3 +258,44 @@ Function GetBase64() As String
     parts(93) = "UUAFFFFABRRRQB//2Q=="
     GetBase64 = Join(parts, "")
 End Function
+
+' ===================================================================
+' FONCTIONS POUR BOUTON ET VISIBILIT√â DANS "PERSONNALISER LE RUBAN"
+' ===================================================================
+
+' Bouton "Ruban" (via Personnaliser le ruban > Macros)
+Public Sub AvancementPhysiqueVsHeures_Bouton()
+    ' Lance l'analyse de l'avancement physique vs heures
+    AvancementPhysiqueVsHeures
+End Sub
+
+' Cr√©e un bouton dans l'onglet Compl√©ments (Add-Ins) pour lancer l'analyse
+Public Sub InstallerBoutonAvancementPhysiqueVsHeures()
+    On Error Resume Next
+    ' Nettoyage si d√©j√† pr√©sent
+    Application.CommandBars("AvancementPhysiqueVsHeures").Delete
+    On Error GoTo 0
+
+    Dim cb As CommandBar
+    Dim btn As CommandBarButton
+
+    Set cb = Application.CommandBars.Add(Name:="AvancementPhysiqueVsHeures", Position:=msoBarTop, Temporary:=True)
+    Set btn = cb.Controls.Add(Type:=msoControlButton)
+
+    With btn
+        .Caption = "Avancement Physique vs Heures"
+        .OnAction = "AvancementPhysiqueVsHeures_Bouton"  ' appelle le wrapper
+        .Style = msoButtonIconAndCaption
+        .FaceId = 618  ' ic√¥ne analyse/graphique
+        .TooltipText = "Analyser l'avancement physique vs heures travaill√©es"
+    End With
+
+    cb.Visible = True
+End Sub
+
+' Optionnel : suppression du bouton Compl√©ments
+Public Sub SupprimerBoutonAvancementPhysiqueVsHeures()
+    On Error Resume Next
+    Application.CommandBars("AvancementPhysiqueVsHeures").Delete
+    On Error GoTo 0
+End Sub

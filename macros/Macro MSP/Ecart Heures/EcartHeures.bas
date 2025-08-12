@@ -12,7 +12,7 @@ Sub EcartHeures()
     Dim i As Long
     Dim headersMacro As Variant, headersMicro As Variant
 
-    Application.StatusBar = "Démarrage Excel..."
+    Application.StatusBar = "Dï¿½marrage Excel..."
     Set xlApp = CreateObject("Excel.Application")
     Set xlBook = xlApp.Workbooks.Add
     xlApp.Visible = False
@@ -27,8 +27,8 @@ Sub EcartHeures()
     Application.StatusBar = "Insertion du logo sur la vue micro..."
     InsererLogoOmexom feuilleMicro
 
-    Application.StatusBar = "Mise en place des en-têtes..."
-    ' En-tête bleu fusionné (A1:H1 pour macro, A1:G1 pour micro) + titre
+    Application.StatusBar = "Mise en place des en-tï¿½tes..."
+    ' En-tï¿½te bleu fusionnï¿½ (A1:H1 pour macro, A1:G1 pour micro) + titre
     With xlSheet.Range("A1:H1")
         .Merge
         .Value = "Bilan des heures - Monteurs"
@@ -43,7 +43,7 @@ Sub EcartHeures()
 
     With feuilleMicro.Range("A1:G1")
         .Merge
-        .Value = "Bilan détaillé des heures - Monteurs"
+        .Value = "Bilan dï¿½taillï¿½ des heures - Monteurs"
         .Font.Size = 16
         .Font.Bold = True
         .HorizontalAlignment = -4108
@@ -53,10 +53,10 @@ Sub EcartHeures()
         .RowHeight = 50
     End With
 
-    headersMacro = Array("Nom de la tâche", "Travail réf. (h)", "Travail prévu (h)", "Travail réalisé (h)", _
-                         "? vs prévu (h)", "? vs réf. (h)", "Résultat (%)", "Explication")
-    headersMicro = Array("Nom de la tâche", "Travail réf. (h)", "Travail prévu (h)", "Travail réalisé (h)", _
-                         "? vs prévu (h)", "? vs réf. (h)", "Résultat (%)")
+    headersMacro = Array("Nom de la tï¿½che", "Travail rï¿½f. (h)", "Travail prï¿½vu (h)", "Travail rï¿½alisï¿½ (h)", _
+                         "? vs prï¿½vu (h)", "? vs rï¿½f. (h)", "Rï¿½sultat (%)", "Explication")
+    headersMicro = Array("Nom de la tï¿½che", "Travail rï¿½f. (h)", "Travail prï¿½vu (h)", "Travail rï¿½alisï¿½ (h)", _
+                         "? vs prï¿½vu (h)", "? vs rï¿½f. (h)", "Rï¿½sultat (%)")
     For i = 0 To UBound(headersMacro)
         xlSheet.Cells(2, i + 1).Value = headersMacro(i)
     Next i
@@ -69,7 +69,7 @@ Sub EcartHeures()
     ligneMacro = 3
     ligneMicro = 3
 
-    Application.StatusBar = "Compilation des données du projet..."
+    Application.StatusBar = "Compilation des donnï¿½es du projet..."
     For Each tache In ActiveProject.Tasks
         If Not tache Is Nothing Then
             baseline = tache.BaselineWork / 60
@@ -91,7 +91,7 @@ Sub EcartHeures()
                 expColor = RGB(255, 192, 0) ' Orange
             ElseIf ecartPct < 0 Then
                 expTexte = "SOUS-BUDGET"
-                expColor = RGB(0, 176, 80) ' Vert foncé
+                expColor = RGB(0, 176, 80) ' Vert foncï¿½
             Else
                 expTexte = "CONFORME"
                 expColor = RGB(146, 208, 80) ' Vert clair
@@ -262,4 +262,45 @@ Function GetBase64() As String
     parts(93) = "UUAFFFFABRRRQB//2Q=="
     GetBase64 = Join(parts, "")
 End Function
+
+' ===================================================================
+' FONCTIONS POUR BOUTON ET VISIBILITÃ‰ DANS "PERSONNALISER LE RUBAN"
+' ===================================================================
+
+' Bouton "Ruban" (via Personnaliser le ruban > Macros)
+Public Sub EcartHeures_Bouton()
+    ' Lance l'analyse des Ã©carts d'heures par tÃ¢che
+    EcartHeures
+End Sub
+
+' CrÃ©e un bouton dans l'onglet ComplÃ©ments (Add-Ins) pour lancer l'analyse
+Public Sub InstallerBoutonEcartHeures()
+    On Error Resume Next
+    ' Nettoyage si dÃ©jÃ  prÃ©sent
+    Application.CommandBars("EcartHeures").Delete
+    On Error GoTo 0
+
+    Dim cb As CommandBar
+    Dim btn As CommandBarButton
+
+    Set cb = Application.CommandBars.Add(Name:="EcartHeures", Position:=msoBarTop, Temporary:=True)
+    Set btn = cb.Controls.Add(Type:=msoControlButton)
+
+    With btn
+        .Caption = "Ã‰cart Heures"
+        .OnAction = "EcartHeures_Bouton"  ' appelle le wrapper
+        .Style = msoButtonIconAndCaption
+        .FaceId = 433  ' icÃ´ne horloge/temps
+        .TooltipText = "Analyser les Ã©carts d'heures par tÃ¢che - Monteurs"
+    End With
+
+    cb.Visible = True
+End Sub
+
+' Optionnel : suppression du bouton ComplÃ©ments
+Public Sub SupprimerBoutonEcartHeures()
+    On Error Resume Next
+    Application.CommandBars("EcartHeures").Delete
+    On Error GoTo 0
+End Sub
 
