@@ -16,10 +16,10 @@
     },
     {
       "name": "creation-ms-project",
-      "title": "Création MS Project",
+      "title": "Création MS Project - Import Simple",
       "description": "Import de tâches simples avec titre depuis Excel vers MS Project",
-      "basFile": "Macro MSP/Création MS Project/Sub Import_Taches_Simples_AvecTitre().vb",
-      "htmlFile": "Macro MSP/Création MS Project/ExplicationCreationGuide.html"
+      "basFile": "Macro MSP/Création MS Project/ImportSimple/Importsimple.bas",
+      "htmlFile": "Macro MSP/Création MS Project/ImportSimple/ExplicationCreationGuide.html"
     },
     {
       "name": "ecart-heures",
