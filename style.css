@@ -472,6 +472,16 @@ header p {
     line-height: 1.4;
 }
 
+.macro-date {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    font-weight: 400;
+    font-style: italic;
+    margin-top: var(--spacing-xs);
+    display: block;
+    opacity: 0.8;
+}
+
 .macro-link {
     color: var(--primary-blue);
     text-decoration: none;

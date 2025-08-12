@@ -149,20 +149,33 @@
             </section>
 
             <section class="resources-section">
-                <h3>अतिरिक्त संसाधन</h3>
-                <div class="resource-grid">
-                    <div class="resource-item">
-                        <h4>MS Project मैक्रोज़</h4>
-                        <a href="https://vincienergies.sharepoint.com/:f:/r/sites/GO-PlanificationPMO/Documents%20partages/General/Macro%20MSP?csf=1&web=1&e=jBa7Dm" target="_blank" class="btn btn-primary">
-                            प्लेटफॉर्म खोलें
-                        </a>
+                <h3>📚 अतिरिक्त संसाधन</h3>
+                
+                <!-- Dynamic VBA Macros Section -->
+                <div class="macros-section">
+                    <h4>🔧 VBA मैक्रोज़</h4>
+                    <div id="macros-list" class="macros-grid">
+                        <div class="loading-message">मैक्रोज़ लोड हो रहे हैं...</div>
                     </div>
-                    
-                    <div class="resource-item">
-                        <h4>Teams Planner: आपकी GO-निर्माण साइट में डालने के लिए बेस EPC योजना</h4>
-                        <a href="https://teams.microsoft.com/l/entity/com.microsoft.teamspace.tab.planner/_djb2_msteams_prefix_2069474311?context=%7b%22channelId%22:%2219:wx8Wq7bAiJYyJIBtjJE7KQIqqJL9N1JgmejNB9D6Nnc1%40thread.tacv2%22%7d&tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a" target="_blank" class="btn btn-primary">
-                            Teams खोलें
-                        </a>
+                </div>
+                
+                <!-- Other existing resources -->
+                <div class="other-resources">
+                    <h4>🔗 अन्य संसाधन</h4>
+                    <div class="resource-grid">
+                        <div class="resource-item">
+                            <h4>MS Project मैक्रोज़ (SharePoint)</h4>
+                            <a href="https://vincienergies.sharepoint.com/:f:/r/sites/GO-PlanificationPMO/Documents%20partages/General/Macro%20MSP?csf=1&web=1&e=jBa7Dm" target="_blank" class="btn btn-primary">
+                                प्लेटफॉर्म खोलें
+                            </a>
+                        </div>
+                        
+                        <div class="resource-item">
+                            <h4>Teams Planner: आपकी GO-निर्माण साइट में डालने के लिए बेस EPC योजना</h4>
+                            <a href="https://teams.microsoft.com/l/entity/com.microsoft.teamspace.tab.planner/_djb2_msteams_prefix_2069474311?context=%7b%22channelId%22:%2219:wx8Wq7bAiJYyJIBtjJE7KQIqqJL9N1JgmejNB9D6Nnc1%40thread.tacv2%22%7d&tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a" target="_blank" class="btn btn-primary">
+                                Teams खोलें
+                            </a>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -180,5 +193,69 @@
             </div>
         </footer>
     </div>
+
+    <script>
+        // Dynamic loading of macros from manifest.json
+        async function loadMacros() {
+            const macrosContainer = document.getElementById('macros-list');
+            
+            try {
+                const response = await fetch('./macros/manifest.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Clear loading message
+                macrosContainer.innerHTML = '';
+                
+                // Generate macro cards
+                data.macros.forEach(macro => {
+                    const macroCard = document.createElement('div');
+                    macroCard.className = 'macro-card';
+                    
+                    // Encode URLs to handle spaces and special characters
+                    const encodedHtmlFile = encodeURIComponent(macro.htmlFile).replace(/%2F/g, '/');
+                    const encodedBasFile = encodeURIComponent(macro.basFile).replace(/%2F/g, '/');
+                    
+                    macroCard.innerHTML = `
+                        <div class="macro-header">
+                            <h5 class="macro-title">
+                                <a href="./macros/${encodedHtmlFile}" target="_blank" class="macro-link">
+                                    ${macro.title}
+                                </a>
+                            </h5>
+                            ${macro.lastUpdated ? `<span class="macro-date">अपडेट किया गया ${macro.lastUpdated}</span>` : ''}
+                        </div>
+                        <p class="macro-description">${macro.description}</p>
+                        <div class="macro-actions">
+                            <a href="./macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
+                                📖 दस्तावेज़ीकरण
+                            </a>
+                            <a href="./macros/${encodedBasFile}" download class="btn btn-primary btn-small">
+                                💾 डाउनलोड
+                            </a>
+                        </div>
+                    `;
+                    
+                    macrosContainer.appendChild(macroCard);
+                });
+                
+            } catch (error) {
+                console.error('Error loading macros:', error);
+                macrosContainer.innerHTML = `
+                    <div class="error-message">
+                        ❌ VBA मैक्रोज़ लोड करने में असमर्थ
+                        <br><small>कृपया जांचें कि manifest.json फ़ाइल पहुंच योग्य है</small>
+                    </div>
+                `;
+            }
+        }
+        
+        // Load macros when page loads
+        document.addEventListener('DOMContentLoaded', loadMacros);
+    </script>
 </body>
 </html>

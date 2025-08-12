@@ -5,56 +5,64 @@
       "title": "Avancement Physique vs Heures Travaillées",
       "description": "Compare l'avancement physique constaté vs l'avancement des heures réellement consommées",
       "basFile": "Macro MSP/Avancement physique vs heures travaillées/AvancementPhysiqueVsHeures.bas",
-      "htmlFile": "Macro MSP/Avancement physique vs heures travaillées/Processus Avancement Physique Vs Heures.html"
+      "htmlFile": "Macro MSP/Avancement physique vs heures travaillées/Processus Avancement Physique Vs Heures.html",
+      "lastUpdated": "12/08/2025"
     },
     {
       "name": "calculatrice-reste-a-faire",
       "title": "Calculatrice Reste à Faire VE",
       "description": "Processus de pilotage pour responsables d'affaires BTP/Énergie - 4 chemins de calcul",
       "basFile": "Macro MSP/Calculatrice Reste a faire VE/V6userform.vb",
-      "htmlFile": "Macro MSP/Calculatrice Reste a faire VE/Recalage.html"
+      "htmlFile": "Macro MSP/Calculatrice Reste a faire VE/Recalage.html",
+      "lastUpdated": "12/08/2025"
     },
     {
       "name": "creation-ms-project",
       "title": "Création MS Project - Import Simple",
       "description": "Import de tâches simples avec titre depuis Excel vers MS Project",
       "basFile": "Macro MSP/Création MS Project/ImportSimple/Importsimple.bas",
-      "htmlFile": "Macro MSP/Création MS Project/ImportSimple/ExplicationCreationGuide.html"
+      "htmlFile": "Macro MSP/Création MS Project/ImportSimple/ExplicationCreationGuide.html",
+      "lastUpdated": "07/08/2025"
     },
     {
       "name": "ecart-heures",
       "title": "Écart Heures",
       "description": "Bilan chiffré des écarts entre heures réellement travaillées et heures de référence",
       "basFile": "Macro MSP/Ecart Heures/EcartHeures.bas",
-      "htmlFile": "Macro MSP/Ecart Heures/Processus_Ecart_Heures.html"
+      "htmlFile": "Macro MSP/Ecart Heures/Processus_Ecart_Heures.html",
+      "lastUpdated": "12/08/2025"
     },
     {
       "name": "ecart-planning",
       "title": "Écart Planning",
       "description": "Tableau de suivi des tâches avec dates prévues/réelles et écarts de planning",
       "basFile": "Macro MSP/Ecart Planning/EcartPlanning.bas",
-      "htmlFile": "Macro MSP/Ecart Planning/Processus_Ecart_Planning.html"
+      "htmlFile": "Macro MSP/Ecart Planning/Processus_Ecart_Planning.html",
+      "lastUpdated": "12/08/2025"
     },
     {
       "name": "macro-aucaleuc",
       "title": "Macro Aucaleuc - Import BJ",
       "description": "Import BJ avec hiérarchie pour Omexom et S...",
       "basFile": "Macro MSP/Macro Aucaleuc/Sub Import_BJ_WithHierarchy_Omexom_And_S.vb",
-      "htmlFile": "Macro MSP/Macro Aucaleuc/BJ_Omexom_Sove.xlsx"
+      "htmlFile": "Macro MSP/Macro Aucaleuc/BJ_Omexom_Sove.xlsx",
+      "lastUpdated": "07/08/2025"
     },
     {
       "name": "plan-de-charge-monteurs",
       "title": "Plan de Charge Monteurs",
       "description": "Export planning MS Project avec calcul des besoins en monteurs par semaine",
       "basFile": "Macro MSP/Plan de Charge/PlanDeCharge.bas",
-      "htmlFile": "Macro MSP/Plan de Charge/Processus_PlanDeCharge_Monteurs.html"
+      "htmlFile": "Macro MSP/Plan de Charge/Processus_PlanDeCharge_Monteurs.html",
+      "lastUpdated": "07/08/2025"
     },
     {
       "name": "planning-previsionnel",
       "title": "Planning Prévisionnel",
       "description": "Export planning avec unités de pointe (pic d'effectif requis chaque jour)",
       "basFile": "Macro MSP/Planning prévisionnel/PlanningPrevisionnel.bas",
-      "htmlFile": "Macro MSP/Planning prévisionnel/Processus_PlanningPrevisionnel.html"
+      "htmlFile": "Macro MSP/Planning prévisionnel/Processus_PlanningPrevisionnel.html",
+      "lastUpdated": "12/08/2025"
     }
   ]
 }
