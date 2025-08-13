@@ -46,7 +46,10 @@ Public Sub ExportMecanique()
 End Sub
 
 Sub ExportMecaniqueComplet()
-    Debug.Print "=== DEBUT EXPORT MECANIQUE COMPLET ==="
+    Dim currentStep As String
+    currentStep = "INITIALISATION"
+    
+    Debug.Print "=== DEBUT EXPORT MECANIQUE COMPLET === " & Format(Now, "hh:nn:ss")
     
     Dim fileName As String, exportDir As String
     Dim startDate As Date, endDate As Date
@@ -66,6 +69,9 @@ Sub ExportMecaniqueComplet()
     On Error GoTo ErrorHandler
 
     ' Choisir le dossier d'export avec vérification
+    currentStep = "SELECTION_DOSSIER"
+    Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
+    
     Dim defaultDir As String
     defaultDir = Environ$("USERPROFILE") & "\Downloads"
     
@@ -78,6 +84,7 @@ Sub ExportMecaniqueComplet()
     End If
     
     exportDir = PickFolder(defaultDir)
+    Debug.Print "Dossier sélectionné: " & exportDir
     
     ' Vérifier le retour de PickFolder
     If exportDir = "" Then
@@ -90,27 +97,50 @@ Sub ExportMecaniqueComplet()
     End If
 
     fileName = exportDir & "\Export_Mecanique_" & Format(Now, "yyyymmdd_hhnnss") & ".xlsx"
+    Debug.Print "Nom fichier: " & fileName
+    
     startDate = ActiveProject.ProjectStart
     endDate = ActiveProject.ProjectFinish
+    Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
+    currentStep = "COLLECTE_RESSOURCES"
+    Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ETAPE 1: Collecte et tri des ressources mecaniques ==="
     Set resList = GetSortedMechanicalResources(ActiveProject)
+    Debug.Print "Nombre de ressources trouvées: " & resList.Count
     
     If resList.Count = 0 Then
         MsgBox "Aucune ressource du groupe Mecanique trouvee dans le projet.", vbExclamation
         Exit Sub
     End If
+    Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
+    currentStep = "COLLECTE_ASSIGNATIONS"
+    Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ETAPE 2: Collecte des assignations ==="
     Set resAssignments = MapAssignmentsByResource(resList)
+    Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
+    currentStep = "CALCUL_DONNEES"
+    Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ETAPE 3: Calcul des donnees ==="
     Set totalPlanned = ComputeTotalPlannedWork(resAssignments)
+    Debug.Print "Calcul travaux prévus terminé"
+    
     Set dailyActual = ComputeDailyActualWork(resAssignments, startDate, endDate)
+    Debug.Print "Calcul travaux réels quotidiens terminé"
+    
     datesAsc = BuildActualDatesIndex(dailyActual, True)
+    Debug.Print "Index des dates créé"
+    
     Set cumActual = ComputeCumulativeActual(dailyActual, datesAsc)
+    Debug.Print "Calcul cumulatifs terminé"
+    
     datesDesc = ReverseArray(datesAsc)
+    Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
+    currentStep = "CALCUL_RECAPITULATIF"
+    Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ETAPE 4: Calcul du recapitulatif global ==="
     
     ' Calculer le recapitulatif global (utilise totalPlanned et cumActual)
@@ -142,7 +172,10 @@ Sub ExportMecaniqueComplet()
         
         Debug.Print "Recap " & resName & ": " & recapTotalWork & "/" & recapTotalActual & " (" & recapPercent & "%)"
     Next
+    Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
+    currentStep = "CREATION_EXCEL"
+    Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ETAPE 5: Creation du fichier Excel ==="
 
     ' Creer Excel avec 2 onglets - Gestion d'erreur amelioree
@@ -153,7 +186,10 @@ Sub ExportMecaniqueComplet()
                "Verifiez qu'Excel est installe et accessible.", vbCritical
         Exit Sub
     End If
+    Debug.Print "Application Excel créée"
+    
     Set xlBook = xlApp.Workbooks.Add
+    Debug.Print "Classeur Excel créé"
     On Error GoTo ErrorHandler
     
     ' Supprimer feuilles par defaut sauf une
@@ -162,17 +198,27 @@ Sub ExportMecaniqueComplet()
         xlBook.Worksheets(xlBook.Worksheets.Count).Delete
     Loop
     xlApp.DisplayAlerts = True
+    Debug.Print "Feuilles par défaut supprimées"
     
     ' Creer les 2 onglets
     Set xlRecapSheet = xlBook.Worksheets(1)
     xlRecapSheet.Name = "Recapitulatif"
+    Debug.Print "Onglet Recapitulatif créé"
+    
     Set xlDetailSheet = xlBook.Worksheets.Add
     xlDetailSheet.Name = "Donnees detaillees"
     xlDetailSheet.Move After:=xlRecapSheet
+    Debug.Print "Onglet Données détaillées créé"
+    Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
+    currentStep = "INSERTION_LOGOS"
+    Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== INSERTION DES LOGOS ==="
     Call InsererLogos(xlRecapSheet)
+    Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
+    currentStep = "ONGLET_RECAPITULATIF"
+    Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ONGLET 1: Ecriture du recapitulatif ==="
     
     ' === ONGLET 1 : RECAPITULATIF ===
@@ -225,17 +271,34 @@ Sub ExportMecaniqueComplet()
         .Range("A" & row & ":D" & row).Interior.Color = RGB(217, 225, 242)
         .Columns.AutoFit
     End With
+    Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
+    currentStep = "ONGLET_DETAILS"
+    Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ONGLET 2: Ecriture des donnees detaillees ==="
     
     ' === ONGLET 2 : DONNEES DETAILLEES ===
     Call WriteDetailSheet(xlDetailSheet, datesDesc, resList, totalPlanned, dailyActual, cumActual)
+    Debug.Print "Données détaillées écrites"
+    
     Call FormatDetailSheet(xlDetailSheet)
+    Debug.Print "Formatage des données détaillées terminé"
+    Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
     ' Sauvegarder et ouvrir
+    currentStep = "SAUVEGARDE"
+    Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
+    Debug.Print "Fichier de sauvegarde: " & fileName
+    
     xlBook.SaveAs fileName
+    Debug.Print "Fichier sauvegardé avec succès"
+    
     xlRecapSheet.Activate
     xlApp.Visible = True
+    Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
+    
+    currentStep = "FINALISATION"
+    Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     
     Dim dateCount As String
     If Not IsEmpty(datesAsc) And UBound(datesAsc) >= LBound(datesAsc) Then
@@ -257,27 +320,36 @@ Sub ExportMecaniqueComplet()
         Debug.Print "Info : Ouverture automatique de l'explorateur non autorisee"
     End If
     On Error GoTo 0
-    Debug.Print "=== FIN EXPORT MECANIQUE COMPLET ==="
+    Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
+    Debug.Print "=== FIN EXPORT MECANIQUE COMPLET === " & Format(Now, "hh:nn:ss")
     Exit Sub
 
 ErrorHandler:
-    Debug.Print "=== ERREUR DETECTEE ==="
-    Debug.Print "Erreur: " & Err.Description
-    MsgBox "Erreur lors de l'export : " & Err.Description, vbCritical
+    Debug.Print "=== ERREUR DETECTEE à l'étape: " & currentStep & " | " & Format(Now, "hh:nn:ss") & " ==="
+    Debug.Print "ERREUR: Err=" & Err.Number & " - " & Err.Description
+    
+    MsgBox "Erreur lors de l'export à l'étape: " & currentStep & vbCrLf & _
+           "Erreur: " & Err.Number & " - " & Err.Description & vbCrLf & _
+           "Consultez la fenêtre Immediate (Ctrl+G) pour plus de détails.", vbCritical
     
     On Error Resume Next
     If Not xlApp Is Nothing Then
-        xlBook.Close False
+        If Not xlBook Is Nothing Then xlBook.Close False
         xlApp.Quit
+        Debug.Print "Application Excel fermée en urgence"
     End If
+    On Error GoTo 0
     Exit Sub
 
 ExcelError:
-    MsgBox "Probleme d'automation Excel detecte :" & vbCrLf & _
+    Debug.Print "=== ERREUR EXCEL à l'étape: " & currentStep & " | " & Format(Now, "hh:nn:ss") & " ==="
+    Debug.Print "ERREUR EXCEL: Err=" & Err.Number & " - " & Err.Description
+    
+    MsgBox "Probleme d'automation Excel detecte à l'étape: " & currentStep & vbCrLf & _
            "• Verifiez qu'Excel est installe" & vbCrLf & _
            "• Fermez Excel s'il est ouvert" & vbCrLf & _
            "• Redemarrez MS Project" & vbCrLf & _
-           "Erreur: " & Err.Description, vbCritical
+           "Erreur: " & Err.Number & " - " & Err.Description, vbCritical
     Exit Sub
 End Sub
 
@@ -310,8 +382,17 @@ End Sub
 
 ' Tri des ressources mecaniques par ID de tache ascendant
 Private Function GetSortedMechanicalResources(proj As Project) As Collection
-    Dim resInfo As Object
-    Set resInfo = CreateObject("System.Collections.ArrayList")
+    Debug.Print "Start: Collecte ressources mécaniques | " & Format(Now, "hh:nn:ss")
+    
+    On Error GoTo ErrorHandler
+    
+    ' Utiliser un tableau dynamique au lieu d'ArrayList pour éviter les problèmes de compatibilité
+    Dim resArray() As Variant
+    Dim resCount As Long
+    resCount = 0
+    
+    ' Redimensionner le tableau initial
+    ReDim resArray(0 To 100) ' Commencer avec 100 éléments, on redimensionnera si nécessaire
 
     Dim res As Resource
     For Each res In proj.Resources
@@ -325,43 +406,55 @@ Private Function GetSortedMechanicalResources(proj As Project) As Collection
                 Dim minTaskId As Long
                 minTaskId = 2147483647 ' Max value for Long
                 
-                If res.Assignments.Count > 0 Then
-                    Dim assn As Assignment
-                    For Each assn In res.Assignments
+                If res.assignments.Count > 0 Then
+                    Dim assn As assignment
+                    For Each assn In res.assignments
                         If assn.Task.ID < minTaskId Then
                             minTaskId = assn.Task.ID
                         End If
                     Next assn
                 End If
                 
-                resInfo.Add Array(res.Name, minTaskId)
+                ' Redimensionner le tableau si nécessaire
+                If resCount > UBound(resArray) Then
+                    ReDim Preserve resArray(0 To UBound(resArray) + 50)
+                End If
+                
+                resArray(resCount) = Array(res.Name, minTaskId)
+                resCount = resCount + 1
             End If
         End If
     Next res
+    
+    Debug.Print "Ressources mécaniques trouvées: " & resCount
 
-    ' Tri
-    If resInfo.Count > 1 Then
-        Dim resArray As Variant
-        resArray = resInfo.ToArray()
-        QuickSortResources resArray, 0, resInfo.Count - 1
-        resInfo.Clear
+    ' Redimensionner le tableau à la taille exacte
+    If resCount > 0 Then
+        ReDim Preserve resArray(0 To resCount - 1)
         
-        Dim i As Long
-        For i = 0 To UBound(resArray)
-            resInfo.Add resArray(i)
-        Next i
+        ' Tri si on a plus d'une ressource
+        If resCount > 1 Then
+            QuickSortResources resArray, 0, resCount - 1
+        End If
     End If
     
     ' Creer la collection de noms de ressources triee
     Dim sortedResList As Collection
     Set sortedResList = New Collection
     
-    Dim item As Variant
-    For Each item In resInfo
-        sortedResList.Add item(0)
-        Debug.Print "Ressource triee: " & item(0) & " (TaskID: " & item(1) & ")"
-    Next
+    Dim i As Long
+    For i = 0 To resCount - 1
+        sortedResList.Add resArray(i)(0)
+        Debug.Print "Ressource triee: " & resArray(i)(0) & " (TaskID: " & resArray(i)(1) & ")"
+    Next i
     
+    Debug.Print "Done: Collecte ressources mécaniques | " & Format(Now, "hh:nn:ss")
+    Set GetSortedMechanicalResources = sortedResList
+    Exit Function
+    
+ErrorHandler:
+    Debug.Print "Erreur dans GetSortedMechanicalResources: " & Err.Description
+    Set sortedResList = New Collection
     Set GetSortedMechanicalResources = sortedResList
 End Function
 
@@ -403,6 +496,8 @@ End Sub
 
 ' Index assignations par ressource
 Private Function MapAssignmentsByResource(resList As Collection) As Object
+    Debug.Print "Start: Index assignations par ressource | " & Format(Now, "hh:nn:ss")
+    
     Dim resAssignments As Object
     
     ' Tentative de creation d'un Dictionary avec gestion d'erreur
@@ -415,29 +510,35 @@ Private Function MapAssignmentsByResource(resList As Collection) As Object
         Set resAssignments(resName) = New Collection
     Next
     
-    Dim res As Resource, assn As Assignment
+    Dim res As Resource, assn As assignment
+    Dim totalAssignments As Long: totalAssignments = 0
+    
     For Each res In ActiveProject.Resources
         If Not res Is Nothing And resAssignments.exists(res.Name) Then
-            For Each assn In res.Assignments
+            For Each assn In res.assignments
                 resAssignments(res.Name).Add assn
+                totalAssignments = totalAssignments + 1
             Next
         End If
     Next
     
+    Debug.Print "Assignations trouvées: " & totalAssignments
+    Debug.Print "Done: Index assignations par ressource | " & Format(Now, "hh:nn:ss")
     Set MapAssignmentsByResource = resAssignments
     Exit Function
     
 DictError:
+    Debug.Print "ERREUR création Dictionary: " & Err.Number & " - " & Err.Description
     MsgBox "Erreur : Impossible de creer l'objet Dictionary." & vbCrLf & _
            "Verifiez que Microsoft Scripting Runtime est disponible.", vbCritical
-    End Function
+End Function
 
 ' Totaux prevus par ressource (Work)
 Private Function ComputeTotalPlannedWork(resAssignments As Object) As Object
     Dim totalPlanned As Object
     Set totalPlanned = CreateObject("Scripting.Dictionary")
     
-    Dim resName As Variant, assn As Assignment
+    Dim resName As Variant, assn As assignment
     For Each resName In resAssignments.Keys
         Dim totalWork As Double: totalWork = 0
         For Each assn In resAssignments(resName)
@@ -454,7 +555,7 @@ Private Function ComputeDailyActualWork(resAssignments As Object, startDate As D
     Dim dailyActual As Object
     Set dailyActual = CreateObject("Scripting.Dictionary")
     
-    Dim resName As Variant, assn As Assignment
+    Dim resName As Variant, assn As assignment
     For Each resName In resAssignments.Keys
         Set dailyActual(resName) = CreateObject("Scripting.Dictionary")
         
@@ -559,6 +660,8 @@ End Function
 Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
     resOrder As Collection, totalPlanned As Object, dailyActual As Object, cumActual As Object)
     
+    Debug.Print "Start: Ecriture onglet détaillé | " & Format(Now, "hh:nn:ss")
+    
     ' Declarations de variables
     Dim col As Integer
     Dim resColMap As Object
@@ -585,6 +688,7 @@ Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
         resColMap(resName) = col
         col = col + 4
     Next
+    Debug.Print "En-têtes ressources créés"
     
     ' Ligne 2 : "Date" en A2, puis sous-en-tetes pour chaque ressource
     xlWs.Cells(2, 1).Value = "Date"
@@ -596,14 +700,17 @@ Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
         xlWs.Cells(2, baseCol + 2).Value = "Jour"
         xlWs.Cells(2, baseCol + 3).Value = "%"
     Next
+    Debug.Print "Sous-en-têtes créés"
     
     ' Donnees par date
     If IsEmpty(orderedDatesDesc) Or UBound(orderedDatesDesc) < LBound(orderedDatesDesc) Then
         xlWs.Cells(3, 1).Value = "Aucune donnee reelle trouvee"
+        Debug.Print "Aucune donnée réelle trouvée"
         Exit Sub
     End If
     
     row = 3
+    Dim dateCount As Long: dateCount = 0
     For Each d In orderedDatesDesc
         xlWs.Cells(row, 1).Value = Format(CDate(d), "dd/mm/yyyy")
         
@@ -637,7 +744,11 @@ Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
             xlWs.Cells(row, baseCol + 3).Value = percentValue & "%"
         Next
         row = row + 1
+        dateCount = dateCount + 1
     Next
+    
+    Debug.Print "Données écrites: " & dateCount & " dates"
+    Debug.Print "Done: Ecriture onglet détaillé | " & Format(Now, "hh:nn:ss")
 End Sub
 
 ' Mise en forme (fige ligne 1, formats, bordures)
@@ -736,11 +847,15 @@ End Sub
 
 ' === FONCTIONS D'INSERTION DES LOGOS ===
 Sub InsererLogos(ws As Object)
+    Debug.Print "Start: Insertion logos | " & Format(Now, "hh:nn:ss")
+    
     ' Insérer le logo Omexom à gauche
     Call InsererLogoOmexom(ws)
     
     ' Insérer le logo du client à droite
     Call InsererLogoClient(ws)
+    
+    Debug.Print "Done: Insertion logos | " & Format(Now, "hh:nn:ss")
 End Sub
 
 Sub InsererLogoOmexom(ws As Object)
@@ -751,15 +866,19 @@ Sub InsererLogoOmexom(ws As Object)
 
     On Error GoTo ErrorLogo
     
+    Debug.Print "Start: Insertion logo Omexom | " & Format(Now, "hh:nn:ss")
+    
     ' === Logo Omexom en base64 ===
-    base64Image = GetBase64Omexom()
+    base64Image = GetBase64()
+    Debug.Print "Logo Omexom: Base64 récupéré"
 
-    ' Conversion Base64 → octets
+    ' Conversion Base64 ? octets
     Set xml = CreateObject("MSXML2.DOMDocument.6.0")
     Set node = xml.createElement("b64")
     node.DataType = "bin.base64"
     node.Text = base64Image
     byteData = node.nodeTypedValue
+    Debug.Print "Logo Omexom: Conversion Base64 réalisée"
 
     ' Fichier temporaire
     tempFile = Environ$("TEMP") & "\omexom_logo.png"
@@ -771,19 +890,22 @@ Sub InsererLogoOmexom(ws As Object)
         .SaveToFile tempFile, 2
         .Close
     End With
+    Debug.Print "Logo Omexom: Fichier temporaire créé: " & tempFile
 
     ' Insertion du logo Omexom (à gauche)
     ws.Shapes.AddPicture tempFile, _
         LinkToFile:=False, _
         SaveWithDocument:=True, _
         Left:=10, Top:=5, Width:=120, Height:=40
+    Debug.Print "Logo Omexom: Image insérée dans Excel"
 
     ' Suppression du fichier temporaire
     On Error Resume Next: Kill tempFile
+    Debug.Print "Done: Insertion logo Omexom | " & Format(Now, "hh:nn:ss")
     Exit Sub
     
 ErrorLogo:
-    Debug.Print "Erreur insertion logo Omexom: " & Err.Description
+    Debug.Print "ERREUR insertion logo Omexom | " & Format(Now, "hh:nn:ss") & " | Err=" & Err.Number & " - " & Err.Description
 End Sub
 
 Sub InsererLogoClient(ws As Object)
@@ -794,15 +916,19 @@ Sub InsererLogoClient(ws As Object)
 
     On Error GoTo ErrorLogo
     
+    Debug.Print "Start: Insertion logo Client | " & Format(Now, "hh:nn:ss")
+    
     ' === Logo Client en base64 ===
     base64Image = GetBase64Client()
+    Debug.Print "Logo Client: Base64 récupéré"
 
-    ' Conversion Base64 → octets
+    ' Conversion Base64 ? octets
     Set xml = CreateObject("MSXML2.DOMDocument.6.0")
     Set node = xml.createElement("b64")
     node.DataType = "bin.base64"
     node.Text = base64Image
     byteData = node.nodeTypedValue
+    Debug.Print "Logo Client: Conversion Base64 réalisée"
 
     ' Fichier temporaire
     tempFile = Environ$("TEMP") & "\client_logo.png"
@@ -814,19 +940,22 @@ Sub InsererLogoClient(ws As Object)
         .SaveToFile tempFile, 2
         .Close
     End With
+    Debug.Print "Logo Client: Fichier temporaire créé: " & tempFile
 
     ' Insertion du logo Client (à droite)
     ws.Shapes.AddPicture tempFile, _
         LinkToFile:=False, _
         SaveWithDocument:=True, _
         Left:=140, Top:=5, Width:=120, Height:=40
+    Debug.Print "Logo Client: Image insérée dans Excel"
 
     ' Suppression du fichier temporaire
     On Error Resume Next: Kill tempFile
+    Debug.Print "Done: Insertion logo Client | " & Format(Now, "hh:nn:ss")
     Exit Sub
     
 ErrorLogo:
-    Debug.Print "Erreur insertion logo Client: " & Err.Description
+    Debug.Print "ERREUR insertion logo Client | " & Format(Now, "hh:nn:ss") & " | Err=" & Err.Number & " - " & Err.Description
 End Sub
 Function GetBase64() As String
     Dim parts(93) As String
@@ -940,5 +1069,10 @@ Function GetBase64Client() As String
 
     GetBase64Client = Join(parts, "")
 End Function
+
+
+
+
+
 
 
