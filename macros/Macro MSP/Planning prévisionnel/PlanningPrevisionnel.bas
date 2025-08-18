@@ -1,89 +1,227 @@
 Sub Export_Plan_Et_UnitesDePointe()
     Dim xlApp As Object
     Dim xlWorkbook As Object
+    Dim wsTest As Object
 
+    Debug.Print "=== DEBUT Export_Plan_Et_UnitesDePointe ==="
     Application.StatusBar = "Export en cours, initialisation Excel..."
+    
+    Debug.Print "Appel de VCPlanningjour..."
     Call VCPlanningjour(xlApp, xlWorkbook)
-    Application.StatusBar = "Génération du planning prévisionnel, veuillez patienter..."
-    DoEvents
-
-    Application.StatusBar = "Génération du planning prévisionnel, Injection des unités de pointe..."
-    Call Injecter_UnitesDePointe_Dans_Planning(xlApp, xlWorkbook)
+    Debug.Print "Retour de VCPlanningjour - xlWorkbook Is Nothing: " & (xlWorkbook Is Nothing)
+    
+    ' Verifier que le workbook et l'onglet Jours existent avant d'injecter les unites
+    If Not xlWorkbook Is Nothing Then
+        Debug.Print "Workbook cree avec succes"
+        Debug.Print "Nombre d'onglets dans le workbook: " & xlWorkbook.Worksheets.Count
+        
+        ' Lister tous les onglets
+        Dim i As Integer
+        For i = 1 To xlWorkbook.Worksheets.Count
+            Debug.Print "Onglet " & i & ": '" & xlWorkbook.Worksheets(i).Name & "'"
+        Next i
+        
+        On Error Resume Next
+        Set wsTest = xlWorkbook.Worksheets("Jours")
+        On Error GoTo 0
+        
+        If Not wsTest Is Nothing Then
+            Debug.Print "Onglet 'Jours' trouve, injection des unites..."
+            Application.StatusBar = "Generation du planning previsionnel, Injection des unites de pointe..."
+            Call Injecter_UnitesDePointe_Dans_Planning_Optimise(xlApp, xlWorkbook)
+            Debug.Print "Injection terminee"
+        Else
+            Debug.Print "ERREUR: Onglet 'Jours' non trouve"
+            Debug.Print "Tentative avec le premier onglet..."
+            
+            ' Essayons avec le premier onglet et renommons-le
+            On Error Resume Next
+            Set wsTest = xlWorkbook.Worksheets(1)
+            If Not wsTest Is Nothing Then
+                Debug.Print "Premier onglet trouve: '" & wsTest.Name & "'"
+                wsTest.Name = "Jours"
+                Debug.Print "Premier onglet renomme en 'Jours'"
+                Call Injecter_UnitesDePointe_Dans_Planning_Optimise(xlApp, xlWorkbook)
+            Else
+                Debug.Print "ERREUR: Meme le premier onglet n'existe pas"
+                MsgBox "L'onglet 'Jours' n'a pas pu etre cree. Verification impossible des unites de pointe.", vbExclamation
+            End If
+            On Error GoTo 0
+        End If
+    Else
+        Debug.Print "ERREUR: Workbook non cree"
+    End If
+    
     Application.StatusBar = False
 
     If Not xlApp Is Nothing Then
+        Debug.Print "Réactivation des paramètres Excel et affichage..."
+        Call RestoreExcelSettings(xlApp)
         xlApp.Visible = True
-        xlApp.ScreenUpdating = True
+    Else
+        Debug.Print "ERREUR: Application Excel non créée"
     End If
+    
+    Debug.Print "=== FIN Export_Plan_Et_UnitesDePointe ==="
+End Sub
+
+' ===== FONCTION UTILITAIRE POUR RESTAURER PARAMETRES EXCEL =====
+Sub RestoreExcelSettings(xlApp As Object)
+    On Error Resume Next
+    If Not xlApp Is Nothing Then
+        With xlApp
+            .ScreenUpdating = True
+            .DisplayAlerts = True
+            .EnableEvents = True
+            .Calculation = -4105 ' xlCalculationAutomatic
+        End With
+        Debug.Print "Paramètres Excel restaurés"
+    Else
+        Debug.Print "ERREUR: xlApp est Nothing - impossible de restaurer les paramètres"
+    End If
+    On Error GoTo 0
 End Sub
 
 ' ==============================
-' GÉNÉRATION PLANNING ET OUTILS
+' GENERATION PLANNING ET OUTILS
 ' ==============================
 Sub VCPlanningjour(ByRef xlApp As Object, ByRef xlWorkbook As Object)
     Dim projDoc As Object
     Dim wsJours As Object
     Dim wsSemaines As Object
 
+    Debug.Print "=== DEBUT VCPlanningjour ==="
     On Error GoTo ErrorHandler
 
+    Debug.Print "Verification projet MS Project..."
     If ActiveProject Is Nothing Then
+        Debug.Print "ERREUR: Aucun projet MS Project ouvert"
         MsgBox "Aucun projet MS Project n'est ouvert!", vbCritical
         Exit Sub
     End If
+    Debug.Print "Projet MS Project OK: " & ActiveProject.Name
 
-    Set xlApp = CreateObject("Excel.Application")
-    xlApp.Visible = False
-    xlApp.ScreenUpdating = False
-    Set xlWorkbook = xlApp.Workbooks.Add
+    Debug.Print "Creation instance Excel optimisée..."
+    Call CreateOptimizedExcelInstance(xlApp, xlWorkbook)
     Set projDoc = ActiveProject
+    Debug.Print "Excel créé avec succès"
 
     Dim allTasks As Variant
     Dim taskCount As Integer
-    Application.StatusBar = "Génération du planning prévisionnel, Collecte des tâches MS Project..."
+    Debug.Print "Collecte des tâches..."
+    Application.StatusBar = "Generation du planning previsionnel, Collecte des taches MS Project..."
     taskCount = CollectTasksData(projDoc, allTasks)
+    Debug.Print "Nombre de tâches collectées: " & taskCount
     DoEvents
 
     If taskCount = 0 Then
+        Debug.Print "ERREUR: Aucune tâche trouvée"
         MsgBox "Aucune tâche trouvée dans le projet!", vbExclamation
         GoTo Cleanup
     End If
 
-    Application.StatusBar = "Génération du planning prévisionnel, Génération de la vue Jours..."
+    Debug.Print "Generation vue Jours..."
+    Application.StatusBar = "Generation du planning previsionnel, Generation de la vue Jours..."
     Set wsJours = xlWorkbook.Worksheets(1)
+    Debug.Print "Premier onglet récupéré: '" & wsJours.Name & "'"
     Call GenerateDayView(wsJours, allTasks, taskCount, projDoc)
+    Debug.Print "GenerateDayView terminée, renommage en 'Jours'..."
     wsJours.Name = "Jours"
+    Debug.Print "Onglet renommé en: '" & wsJours.Name & "'"
+    Debug.Print "Vue Jours créée et nommée"
     InsererLogoOmexom wsJours
     DoEvents
 
-    Application.StatusBar = "Génération du planning prévisionnel, Génération de la vue Semaines..."
+    Debug.Print "Generation vue Semaines..."
+    Application.StatusBar = "Generation du planning previsionnel, Generation de la vue Semaines..."
     Set wsSemaines = xlWorkbook.Worksheets.Add(After:=wsJours)
+    Debug.Print "Nouvel onglet créé: '" & wsSemaines.Name & "'"
     Call GenerateWeekView(wsSemaines, allTasks, taskCount, projDoc)
     wsSemaines.Name = "Semaines"
+    Debug.Print "Onglet renommé en: '" & wsSemaines.Name & "'"
+    Debug.Print "Vue Semaines créée et nommée"
     InsererLogoOmexom wsSemaines
     DoEvents
 
+    Debug.Print "=== FIN VCPlanningjour (SUCCES) ==="
+    Exit Sub
+
 Cleanup:
+    Debug.Print "=== FIN VCPlanningjour (CLEANUP) ==="
     Exit Sub
 
 ErrorHandler:
+    Debug.Print "=== ERREUR dans VCPlanningjour: " & Err.Number & " - " & Err.Description & " ==="
     MsgBox "Erreur : " & Err.Number & " - " & Err.Description, vbCritical
     Exit Sub
+End Sub
+
+' ===== FONCTION UTILITAIRE POUR CREATION EXCEL OPTIMISEE =====
+Sub CreateOptimizedExcelInstance(ByRef xlApp As Object, ByRef xlWorkbook As Object)
+    On Error GoTo ErrorHandler
+    
+    Set xlApp = CreateObject("Excel.Application")
+    
+    ' Vérifier que l'application Excel a été créée avec succès
+    If xlApp Is Nothing Then
+        Debug.Print "ERREUR: Impossible de créer l'instance Excel"
+        Exit Sub
+    End If
+    
+    ' Configuration optimisée pour les performances
+    On Error Resume Next
+    With xlApp
+        .Visible = False
+        .ScreenUpdating = False
+        .DisplayAlerts = False
+        .EnableEvents = False
+        .Calculation = -4135 ' xlCalculationManual
+    End With
+    On Error GoTo ErrorHandler
+    
+    Set xlWorkbook = xlApp.Workbooks.Add
+    
+    If xlWorkbook Is Nothing Then
+        Debug.Print "ERREUR: Impossible de créer le classeur Excel"
+        Exit Sub
+    End If
+    
+    Debug.Print "Instance Excel créée avec optimisations de performance"
+    Exit Sub
+    
+ErrorHandler:
+    Debug.Print "ERREUR dans CreateOptimizedExcelInstance: " & Err.Number & " - " & Err.Description
+    If Not xlApp Is Nothing Then
+        xlApp.Quit
+        Set xlApp = Nothing
+    End If
+    Set xlWorkbook = Nothing
 End Sub
 
 Function CollectTasksData(projDoc As Object, ByRef allTasks As Variant) As Integer
     Dim task As Object
     Dim taskCount As Integer
     Dim i As Integer
+    Dim validTasks As Object ' Collection pour optimiser
 
+    Debug.Print "=== DEBUT CollectTasksData ==="
+    
+    ' Utiliser une collection pour optimiser la collecte
+    Set validTasks = CreateObject("Scripting.Dictionary")
     taskCount = 0
+    
+    Debug.Print "Collecte optimisée des tâches non-summary..."
     For Each task In projDoc.Tasks
         If Not task Is Nothing And Not task.Summary Then
             taskCount = taskCount + 1
+            validTasks.Add taskCount, task ' Stocker la référence de la tâche
         End If
     Next task
+    
+    Debug.Print "Nombre total de tâches non-summary: " & taskCount
 
     If taskCount = 0 Then
+        Debug.Print "AUCUNE tâche trouvée"
         CollectTasksData = 0
         Exit Function
     End If
@@ -91,28 +229,31 @@ Function CollectTasksData(projDoc As Object, ByRef allTasks As Variant) As Integ
     ReDim allTasks(1 To taskCount, 1 To 8)
     ' 1:ID, 2:Name, 3:Start, 4:Finish, 5:BaselineStart, 6:BaselineFinish, 7:HasSchedule, 8:HasBaseline
 
-    i = 1
-    For Each task In projDoc.Tasks
-        If Not task Is Nothing And Not task.Summary Then
-            allTasks(i, 1) = task.ID
-            allTasks(i, 2) = task.Name
+    Debug.Print "Traitement optimisé des données de tâches..."
+    For i = 1 To taskCount
+        Set task = validTasks(i)
+        
+        allTasks(i, 1) = task.ID
+        allTasks(i, 2) = task.Name
+        
+        Debug.Print "Tâche " & i & ": " & task.Name & " (ID: " & task.ID & ")"
 
-            ' Attribution directe des dates
-            On Error Resume Next
-            allTasks(i, 3) = task.Start
-            allTasks(i, 4) = task.Finish
-            allTasks(i, 5) = task.BaselineStart
-            allTasks(i, 6) = task.BaselineFinish
-            On Error GoTo 0
+        ' Attribution directe des dates avec gestion d'erreur optimisée
+        On Error Resume Next
+        allTasks(i, 3) = task.Start
+        allTasks(i, 4) = task.Finish
+        allTasks(i, 5) = task.BaselineStart
+        allTasks(i, 6) = task.BaselineFinish
+        On Error GoTo 0
 
-            ' Vérifications robustes sur les dates
-            allTasks(i, 7) = (IsDate(allTasks(i, 3)) And IsDate(allTasks(i, 4))) ' HasSchedule
-            allTasks(i, 8) = (IsDate(allTasks(i, 5)) And IsDate(allTasks(i, 6))) ' HasBaseline
+        ' Vérifications robustes sur les dates
+        allTasks(i, 7) = (IsDate(allTasks(i, 3)) And IsDate(allTasks(i, 4))) ' HasSchedule
+        allTasks(i, 8) = (IsDate(allTasks(i, 5)) And IsDate(allTasks(i, 6))) ' HasBaseline
+        
+        Debug.Print "  - HasSchedule: " & allTasks(i, 7) & ", HasBaseline: " & allTasks(i, 8)
+    Next i
 
-            i = i + 1
-        End If
-    Next task
-
+    Debug.Print "=== FIN CollectTasksData - " & taskCount & " tâches collectées ==="
     CollectTasksData = taskCount
 End Function
 
@@ -144,13 +285,31 @@ Sub GenerateDayView(ws As Object, allTasks As Variant, taskCount As Integer, pro
     Dim colorRanges As Variant
     Dim colorCount As Integer
 
-    startDate = projDoc.ProjectStart
+    Debug.Print "=== DEBUT GenerateDayView ==="
+    Debug.Print "Nombre de taches a traiter: " & taskCount
 
+    startDate = projDoc.ProjectStart
+    Debug.Print "Date de debut du projet: " & startDate
+
+    Debug.Print "Construction des en-tetes jours..."
     Call BuildDayHeaders(ws, startDate, dayHeaders, dayDates, MAX_DAYS)
+    Debug.Print "En-tetes jours construits"
+    
+    Debug.Print "Construction de la matrice de planning..."
     Call BuildPlanningMatrix(allTasks, taskCount, dayDates, planningMatrix, colorRanges, colorCount, False)
+    Debug.Print "Matrice construite, colorCount: " & colorCount
+    
+    Debug.Print "Ecriture dans la feuille Excel..."
     Call DumpMatrixToSheet(ws, planningMatrix, UBound(dayHeaders))
+    Debug.Print "Donnees ecrites"
+    
+    Debug.Print "Application des couleurs..."
     Call ApplyColorRanges(ws, colorRanges, colorCount)
+    Debug.Print "Couleurs appliquees"
+    
+    Debug.Print "Formatage de la feuille..."
     Call FormatWorksheetOptimized(ws, taskCount + 5, UBound(dayHeaders) + 2, "jour")
+    Debug.Print "=== FIN GenerateDayView ==="
 End Sub
 
 ' Vue Semaine (ajoutée pour corriger la vue)
@@ -161,7 +320,7 @@ Sub BuildWeekHeaders(ws As Object, startDate As Date, ByRef weekHeaders() As Str
     Dim lastMonth As String
     Dim monthStartCol As Integer
 
-    ' Trouver le début de semaine (lundi)
+    ' Trouver le debut de semaine (lundi)
     currentDate = startDate
     Do While Weekday(currentDate, vbMonday) <> 1
         currentDate = currentDate - 1
@@ -170,17 +329,17 @@ Sub BuildWeekHeaders(ws As Object, startDate As Date, ByRef weekHeaders() As Str
     ReDim weekHeaders(1 To maxWeeks)
     ReDim weekDates(1 To maxWeeks)
 
-    For i = 1 To maxWeeks
-        weekHeaders(i) = "S" & Format(currentDate, "ww")  ' Numéro de semaine
+        For i = 1 To maxWeeks
+        weekHeaders(i) = "S" & Format(currentDate, "ww")  ' Numero de semaine
         weekDates(i) = currentDate
-        ws.Cells(100, i + 2).Value = currentDate         ' Pour correspondance ultérieure
+        ws.Cells(100, i + 2).Value = currentDate         ' Pour correspondance ulterieure
         currentDate = currentDate + 7                    ' Semaine suivante
     Next i
 
-    ws.Cells(1, 1).Value = "PLANNING PRÉVISIONNEL - VUE SEMAINE"
+    ws.Cells(1, 1).Value = "PLANNING PREVISIONNEL - VUE SEMAINE"
     ws.Cells(4, 1).Value = "N°"
-    ws.Cells(4, 2).Value = "Nom de la tâche"
-
+    ws.Cells(4, 2).Value = "Nom de la tache"
+    
     lastMonth = ""
     monthStartCol = 3
 
@@ -223,13 +382,13 @@ Sub BuildDayHeaders(ws As Object, startDate As Date, ByRef dayHeaders() As Strin
     For i = 1 To maxDays
         dayHeaders(i) = Format(currentDate, "d")
         dayDates(i) = currentDate
-        ws.Cells(100, i + 2).Value = currentDate  ' Stocke la date complète
+        ws.Cells(100, i + 2).Value = currentDate  ' Stocke la date complete
         currentDate = currentDate + 1
     Next i
 
-    ws.Cells(1, 1).Value = "PLANNING PRÉVISIONNEL - VUE JOUR"
+    ws.Cells(1, 1).Value = "PLANNING PREVISIONNEL - VUE JOUR"
     ws.Cells(4, 1).Value = "N°"
-    ws.Cells(4, 2).Value = "Nom de la tâche"
+    ws.Cells(4, 2).Value = "Nom de la tache"
 
     lastMonth = ""
     monthStartCol = 3
@@ -281,7 +440,7 @@ Sub BuildPlanningMatrix(allTasks As Variant, taskCount As Integer, dates() As Da
         Next j
 
         If Not allTasks(i, 7) Then
-            planningMatrix(i, 3) = "Non planifié"
+            planningMatrix(i, 3) = "Non planifie"
         Else
             ' Baseline
             If allTasks(i, 8) Then
@@ -291,7 +450,7 @@ Sub BuildPlanningMatrix(allTasks As Variant, taskCount As Integer, dates() As Da
                     Call ProcessDateRange(dStart, dEnd, dates, i, colorRanges, colorCount, "reference", isWeekView)
                 End If
             End If
-            ' Réel
+            ' Reel
             If Not IsEmpty(allTasks(i, 3)) And Not IsEmpty(allTasks(i, 4)) And allTasks(i, 3) <> "" And allTasks(i, 4) <> "" Then
                 dStart = allTasks(i, 3)
                 dEnd = allTasks(i, 4)
@@ -341,25 +500,58 @@ Sub DumpMatrixToSheet(ws As Object, planningMatrix As Variant, maxCols As Intege
 
     lastRow = UBound(planningMatrix, 1)
     lastCol = maxCols + 2
+    
+    Debug.Print "Écriture optimisée en bloc de la matrice..."
+    
+    ' Désactiver temporairement les calculs et rafraîchissement
+    On Error Resume Next
+    ws.Application.ScreenUpdating = False
+    ws.Application.Calculation = -4135 ' xlCalculationManual
+    On Error GoTo 0
+    
+    ' Écriture en une seule opération de toute la matrice
     ws.Range(ws.Cells(5, 1), ws.Cells(lastRow + 5 - 1, lastCol)).Value = planningMatrix
+    
+    ' Réactiver les calculs et rafraîchissement
+    On Error Resume Next
+    ws.Application.Calculation = -4105 ' xlCalculationAutomatic
+    ws.Application.ScreenUpdating = True
+    On Error GoTo 0
+    
+    Debug.Print "Écriture de matrice terminée: " & lastRow & " lignes x " & lastCol & " colonnes"
 End Sub
 
 Sub ApplyColorRanges(ws As Object, colorRanges As Variant, colorCount As Integer)
     Dim i As Integer
     Dim targetRange As Object
     Dim baseColor As Long
-
+    
+    Debug.Print "Application optimisée des couleurs..."
+    
+    ' Désactiver temporairement les calculs pour optimiser
+    ws.Application.ScreenUpdating = False
+    
     baseColor = RGB(255, 153, 51)
 
     For i = 1 To colorCount
-        Set targetRange = ws.Range(ws.Cells(colorRanges(i, 3), colorRanges(i, 1)), ws.Cells(colorRanges(i, 3), colorRanges(i, 2)))
-        targetRange.Interior.Color = baseColor
-        If colorRanges(i, 4) = "reference" Then
-            targetRange.Interior.TintAndShade = 0.8
-        ElseIf colorRanges(i, 4) = "prevu" Then
-            targetRange.Interior.TintAndShade = 0.2
-        End If
+        Set targetRange = ws.Range(ws.Cells(colorRanges(i, 3), colorRanges(i, 1)), _
+                                  ws.Cells(colorRanges(i, 3), colorRanges(i, 2)))
+        
+        ' Application des couleurs par lot
+        With targetRange.Interior
+            .Color = baseColor
+            If colorRanges(i, 4) = "reference" Then
+                .TintAndShade = 0.8
+            ElseIf colorRanges(i, 4) = "prevu" Then
+                .TintAndShade = 0.2
+            End If
+        End With
     Next i
+    
+    ' Réactiver le rafraîchissement
+    ws.Application.ScreenUpdating = True
+    
+    Debug.Print "Application des couleurs terminée: " & colorCount & " plages colorées"
 End Sub
 
 Sub FormatWorksheetOptimized(ws As Object, lastRow As Integer, lastCol As Integer, viewType As String)
@@ -396,9 +588,530 @@ Sub FormatWorksheetOptimized(ws As Object, lastRow As Integer, lastCol As Intege
 End Sub
 
 ' ============================================
-' INJECTION UNITÉS DE POINTE DANS FEUILLE "JOURS"
+' INJECTION UNITES DE POINTE DANS FEUILLE "JOURS" - VERSION OPTIMISEE
 ' ============================================
-Sub Injecter_UnitesDePointe_Dans_Planning(xlApp As Object, xlBook As Object)
+Sub Injecter_UnitesDePointe_Dans_Planning_Optimise(ByRef xlApp As Object, ByRef xlBook As Object)
+    ' ===== INJECTION DES HEURES "TRAVAIL PREVU" DEPUIS MS PROJECT =====
+    ' Structure feuille "Jours" :
+    ' - Ligne 4 : numéros de jour (1, 2, 3...)  
+    ' - Ligne 100 : dates complètes (utilisées pour TimeScaleData)
+    ' - Lignes 5...N : tâches (col A), ligne 3 = Nb personnes
+    ' Source = Assignment.TimeScaleData avec Type=8, pjTimescaleDays
+    
+    ' Constante interne pour les heures par jour
+    Const HeuresParJour As Double = 9
+    
+    ' Mode debug pilotable
+    Dim DEBUG_MODE As Boolean
+    DEBUG_MODE = False
+    
+    Dim wsJours As Object
+    Dim projet As Project
+    Dim tache As task, assign As assignment
+    Dim tsData As TimeScaleValues
+    Dim lastRow As Long, lastCol As Long
+    Dim compteurValeurs As Long, compteurValeursLog As Long
+    Dim heuresParJourEffectif As Double
+    Dim nbDatesIndexees As Long, nbTachesIndexees As Long
+    
+    ' Compteurs pour diagnostic
+    Dim readBuckets As Long, nonEmpty As Long, emptyRaw As Long, tsEmpty As Long, writes As Long
+    
+    ' Tables d'optimisation
+    Dim tacheToRowIndex As Object ' Dictionary pour mapper nom tache -> ligne
+    Dim heuresMatrix As Variant   ' Matrice pour accumuler les heures de travail prévu
+    Dim hasValueMatrix As Variant ' Matrice pour indiquer si une cellule a une valeur
+    Dim totalHeuresParJour As Variant ' Total heures par jour
+    
+    Debug.Print "=== DEBUT Injecter_UnitesDePointe_Dans_Planning_Optimise ==="
+    Set projet = ActiveProject
+
+    ' Vérification de l'onglet "Jours"
+    On Error Resume Next
+    Set wsJours = xlBook.Worksheets("Jours")
+    On Error GoTo 0
+    If wsJours Is Nothing Then
+        MsgBox "L'onglet 'Jours' n'existe pas dans le fichier Excel.", vbCritical, "Erreur"
+        Debug.Print "ERREUR: Onglet 'Jours' introuvable - sortie propre"
+        Exit Sub
+    End If
+
+    ' Vérifier le mode debug
+    On Error Resume Next
+    Dim valeurB1 As Variant
+    valeurB1 = wsJours.Cells(1, 2).Value
+    If UCase(Trim(CStr(valeurB1))) = "DEBUG" Then
+        DEBUG_MODE = True
+    End If
+    On Error GoTo 0
+
+    ' Déterminer les heures par jour (B2 si > 0, sinon 9)
+    heuresParJourEffectif = HeuresParJour
+    On Error Resume Next
+    Dim valeurB2 As Variant
+    valeurB2 = wsJours.Cells(2, 2).Value
+    If IsNumeric(valeurB2) And CDbl(valeurB2) > 0 Then
+        heuresParJourEffectif = CDbl(valeurB2)
+    End If
+    On Error GoTo 0
+
+    ' Déterminer les dimensions de la feuille
+    lastRow = wsJours.Cells(wsJours.Rows.Count, 1).End(-4162).Row ' xlUp = -4162
+    lastCol = wsJours.Cells(4, wsJours.Columns.Count).End(-4159).Column ' xlToLeft = -4159
+    
+    ' ===== PHASE 1: INDEX DES TACHES =====
+    Set tacheToRowIndex = CreateObject("Scripting.Dictionary")
+    
+    ' Index des tâches (colonne A = libellés, lignes 5 à N)
+    Dim ligne As Long
+    For ligne = 5 To lastRow
+        Dim tacheName As String
+        tacheName = Trim(CStr(wsJours.Cells(ligne, 1).Value))
+        If tacheName <> "" Then
+            tacheToRowIndex(tacheName) = ligne
+            nbTachesIndexees = nbTachesIndexees + 1
+        End If
+    Next ligne
+    
+    ' Compter les dates indexées (ligne 100, colonnes C à fin)
+    Dim col As Long
+    For col = 3 To lastCol
+        Dim cellValue As Variant
+        cellValue = wsJours.Cells(100, col).Value  ' Les dates sont stockées ligne 100 !
+        
+        If IsDate(cellValue) Then
+            nbDatesIndexees = nbDatesIndexees + 1
+            ' Debug seulement les 3 premières dates
+            If DEBUG_MODE And nbDatesIndexees <= 3 Then
+                Debug.Print "[DHEAD] col=" & col & ", date=" & Format(cellValue, "yyyy-mm-dd") & ", serial=" & CLng(CDate(cellValue))
+            End If
+        Else
+            If DEBUG_MODE Then
+                Debug.Print "[WARN] Date from L100 not usable: col=" & col & ", value=" & Chr(34) & cellValue & Chr(34)
+            End If
+        End If
+    Next col
+    
+    ' Log d'initialisation compacte
+    Debug.Print "[INIT] lastRow=" & lastRow & ", lastCol=" & lastCol & ", HeuresParJour=" & heuresParJourEffectif & _
+                ", B2=" & IIf(IsEmpty(valeurB2) Or IsNull(valeurB2), "vide", valeurB2) & _
+                ", TasksIndexed=" & nbTachesIndexees & ", DatesIndexed=" & nbDatesIndexees
+    
+    ' ===== PHASE 2: INITIALISATION DES MATRICES =====
+    ReDim heuresMatrix(5 To lastRow, 3 To lastCol)
+    ReDim hasValueMatrix(5 To lastRow, 3 To lastCol)
+    ReDim totalHeuresParJour(3 To lastCol)
+    
+    ' Initialiser les matrices
+    For ligne = 5 To lastRow
+        For col = 3 To lastCol
+            heuresMatrix(ligne, col) = 0
+            hasValueMatrix(ligne, col) = False
+        Next col
+    Next ligne
+    
+    For col = 3 To lastCol
+        totalHeuresParJour(col) = 0
+    Next col
+    
+    ' ===== PHASE 3: LECTURE DES DONNEES MS PROJECT =====
+    readBuckets = 0
+    nonEmpty = 0
+    emptyRaw = 0
+    tsEmpty = 0
+    writes = 0
+    
+    Dim totalTachesAvecAffectations As Long
+    Dim totalAffectations As Long
+    
+    For Each tache In projet.Tasks
+        If Not tache Is Nothing And Not tache.Summary Then
+            ' Rechercher la ligne correspondante dans Excel
+            If tacheToRowIndex.Exists(tache.Name) Then
+                Dim ligneIndex As Long
+                ligneIndex = tacheToRowIndex(tache.Name)
+                
+                Dim nbAffectationsTache As Long
+                nbAffectationsTache = 0
+                
+                ' Log de la tâche mappée
+                If DEBUG_MODE Then
+                    Debug.Print "[TASK] UID=" & tache.UniqueID & ", ID=" & tache.ID & ", Row=" & ligneIndex & ", Name=" & Chr(34) & tache.Name & Chr(34) & ", AssignCount=" & tache.Assignments.Count
+                End If
+                
+                For Each assign In tache.Assignments
+                    If Not assign.Resource Is Nothing Then
+                        ' Filtre d'affectation "travail"
+                        If assign.Resource.Type = pjResourceTypeWork Then
+                            nbAffectationsTache = nbAffectationsTache + 1
+                            totalAffectations = totalAffectations + 1
+                            
+                            ' Log de l'affectation
+                            If DEBUG_MODE Then
+                                Debug.Print "[ASG] TaskUID=" & tache.UniqueID & ", AssignUID=" & assign.UniqueID & ", ResName=" & Chr(34) & assign.Resource.Name & Chr(34) & ", ResType=Work"
+                            End If
+                            
+                            ' Itérer sur chaque date de la ligne 100 Excel
+                            For col = 3 To lastCol
+                                Dim dateExcel As Variant
+                                dateExcel = wsJours.Cells(100, col).Value  ' Les dates sont stockées ligne 100 !
+                                If IsDate(dateExcel) Then
+                                    ' Normaliser la date à minuit avec clé fiable
+                                    Dim dateDebut As Date, dateFin As Date
+                                    dateDebut = DateSerial(Year(dateExcel), Month(dateExcel), Day(dateExcel))
+                                    dateFin = DateAdd("d", 1, dateDebut)
+                                    
+                                    ' Log de l'appel TimeScaleData
+                                    If DEBUG_MODE Then
+                                        Debug.Print "[READ] AssignUID=" & assign.UniqueID & ", Day=" & Format(dateExcel, "yyyy-mm-dd") & ", Window=[" & Format(dateDebut, "dd/mm/yy hh:nn") & "→" & Format(dateFin, "dd/mm/yy hh:nn") & "], Type=8, Unit=Days"
+                                    End If
+                                    
+                                    readBuckets = readBuckets + 1
+                                    
+                                    ' Lire fenêtre [d ; d+1j) avec Type=8 (travail prévu)
+                                    On Error Resume Next
+                                    Set tsData = assign.TimeScaleData(dateDebut, dateFin, 8, pjTimescaleDays, 1)
+                                    On Error GoTo 0
+                                    
+                                    If tsData Is Nothing Or tsData.Count = 0 Then
+                                        ' Log des données manquantes
+                                        If DEBUG_MODE Then
+                                            Debug.Print "[MISS] AssignUID=" & assign.UniqueID & ", Day=" & Format(dateExcel, "yyyy-mm-dd") & " -> tsData empty"
+                                        End If
+                                        tsEmpty = tsEmpty + 1
+                                    Else
+                                        Dim tsValue As TimeScaleValue
+                                        Set tsValue = tsData(1) ' Premier (et unique) élément de la journée
+                                        
+                                        ' Récupérer la valeur brute et logger son type
+                                        Dim raw As Variant
+                                        raw = tsValue.Value
+                                        
+                                        If DEBUG_MODE Then
+                                            Debug.Print "[RAW] AssignUID=" & assign.UniqueID & ", Day=" & Format(dateExcel, "yyyy-mm-dd") & ", Type=" & TypeName(raw) & ", Value=" & Chr(34) & raw & Chr(34)
+                                        End If
+                                        
+                                        ' ===== PARSING INLINE (sans fonction externe) =====
+                                        Dim heures As Double
+                                        heures = 0
+                                        
+                                        ' Vérifier si la valeur est vide ou null
+                                        If Not (IsEmpty(raw) Or IsNull(raw) Or raw = "" Or raw = 0) Then
+                                            If TypeName(raw) = "String" Then
+                                                ' Cas 1: Format texte avec "h" (ex: "9h", "2,25h")
+                                                Dim s As String
+                                                s = Trim(CStr(raw))
+                                                If Right(UCase(s), 1) = "H" Then
+                                                    ' Enlever le "h"
+                                                    s = Left(s, Len(s) - 1)
+                                                    ' Remplacer virgule par point pour format décimal
+                                                    s = Replace(s, ",", ".")
+                                                    ' Convertir directement en heures
+                                                    If IsNumeric(s) Then
+                                                        heures = CDbl(s)
+                                                    End If
+                                                Else
+                                                    ' Format numérique sous forme de string
+                                                    s = Replace(s, ",", ".")
+                                                    If IsNumeric(s) Then
+                                                        heures = CDbl(s) / 60 ' Supposer des minutes
+                                                    End If
+                                                End If
+                                            ElseIf IsNumeric(raw) Then
+                                                ' Cas 2: Format numérique - convertir minutes en heures
+                                                heures = CDbl(raw) / 60
+                                            End If
+                                            nonEmpty = nonEmpty + 1
+                                        Else
+                                            emptyRaw = emptyRaw + 1
+                                        End If
+                                        
+                                        ' Log du résultat du parsing
+                                        If DEBUG_MODE Then
+                                            Debug.Print "[PARSE] AssignUID=" & assign.UniqueID & ", Day=" & Format(dateExcel, "yyyy-mm-dd") & " -> Hours=" & heures
+                                        End If
+                                        
+                                        ' Accumuler dans la matrice si valeur > 0
+                                        If heures > 0 Then
+                                            heuresMatrix(ligneIndex, col) = heuresMatrix(ligneIndex, col) + heures
+                                            hasValueMatrix(ligneIndex, col) = True
+                                            totalHeuresParJour(col) = totalHeuresParJour(col) + heures
+                                            writes = writes + 1
+                                            
+                                            ' Log des 5 premières écritures seulement
+                                            If DEBUG_MODE And writes <= 5 Then
+                                                Debug.Print "[WRITE] Row=" & ligneIndex & ", Col=" & col & ", Day=" & Format(dateExcel, "yyyy-mm-dd") & ", Hours=" & heures & ", Task=" & Chr(34) & tache.Name & Chr(34) & ", AssignUID=" & assign.UniqueID
+                                            ElseIf DEBUG_MODE And writes = 6 Then
+                                                Debug.Print "[INFO] Truncate logs after 5 writes to avoid flooding"
+                                            End If
+                                        End If
+                                        
+                                        ' Sanity checks ciblés
+                                        If DEBUG_MODE Then
+                                            ' Check pour TaskUID=6, AssignUID=1048589, dates 2026-02-04 et 2026-02-05
+                                            If tache.UniqueID = 6 And assign.UniqueID = 1048589 Then
+                                                If Format(dateExcel, "yyyy-mm-dd") = "2026-02-04" Or Format(dateExcel, "yyyy-mm-dd") = "2026-02-05" Then
+                                                    Dim expectedHours As String
+                                                    expectedHours = IIf(Format(dateExcel, "yyyy-mm-dd") = "2026-02-04", "10h", "11h")
+                                                    Debug.Print "[CHECK] Expect TaskUID=6, AssignUID=1048589, " & Format(dateExcel, "yyyy-mm-dd") & " in (" & expectedHours & ")"
+                                                    If heures > 0 Then
+                                                        Debug.Print "[CHECK:OK] TaskUID=" & tache.UniqueID & ", AssignUID=" & assign.UniqueID & ", Day=" & Format(dateExcel, "yyyy-mm-dd") & ", Got=" & heures
+                                                    Else
+                                                        Debug.Print "[CHECK:MISS] TaskUID=" & tache.UniqueID & ", AssignUID=" & assign.UniqueID & ", Day=" & Format(dateExcel, "yyyy-mm-dd") & ", Got=" & raw
+                                                    End If
+                                                End If
+                                            End If
+                                            ' Check pour TaskUID=4, AssignUID=1048583, dates 2026-02-04 et 2026-02-05
+                                            If tache.UniqueID = 4 And assign.UniqueID = 1048583 Then
+                                                If Format(dateExcel, "yyyy-mm-dd") = "2026-02-04" Or Format(dateExcel, "yyyy-mm-dd") = "2026-02-05" Then
+                                                    Debug.Print "[CHECK] Expect TaskUID=4, AssignUID=1048583, " & Format(dateExcel, "yyyy-mm-dd") & " in (12h)"
+                                                    If heures > 0 Then
+                                                        Debug.Print "[CHECK:OK] TaskUID=" & tache.UniqueID & ", AssignUID=" & assign.UniqueID & ", Day=" & Format(dateExcel, "yyyy-mm-dd") & ", Got=" & heures
+                                                    Else
+                                                        Debug.Print "[CHECK:MISS] TaskUID=" & tache.UniqueID & ", AssignUID=" & assign.UniqueID & ", Day=" & Format(dateExcel, "yyyy-mm-dd") & ", Got=" & raw
+                                                    End If
+                                                End If
+                                            End If
+                                        End If
+                                    End If
+                                End If
+                            Next col
+                        End If
+                    End If
+                Next assign
+                
+                If nbAffectationsTache > 0 Then
+                    totalTachesAvecAffectations = totalTachesAvecAffectations + 1
+                End If
+            Else
+                ' Log des tâches non mappées
+                If DEBUG_MODE Then
+                    Debug.Print "[WARN] Task not mapped to Excel row: UID=" & tache.UniqueID & ", Name=" & Chr(34) & tache.Name & Chr(34)
+                End If
+            End If
+        End If
+    Next tache
+    
+    ' Log des statistiques après lecture MS Project
+    Debug.Print "[SUM] Read=" & readBuckets & ", NonEmpty=" & nonEmpty & ", EmptyRaw=" & emptyRaw & ", TsEmpty=" & tsEmpty & ", Writes=" & writes
+    
+    ' ===== PHASE 4: ECRITURE EN BLOC DANS EXCEL =====
+    ' Désactiver les calculs et rafraîchissement pour optimiser
+    On Error Resume Next
+    xlApp.ScreenUpdating = False
+    xlApp.Calculation = -4135 ' xlCalculationManual
+    On Error GoTo 0
+    
+    ' Préparer la matrice pour écriture en bloc (lignes 5...N, colonnes C...fin)
+    Dim matrixForWrite As Variant
+    ReDim matrixForWrite(1 To (lastRow - 4), 1 To (lastCol - 2))
+    
+    ' Remplir la matrice d'écriture - laisser vide si pas de valeur
+    For ligne = 5 To lastRow
+        For col = 3 To lastCol
+            Dim rowIdx As Long, colIdx As Long
+            rowIdx = ligne - 4
+            colIdx = col - 2
+            If hasValueMatrix(ligne, col) Then
+                matrixForWrite(rowIdx, colIdx) = heuresMatrix(ligne, col)
+            Else
+                matrixForWrite(rowIdx, colIdx) = Empty ' Cellule vide (pas de chaîne vide)
+            End If
+        Next col
+    Next ligne
+    
+    ' Écriture massive des heures de travail prévu
+    If lastRow >= 5 And lastCol >= 3 Then
+        wsJours.Range(wsJours.Cells(5, 3), wsJours.Cells(lastRow, lastCol)).Value = matrixForWrite
+    End If
+    
+    ' Écriture de la ligne 3 : nombre de personnes (heures / heuresParJourEffectif)
+    For col = 3 To lastCol
+        If totalHeuresParJour(col) > 0 Then
+            Dim nbPersonnes As Double
+            nbPersonnes = totalHeuresParJour(col) / heuresParJourEffectif
+            wsJours.Cells(3, col).Value = nbPersonnes
+            wsJours.Cells(3, col).NumberFormat = "0.00"
+        Else
+            wsJours.Cells(3, col).Value = Empty
+        End If
+    Next col
+    
+    ' Libellé en B3 selon B2
+    Dim labelB3 As String
+    If IsNumeric(valeurB2) And CDbl(valeurB2) > 0 Then
+        labelB3 = "Nb personnes (heures/" & heuresParJourEffectif & "h)"
+    Else
+        labelB3 = "Nb personnes (heures/9h)"
+    End If
+    wsJours.Cells(3, 2).Value = labelB3
+    
+    ' Réactiver les calculs et rafraîchissement
+    On Error Resume Next
+    xlApp.Calculation = -4105 ' xlCalculationAutomatic
+    xlApp.ScreenUpdating = True
+    On Error GoTo 0
+    
+    Debug.Print "[END] Valeurs injectées (non vides) = " & writes
+    Debug.Print "=== FIN Injecter_UnitesDePointe_Dans_Planning_Optimise ==="
+End Sub
+
+' ===== FONCTIONS UTILITAIRES D'OPTIMISATION =====
+
+Sub BuildTaskIndex(wsJours As Object, lastRow As Long, ByRef tacheToRowIndex As Object)
+    Dim ligne As Long
+    
+    For ligne = 5 To lastRow
+        Dim tacheName As String
+        tacheName = Trim(CStr(wsJours.Cells(ligne, 2).Value))
+        If tacheName <> "" Then
+            tacheToRowIndex(tacheName) = ligne
+        End If
+    Next ligne
+    
+    Debug.Print "Index des tâches créé: " & tacheToRowIndex.Count & " entrées"
+End Sub
+
+Sub BuildDateIndex(wsJours As Object, lastCol As Long, ByRef dateToColIndex As Object)
+    Dim col As Long
+    
+    For col = 3 To lastCol
+        Dim cellValue As Variant
+        cellValue = wsJours.Cells(100, col).Value
+        
+        If IsDate(cellValue) Then
+            Dim dateKey As String
+            dateKey = Format(DateValue(cellValue), "yyyy-mm-dd")
+            dateToColIndex(dateKey) = col
+        End If
+    Next col
+    
+    Debug.Print "Index des dates créé: " & dateToColIndex.Count & " entrées"
+End Sub
+
+Sub InitializeMatrix(ByRef unitesMatrix As Variant, ByRef totalSumRow As Variant, _
+                    lastRow As Long, lastCol As Long)
+    Dim ligne As Long, col As Long
+    
+    ' Initialiser la matrice des unités
+    For ligne = 5 To lastRow
+        For col = 3 To lastCol
+            unitesMatrix(ligne, col) = 0
+        Next col
+    Next ligne
+    
+    ' Initialiser la ligne des totaux
+    For col = 3 To lastCol
+        totalSumRow(col) = 0
+    Next col
+End Sub
+
+Sub ProcessAssignmentOptimized(assign As assignment, ligneIndex As Long, _
+                              ByRef dateToColIndex As Object, _
+                              ByRef unitesMatrix As Variant, ByRef totalSumRow As Variant, _
+                              ByRef compteurValeurs As Long)
+    Dim tsData As TimeScaleValues, tsValue As TimeScaleValue
+    Dim i As Integer
+    
+    On Error Resume Next
+    Set tsData = assign.TimeScaleData(assign.Start, assign.Finish, _
+                                     pjAssignmentTimescaledPeakUnits, pjTimescaleDays)
+    On Error GoTo 0
+    
+    If tsData Is Nothing Then Exit Sub
+    
+    For i = 1 To tsData.Count
+        Set tsValue = tsData(i)
+        
+        If IsNumeric(tsValue.Value) And tsValue.Value > 0 Then
+            Dim dateKey As String
+            dateKey = Format(DateValue(tsValue.startDate), "yyyy-mm-dd")
+            
+            If dateToColIndex.Exists(dateKey) Then
+                Dim colIndex As Long
+                colIndex = dateToColIndex(dateKey)
+                
+                Dim valueToAdd As Double
+                valueToAdd = Round(CDbl(tsValue.Value), 2)
+                
+                ' Accumuler dans la matrice
+                unitesMatrix(ligneIndex, colIndex) = unitesMatrix(ligneIndex, colIndex) + valueToAdd
+                totalSumRow(colIndex) = totalSumRow(colIndex) + valueToAdd
+                
+                compteurValeurs = compteurValeurs + 1
+            End If
+        End If
+    Next i
+End Sub
+
+Sub WriteMatrixToExcel(wsJours As Object, ByRef unitesMatrix As Variant, _
+                      ByRef totalSumRow As Variant, lastRow As Long, lastCol As Long)
+    Dim ligne As Long, col As Long
+    
+    ' Désactiver les calculs et rafraîchissement pour optimiser
+    On Error Resume Next
+    wsJours.Application.ScreenUpdating = False
+    wsJours.Application.Calculation = -4135 ' xlCalculationManual
+    On Error GoTo 0
+    
+    ' Écriture en bloc des unités pour chaque ligne
+    For ligne = 5 To lastRow
+        Dim hasValues As Boolean
+        hasValues = False
+        
+        ' Vérifier s'il y a des valeurs pour cette ligne
+        For col = 3 To lastCol
+            If unitesMatrix(ligne, col) > 0 Then
+                hasValues = True
+                Exit For
+            End If
+        Next col
+        
+        ' Si des valeurs existent, écrire la ligne complète
+        If hasValues Then
+            Dim rowData As Variant
+            ReDim rowData(1 To 1, 1 To lastCol - 2)
+            
+            For col = 3 To lastCol
+                rowData(1, col - 2) = IIf(unitesMatrix(ligne, col) > 0, unitesMatrix(ligne, col), "")
+            Next col
+            
+            ' Écriture en bloc de la ligne
+            wsJours.Range(wsJours.Cells(ligne, 3), wsJours.Cells(ligne, lastCol)).Value = rowData
+        End If
+    Next ligne
+    
+    ' Écriture en bloc de la ligne de totaux
+    Dim totalRowData As Variant
+    ReDim totalRowData(1 To 1, 1 To lastCol - 2)
+    
+    For col = 3 To lastCol
+        If totalSumRow(col) > 0 Then
+            totalRowData(1, col - 2) = totalSumRow(col)
+            ' Formatage des totaux
+            wsJours.Cells(3, col).Font.Bold = True
+            wsJours.Cells(3, col).Interior.Color = RGB(255, 230, 153)
+        Else
+            totalRowData(1, col - 2) = ""
+        End If
+    Next col
+    
+    ' Écriture en bloc de la ligne des totaux
+    wsJours.Range(wsJours.Cells(3, 3), wsJours.Cells(3, lastCol)).Value = totalRowData
+    
+    ' Réactiver les calculs et rafraîchissement
+    On Error Resume Next
+    wsJours.Application.Calculation = -4105 ' xlCalculationAutomatic
+    wsJours.Application.ScreenUpdating = True
+    On Error GoTo 0
+    
+    Debug.Print "Écriture en bloc terminée"
+End Sub
+
+' ============================================
+' INJECTION UNITES DE POINTE DANS FEUILLE "JOURS" - VERSION ORIGINALE (CONSERVEE)
+' ============================================
+Sub Injecter_UnitesDePointe_Dans_Planning(ByRef xlApp As Object, ByRef xlBook As Object)
     Dim wsJours As Object
     Dim projet As Project
     Dim tache As task, assign As assignment
@@ -410,6 +1123,7 @@ Sub Injecter_UnitesDePointe_Dans_Planning(xlApp As Object, xlBook As Object)
     Dim idxTache As Long
     Dim compteurValeurs As Long
 
+    Debug.Print "=== DEBUT Injecter_UnitesDePointe_Dans_Planning ==="
     Set projet = ActiveProject
 
     On Error Resume Next
@@ -487,6 +1201,9 @@ NextTask:
             wsJours.Cells(3, col).Interior.Color = RGB(255, 230, 153)
         End If
     Next col
+    
+    Debug.Print "Valeurs injectees: " & compteurValeurs
+    Debug.Print "=== FIN Injecter_UnitesDePointe_Dans_Planning ==="
 End Sub
 
 Sub InsererLogoOmexom(ws As Object)
@@ -498,7 +1215,7 @@ Sub InsererLogoOmexom(ws As Object)
     ' === Logo Omexom en base64 ===
     base64Image = GetBase64()
 
-    ' Conversion Base64 ? octets
+    ' Conversion Base64 en octets
     Set xml = CreateObject("MSXML2.DOMDocument.6.0")
     Set node = xml.createElement("b64")
     node.DataType = "bin.base64"

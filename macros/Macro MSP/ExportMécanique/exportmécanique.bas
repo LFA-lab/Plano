@@ -17,7 +17,7 @@ Function PickFolder(ByVal defaultPath As String) As String
     
     userPath = InputBox(promptMsg, "Dossier d'export", defaultPath)
     
-    ' Si l'utilisateur annule (userPath = "") ou laisse vide, utiliser le défaut
+    ' Si l'utilisateur annule (userPath = "") ou laisse vide, utiliser le dÃ©faut
     If userPath = "" Then
         PickFolder = defaultPath
         Exit Function
@@ -29,12 +29,12 @@ Function PickFolder(ByVal defaultPath As String) As String
         userPath = Left$(userPath, Len(userPath) - 1)
     End If
     
-    ' Vérifier que le dossier existe
+    ' VÃ©rifier que le dossier existe
     If Dir(userPath, vbDirectory) <> "" Then
         PickFolder = userPath
     Else
-        MsgBox "Le dossier spécifié n'existe pas :" & vbCrLf & userPath & vbCrLf & _
-               "Utilisation du dossier par défaut : " & defaultPath, vbExclamation
+        MsgBox "Le dossier spÃ©cifiÃ© n'existe pas :" & vbCrLf & userPath & vbCrLf & _
+               "Utilisation du dossier par dÃ©faut : " & defaultPath, vbExclamation
         PickFolder = defaultPath
     End If
 End Function
@@ -68,14 +68,14 @@ Sub ExportMecaniqueComplet()
 
     On Error GoTo ErrorHandler
 
-    ' Choisir le dossier d'export avec vérification
+    ' Choisir le dossier d'export avec vÃ©rification
     currentStep = "SELECTION_DOSSIER"
     Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     
     Dim defaultDir As String
     defaultDir = Environ$("USERPROFILE") & "\Downloads"
     
-    ' Vérifier que le dossier par défaut existe, sinon utiliser le Bureau
+    ' VÃ©rifier que le dossier par dÃ©faut existe, sinon utiliser le Bureau
     If Dir(defaultDir, vbDirectory) = "" Then
         defaultDir = Environ$("USERPROFILE") & "\Desktop"
         If Dir(defaultDir, vbDirectory) = "" Then
@@ -84,11 +84,11 @@ Sub ExportMecaniqueComplet()
     End If
     
     exportDir = PickFolder(defaultDir)
-    Debug.Print "Dossier sélectionné: " & exportDir
+    Debug.Print "Dossier sÃ©lectionnÃ©: " & exportDir
     
-    ' Vérifier le retour de PickFolder
+    ' VÃ©rifier le retour de PickFolder
     If exportDir = "" Then
-        MsgBox "Aucun dossier valide sélectionné. Export annulé.", vbInformation
+        MsgBox "Aucun dossier valide sÃ©lectionnÃ©. Export annulÃ©.", vbInformation
         Exit Sub
     End If
 
@@ -107,7 +107,7 @@ Sub ExportMecaniqueComplet()
     Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ETAPE 1: Collecte et tri des ressources mecaniques ==="
     Set resList = GetSortedMechanicalResources(ActiveProject)
-    Debug.Print "Nombre de ressources trouvées: " & resList.Count
+    Debug.Print "Nombre de ressources trouvÃ©es: " & resList.Count
     
     If resList.Count = 0 Then
         MsgBox "Aucune ressource du groupe Mecanique trouvee dans le projet.", vbExclamation
@@ -125,16 +125,16 @@ Sub ExportMecaniqueComplet()
     Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ETAPE 3: Calcul des donnees ==="
     Set totalPlanned = ComputeTotalPlannedWork(resAssignments)
-    Debug.Print "Calcul travaux prévus terminé"
+    Debug.Print "Calcul travaux prÃ©vus terminÃ©"
     
     Set dailyActual = ComputeDailyActualWork(resAssignments, startDate, endDate)
-    Debug.Print "Calcul travaux réels quotidiens terminé"
+    Debug.Print "Calcul travaux rÃ©els quotidiens terminÃ©"
     
     datesAsc = BuildActualDatesIndex(dailyActual, True)
-    Debug.Print "Index des dates créé"
+    Debug.Print "Index des dates crÃ©Ã©"
     
     Set cumActual = ComputeCumulativeActual(dailyActual, datesAsc)
-    Debug.Print "Calcul cumulatifs terminé"
+    Debug.Print "Calcul cumulatifs terminÃ©"
     
     datesDesc = ReverseArray(datesAsc)
     Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
@@ -186,10 +186,10 @@ Sub ExportMecaniqueComplet()
                "Verifiez qu'Excel est installe et accessible.", vbCritical
         Exit Sub
     End If
-    Debug.Print "Application Excel créée"
+    Debug.Print "Application Excel crÃ©Ã©e"
     
     Set xlBook = xlApp.Workbooks.Add
-    Debug.Print "Classeur Excel créé"
+    Debug.Print "Classeur Excel crÃ©Ã©"
     On Error GoTo ErrorHandler
     
     ' Supprimer feuilles par defaut sauf une
@@ -198,17 +198,17 @@ Sub ExportMecaniqueComplet()
         xlBook.Worksheets(xlBook.Worksheets.Count).Delete
     Loop
     xlApp.DisplayAlerts = True
-    Debug.Print "Feuilles par défaut supprimées"
+    Debug.Print "Feuilles par dÃ©faut supprimÃ©es"
     
     ' Creer les 2 onglets
     Set xlRecapSheet = xlBook.Worksheets(1)
     xlRecapSheet.Name = "Recapitulatif"
-    Debug.Print "Onglet Recapitulatif créé"
+    Debug.Print "Onglet Recapitulatif crÃ©Ã©"
     
     Set xlDetailSheet = xlBook.Worksheets.Add
     xlDetailSheet.Name = "Donnees detaillees"
     xlDetailSheet.Move After:=xlRecapSheet
-    Debug.Print "Onglet Données détaillées créé"
+    Debug.Print "Onglet DonnÃ©es dÃ©taillÃ©es crÃ©Ã©"
     Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
     currentStep = "INSERTION_LOGOS"
@@ -223,7 +223,7 @@ Sub ExportMecaniqueComplet()
     
     ' === ONGLET 1 : RECAPITULATIF ===
     With xlRecapSheet
-        ' Décaler les données vers le bas pour laisser place aux logos
+        ' DÃ©caler les donnÃ©es vers le bas pour laisser place aux logos
         .Cells(4, 1).Value = "Ressource"
         .Cells(4, 2).Value = "Prevu"
         .Cells(4, 3).Value = "Realise"
@@ -279,10 +279,10 @@ Sub ExportMecaniqueComplet()
     
     ' === ONGLET 2 : DONNEES DETAILLEES ===
     Call WriteDetailSheet(xlDetailSheet, datesDesc, resList, totalPlanned, dailyActual, cumActual)
-    Debug.Print "Données détaillées écrites"
+    Debug.Print "DonnÃ©es dÃ©taillÃ©es Ã©crites"
     
     Call FormatDetailSheet(xlDetailSheet)
-    Debug.Print "Formatage des données détaillées terminé"
+    Debug.Print "Formatage des donnÃ©es dÃ©taillÃ©es terminÃ©"
     Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
     ' Sauvegarder et ouvrir
@@ -291,7 +291,7 @@ Sub ExportMecaniqueComplet()
     Debug.Print "Fichier de sauvegarde: " & fileName
     
     xlBook.SaveAs fileName
-    Debug.Print "Fichier sauvegardé avec succès"
+    Debug.Print "Fichier sauvegardÃ© avec succÃ¨s"
     
     xlRecapSheet.Activate
     xlApp.Visible = True
@@ -325,30 +325,30 @@ Sub ExportMecaniqueComplet()
     Exit Sub
 
 ErrorHandler:
-    Debug.Print "=== ERREUR DETECTEE à l'étape: " & currentStep & " | " & Format(Now, "hh:nn:ss") & " ==="
+    Debug.Print "=== ERREUR DETECTEE Ã  l'Ã©tape: " & currentStep & " | " & Format(Now, "hh:nn:ss") & " ==="
     Debug.Print "ERREUR: Err=" & Err.Number & " - " & Err.Description
     
-    MsgBox "Erreur lors de l'export à l'étape: " & currentStep & vbCrLf & _
+    MsgBox "Erreur lors de l'export Ã  l'Ã©tape: " & currentStep & vbCrLf & _
            "Erreur: " & Err.Number & " - " & Err.Description & vbCrLf & _
-           "Consultez la fenêtre Immediate (Ctrl+G) pour plus de détails.", vbCritical
+           "Consultez la fenÃªtre Immediate (Ctrl+G) pour plus de dÃ©tails.", vbCritical
     
     On Error Resume Next
     If Not xlApp Is Nothing Then
         If Not xlBook Is Nothing Then xlBook.Close False
         xlApp.Quit
-        Debug.Print "Application Excel fermée en urgence"
+        Debug.Print "Application Excel fermÃ©e en urgence"
     End If
     On Error GoTo 0
     Exit Sub
 
 ExcelError:
-    Debug.Print "=== ERREUR EXCEL à l'étape: " & currentStep & " | " & Format(Now, "hh:nn:ss") & " ==="
+    Debug.Print "=== ERREUR EXCEL Ã  l'Ã©tape: " & currentStep & " | " & Format(Now, "hh:nn:ss") & " ==="
     Debug.Print "ERREUR EXCEL: Err=" & Err.Number & " - " & Err.Description
     
-    MsgBox "Probleme d'automation Excel detecte à l'étape: " & currentStep & vbCrLf & _
-           "• Verifiez qu'Excel est installe" & vbCrLf & _
-           "• Fermez Excel s'il est ouvert" & vbCrLf & _
-           "• Redemarrez MS Project" & vbCrLf & _
+    MsgBox "Probleme d'automation Excel detecte Ã  l'Ã©tape: " & currentStep & vbCrLf & _
+           "â€¢ Verifiez qu'Excel est installe" & vbCrLf & _
+           "â€¢ Fermez Excel s'il est ouvert" & vbCrLf & _
+           "â€¢ Redemarrez MS Project" & vbCrLf & _
            "Erreur: " & Err.Number & " - " & Err.Description, vbCritical
     Exit Sub
 End Sub
@@ -382,17 +382,17 @@ End Sub
 
 ' Tri des ressources mecaniques par ID de tache ascendant
 Private Function GetSortedMechanicalResources(proj As Project) As Collection
-    Debug.Print "Start: Collecte ressources mécaniques | " & Format(Now, "hh:nn:ss")
+    Debug.Print "Start: Collecte ressources mÃ©caniques | " & Format(Now, "hh:nn:ss")
     
     On Error GoTo ErrorHandler
     
-    ' Utiliser un tableau dynamique au lieu d'ArrayList pour éviter les problèmes de compatibilité
+    ' Utiliser un tableau dynamique au lieu d'ArrayList pour Ã©viter les problÃ¨mes de compatibilitÃ©
     Dim resArray() As Variant
     Dim resCount As Long
     resCount = 0
     
     ' Redimensionner le tableau initial
-    ReDim resArray(0 To 100) ' Commencer avec 100 éléments, on redimensionnera si nécessaire
+    ReDim resArray(0 To 100) ' Commencer avec 100 Ã©lÃ©ments, on redimensionnera si nÃ©cessaire
 
     Dim res As Resource
     For Each res In proj.Resources
@@ -415,7 +415,7 @@ Private Function GetSortedMechanicalResources(proj As Project) As Collection
                     Next assn
                 End If
                 
-                ' Redimensionner le tableau si nécessaire
+                ' Redimensionner le tableau si nÃ©cessaire
                 If resCount > UBound(resArray) Then
                     ReDim Preserve resArray(0 To UBound(resArray) + 50)
                 End If
@@ -426,9 +426,9 @@ Private Function GetSortedMechanicalResources(proj As Project) As Collection
         End If
     Next res
     
-    Debug.Print "Ressources mécaniques trouvées: " & resCount
+    Debug.Print "Ressources mÃ©caniques trouvÃ©es: " & resCount
 
-    ' Redimensionner le tableau à la taille exacte
+    ' Redimensionner le tableau Ã  la taille exacte
     If resCount > 0 Then
         ReDim Preserve resArray(0 To resCount - 1)
         
@@ -448,7 +448,7 @@ Private Function GetSortedMechanicalResources(proj As Project) As Collection
         Debug.Print "Ressource triee: " & resArray(i)(0) & " (TaskID: " & resArray(i)(1) & ")"
     Next i
     
-    Debug.Print "Done: Collecte ressources mécaniques | " & Format(Now, "hh:nn:ss")
+    Debug.Print "Done: Collecte ressources mÃ©caniques | " & Format(Now, "hh:nn:ss")
     Set GetSortedMechanicalResources = sortedResList
     Exit Function
     
@@ -469,17 +469,17 @@ Private Sub QuickSortResources(arr As Variant, first As Long, last As Long)
     pivot = arr((first + last) \ 2)(1) ' Pivot sur le minTaskId
 
     Do While low <= high
-        ' Chercher un Ã©lÃ©ment Ã  gauche qui devrait Ãªtre Ã  droite
+        ' Chercher un ÃƒÂ©lÃƒÂ©ment ÃƒÂ  gauche qui devrait ÃƒÂªtre ÃƒÂ  droite
         Do While arr(low)(1) < pivot
             low = low + 1
         Loop
-        ' Chercher un Ã©lÃ©ment Ã  droite qui devrait Ãªtre Ã  gauche
+        ' Chercher un ÃƒÂ©lÃƒÂ©ment ÃƒÂ  droite qui devrait ÃƒÂªtre ÃƒÂ  gauche
         Do While arr(high)(1) > pivot
             high = high - 1
         Loop
         
         If low <= high Then
-            ' Ã‰changer
+            ' Ãƒâ€°changer
             temp = arr(low)
             arr(low) = arr(high)
             arr(high) = temp
@@ -522,13 +522,13 @@ Private Function MapAssignmentsByResource(resList As Collection) As Object
         End If
     Next
     
-    Debug.Print "Assignations trouvées: " & totalAssignments
+    Debug.Print "Assignations trouvÃ©es: " & totalAssignments
     Debug.Print "Done: Index assignations par ressource | " & Format(Now, "hh:nn:ss")
     Set MapAssignmentsByResource = resAssignments
     Exit Function
     
 DictError:
-    Debug.Print "ERREUR création Dictionary: " & Err.Number & " - " & Err.Description
+    Debug.Print "ERREUR crÃ©ation Dictionary: " & Err.Number & " - " & Err.Description
     MsgBox "Erreur : Impossible de creer l'objet Dictionary." & vbCrLf & _
            "Verifiez que Microsoft Scripting Runtime est disponible.", vbCritical
 End Function
@@ -660,7 +660,7 @@ End Function
 Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
     resOrder As Collection, totalPlanned As Object, dailyActual As Object, cumActual As Object)
     
-    Debug.Print "Start: Ecriture onglet détaillé | " & Format(Now, "hh:nn:ss")
+    Debug.Print "Start: Ecriture onglet dÃ©taillÃ© | " & Format(Now, "hh:nn:ss")
     
     ' Declarations de variables
     Dim col As Integer
@@ -688,7 +688,7 @@ Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
         resColMap(resName) = col
         col = col + 4
     Next
-    Debug.Print "En-têtes ressources créés"
+    Debug.Print "En-tÃªtes ressources crÃ©Ã©s"
     
     ' Ligne 2 : "Date" en A2, puis sous-en-tetes pour chaque ressource
     xlWs.Cells(2, 1).Value = "Date"
@@ -700,12 +700,12 @@ Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
         xlWs.Cells(2, baseCol + 2).Value = "Jour"
         xlWs.Cells(2, baseCol + 3).Value = "%"
     Next
-    Debug.Print "Sous-en-têtes créés"
+    Debug.Print "Sous-en-tÃªtes crÃ©Ã©s"
     
     ' Donnees par date
     If IsEmpty(orderedDatesDesc) Or UBound(orderedDatesDesc) < LBound(orderedDatesDesc) Then
         xlWs.Cells(3, 1).Value = "Aucune donnee reelle trouvee"
-        Debug.Print "Aucune donnée réelle trouvée"
+        Debug.Print "Aucune donnÃ©e rÃ©elle trouvÃ©e"
         Exit Sub
     End If
     
@@ -747,8 +747,8 @@ Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
         dateCount = dateCount + 1
     Next
     
-    Debug.Print "Données écrites: " & dateCount & " dates"
-    Debug.Print "Done: Ecriture onglet détaillé | " & Format(Now, "hh:nn:ss")
+    Debug.Print "DonnÃ©es Ã©crites: " & dateCount & " dates"
+    Debug.Print "Done: Ecriture onglet dÃ©taillÃ© | " & Format(Now, "hh:nn:ss")
 End Sub
 
 ' Mise en forme (fige ligne 1, formats, bordures)
@@ -757,7 +757,7 @@ Private Sub FormatDetailSheet(xlWs As Object)
     xlWs.Range("A2").Select
     xlWs.Application.ActiveWindow.FreezePanes = True
     
-    ' Mise en forme des en-tÃªtes
+    ' Mise en forme des en-tÃƒÂªtes
     Dim lastCol As Integer: lastCol = xlWs.UsedRange.Columns.Count
     xlWs.Range("A1").Resize(1, lastCol).Interior.Color = RGB(68, 114, 196)
     xlWs.Range("A1").Resize(1, lastCol).Font.Color = RGB(255, 255, 255)
@@ -773,31 +773,31 @@ Private Sub FormatDetailSheet(xlWs As Object)
     ' AutoFit
     xlWs.Columns.AutoFit
     
-    ' === FORMAT D'AFFICHAGE SANS DÃ‰CIMALES ===
-    ' Appliquer le format entier/pourcentage Ã  toutes les colonnes de donnÃ©es
-    If lastRow > 2 Then ' S'il y a des donnÃ©es (au-delÃ  des en-tÃªtes)
+    ' === FORMAT D'AFFICHAGE SANS DÃƒâ€°CIMALES ===
+    ' Appliquer le format entier/pourcentage ÃƒÂ  toutes les colonnes de donnÃƒÂ©es
+    If lastRow > 2 Then ' S'il y a des donnÃƒÂ©es (au-delÃƒÂ  des en-tÃƒÂªtes)
         Dim formatCol As Integer
         
-        ' Parcourir toutes les colonnes de donnÃ©es (colonnes 2 et suivantes, par groupes de 4)
+        ' Parcourir toutes les colonnes de donnÃƒÂ©es (colonnes 2 et suivantes, par groupes de 4)
         For formatCol = 2 To lastCol Step 4
             If formatCol <= lastCol Then
-                ' Colonne "QtÃ©" â†’ format entier
+                ' Colonne "QtÃƒÂ©" Ã¢â€ â€™ format entier
                 xlWs.Range(xlWs.Cells(3, formatCol), xlWs.Cells(lastRow, formatCol)).NumberFormat = "0"
             End If
             
             If formatCol + 1 <= lastCol Then
-                ' Colonne "RÃ©el" â†’ format entier
+                ' Colonne "RÃƒÂ©el" Ã¢â€ â€™ format entier
                 xlWs.Range(xlWs.Cells(3, formatCol + 1), xlWs.Cells(lastRow, formatCol + 1)).NumberFormat = "0"
             End If
             
             If formatCol + 2 <= lastCol Then
-                ' Colonne "Jour" â†’ format entier
+                ' Colonne "Jour" Ã¢â€ â€™ format entier
                 xlWs.Range(xlWs.Cells(3, formatCol + 2), xlWs.Cells(lastRow, formatCol + 2)).NumberFormat = "0"
             End If
             
             If formatCol + 3 <= lastCol Then
-                ' Colonne "%" â†’ format pourcentage entier (mais les valeurs sont dÃ©jÃ  en % textuel)
-                ' On garde le format texte car les valeurs contiennent dÃ©jÃ  le symbole %
+                ' Colonne "%" Ã¢â€ â€™ format pourcentage entier (mais les valeurs sont dÃƒÂ©jÃƒÂ  en % textuel)
+                ' On garde le format texte car les valeurs contiennent dÃƒÂ©jÃƒÂ  le symbole %
                 ' Si on voulait un vrai format pourcentage : xlWs.Range(...).NumberFormat = "0%"
             End If
         Next formatCol
@@ -814,10 +814,10 @@ Public Sub ExportMeca_Bouton()
     ExportMecaniqueComplet
 End Sub
 
-' CrÃ©e un bouton dans l'onglet ComplÃ©ments (Add-Ins) pour lancer l'export
+' CrÃƒÂ©e un bouton dans l'onglet ComplÃƒÂ©ments (Add-Ins) pour lancer l'export
 Public Sub InstallerBoutonExportMeca()
     On Error Resume Next
-    ' Nettoyage si dÃ©jÃ  prÃ©sent
+    ' Nettoyage si dÃƒÂ©jÃƒÂ  prÃƒÂ©sent
     Application.CommandBars("ExportMeca").Delete
     On Error GoTo 0
 
@@ -828,7 +828,7 @@ Public Sub InstallerBoutonExportMeca()
     Set btn = cb.Controls.Add(Type:=msoControlButton)
 
     With btn
-        .Caption = "Export MÃ©canique"
+        .Caption = "Export MÃƒÂ©canique"
         .OnAction = "ExportMeca_Bouton"  ' appelle le wrapper
         .Style = msoButtonIconAndCaption
         .FaceId = 176  ' icone standard Office ; changeable si besoin
@@ -849,10 +849,10 @@ End Sub
 Sub InsererLogos(ws As Object)
     Debug.Print "Start: Insertion logos | " & Format(Now, "hh:nn:ss")
     
-    ' Insérer le logo Omexom à gauche
+    ' InsÃ©rer le logo Omexom Ã  gauche
     Call InsererLogoOmexom(ws)
     
-    ' Insérer le logo du client à droite
+    ' InsÃ©rer le logo du client Ã  droite
     Call InsererLogoClient(ws)
     
     Debug.Print "Done: Insertion logos | " & Format(Now, "hh:nn:ss")
@@ -870,7 +870,7 @@ Sub InsererLogoOmexom(ws As Object)
     
     ' === Logo Omexom en base64 ===
     base64Image = GetBase64()
-    Debug.Print "Logo Omexom: Base64 récupéré"
+    Debug.Print "Logo Omexom: Base64 rÃ©cupÃ©rÃ©"
 
     ' Conversion Base64 ? octets
     Set xml = CreateObject("MSXML2.DOMDocument.6.0")
@@ -878,7 +878,7 @@ Sub InsererLogoOmexom(ws As Object)
     node.DataType = "bin.base64"
     node.Text = base64Image
     byteData = node.nodeTypedValue
-    Debug.Print "Logo Omexom: Conversion Base64 réalisée"
+    Debug.Print "Logo Omexom: Conversion Base64 rÃ©alisÃ©e"
 
     ' Fichier temporaire
     tempFile = Environ$("TEMP") & "\omexom_logo.png"
@@ -890,14 +890,14 @@ Sub InsererLogoOmexom(ws As Object)
         .SaveToFile tempFile, 2
         .Close
     End With
-    Debug.Print "Logo Omexom: Fichier temporaire créé: " & tempFile
+    Debug.Print "Logo Omexom: Fichier temporaire crÃ©Ã©: " & tempFile
 
-    ' Insertion du logo Omexom (à gauche)
+    ' Insertion du logo Omexom (Ã  gauche)
     ws.Shapes.AddPicture tempFile, _
         LinkToFile:=False, _
         SaveWithDocument:=True, _
         Left:=10, Top:=5, Width:=120, Height:=40
-    Debug.Print "Logo Omexom: Image insérée dans Excel"
+    Debug.Print "Logo Omexom: Image insÃ©rÃ©e dans Excel"
 
     ' Suppression du fichier temporaire
     On Error Resume Next: Kill tempFile
@@ -920,7 +920,7 @@ Sub InsererLogoClient(ws As Object)
     
     ' === Logo Client en base64 ===
     base64Image = GetBase64Client()
-    Debug.Print "Logo Client: Base64 récupéré"
+    Debug.Print "Logo Client: Base64 rÃ©cupÃ©rÃ©"
 
     ' Conversion Base64 ? octets
     Set xml = CreateObject("MSXML2.DOMDocument.6.0")
@@ -928,7 +928,7 @@ Sub InsererLogoClient(ws As Object)
     node.DataType = "bin.base64"
     node.Text = base64Image
     byteData = node.nodeTypedValue
-    Debug.Print "Logo Client: Conversion Base64 réalisée"
+    Debug.Print "Logo Client: Conversion Base64 rÃ©alisÃ©e"
 
     ' Fichier temporaire
     tempFile = Environ$("TEMP") & "\client_logo.png"
@@ -940,14 +940,14 @@ Sub InsererLogoClient(ws As Object)
         .SaveToFile tempFile, 2
         .Close
     End With
-    Debug.Print "Logo Client: Fichier temporaire créé: " & tempFile
+    Debug.Print "Logo Client: Fichier temporaire crÃ©Ã©: " & tempFile
 
-    ' Insertion du logo Client (à droite)
+    ' Insertion du logo Client (Ã  droite)
     ws.Shapes.AddPicture tempFile, _
         LinkToFile:=False, _
         SaveWithDocument:=True, _
         Left:=140, Top:=5, Width:=120, Height:=40
-    Debug.Print "Logo Client: Image insérée dans Excel"
+    Debug.Print "Logo Client: Image insÃ©rÃ©e dans Excel"
 
     ' Suppression du fichier temporaire
     On Error Resume Next: Kill tempFile
