@@ -1,8 +1,11 @@
 ' ===================================================================
-' MACRO UNIFIEE : EXPORT MECANIQUE - 2 ONGLETS
+' MACRO UNIFIEE : EXPORT MECANIQUE - 3 ONGLETS
 ' ===================================================================
-' Onglet 1 : Recapitulatif global des ressources mecaniques
-' Onglet 2 : Donnees detaillees (uniquement dates avec valeurs reelles)
+' Onglet 1 : Recapitulatif consolidé par métier (Est+Ouest regroupés)
+' Métiers supportés: Battage, CQ Fondations, Arbaleétrier, Pannes, 
+'                   Renfort, CQ Structure, Pose, CQ Modules, Modules
+' Onglet 2 : Donnees detaillees Est (Groupe=Mecanique, Type=Materiel, Texte2=Est)
+' Onglet 3 : Donnees detaillees Ouest (Groupe=Mecanique, Type=Materiel, Texte2=Ouest)
 ' ===================================================================
 
 ' === FONCTION UTILITAIRE : SELECTEUR DE DOSSIER ===
@@ -33,8 +36,8 @@ Function PickFolder(ByVal defaultPath As String) As String
     If Dir(userPath, vbDirectory) <> "" Then
         PickFolder = userPath
     Else
-        MsgBox "Le dossier spÃ©cifiÃ© n'existe pas :" & vbCrLf & userPath & vbCrLf & _
-               "Utilisation du dossier par dÃ©faut : " & defaultPath, vbExclamation
+        MsgBox "Le dossier specifique n'existe pas :" & vbCrLf & userPath & vbCrLf & _
+               "Utilisation du dossier par defaut : " & defaultPath, vbExclamation
         PickFolder = defaultPath
     End If
 End Function
@@ -84,7 +87,7 @@ Sub ExportMecaniqueComplet()
     End If
     
     exportDir = PickFolder(defaultDir)
-    Debug.Print "Dossier sÃ©lectionnÃ©: " & exportDir
+    Debug.Print "Dossier selectionne: " & exportDir
     
     ' VÃ©rifier le retour de PickFolder
     If exportDir = "" Then
@@ -106,11 +109,22 @@ Sub ExportMecaniqueComplet()
     currentStep = "COLLECTE_RESSOURCES"
     Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ETAPE 1: Collecte et tri des ressources mecaniques ==="
-    Set resList = GetSortedMechanicalResources(ActiveProject)
-    Debug.Print "Nombre de ressources trouvÃ©es: " & resList.Count
+    
+    ' Collecter les ressources pour chaque feuille
+    Set resList = GetSortedMechanicalResources(ActiveProject, "") ' Pour le recapitulatif global (toutes ressources mecaniques)
+    Dim resListEst As Collection, resListOuest As Collection
+    Set resListEst = GetSortedMechanicalResourcesEst(ActiveProject)
+    Set resListOuest = GetSortedMechanicalResourcesOuest(ActiveProject)
+    
+    Debug.Print "Nombre de ressources trouvees - Total: " & resList.Count & ", Est: " & resListEst.Count & ", Ouest: " & resListOuest.Count
     
     If resList.Count = 0 Then
         MsgBox "Aucune ressource du groupe Mecanique trouvee dans le projet.", vbExclamation
+        Exit Sub
+    End If
+    
+    If resListEst.Count = 0 And resListOuest.Count = 0 Then
+        MsgBox "Aucune ressource avec Texte2='Est' ou 'Ouest' trouvee dans le projet.", vbExclamation
         Exit Sub
     End If
     Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
@@ -118,59 +132,141 @@ Sub ExportMecaniqueComplet()
     currentStep = "COLLECTE_ASSIGNATIONS"
     Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ETAPE 2: Collecte des assignations ==="
+    
+    ' Assignations pour recapitulatif (toutes les ressources mecaniques)
     Set resAssignments = MapAssignmentsByResource(resList)
+    
+    ' Assignations specifiques pour Est et Ouest
+    Dim resAssignmentsEst As Object, resAssignmentsOuest As Object
+    Set resAssignmentsEst = MapAssignmentsByResource(resListEst)
+    Set resAssignmentsOuest = MapAssignmentsByResource(resListOuest)
     Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
     currentStep = "CALCUL_DONNEES"
     Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     Debug.Print "=== ETAPE 3: Calcul des donnees ==="
+    
+    ' Calculs pour recapitulatif global
     Set totalPlanned = ComputeTotalPlannedWork(resAssignments)
-    Debug.Print "Calcul travaux prÃ©vus terminÃ©"
-    
     Set dailyActual = ComputeDailyActualWork(resAssignments, startDate, endDate)
-    Debug.Print "Calcul travaux rÃ©els quotidiens terminÃ©"
-    
     datesAsc = BuildActualDatesIndex(dailyActual, True)
-    Debug.Print "Index des dates crÃ©Ã©"
-    
     Set cumActual = ComputeCumulativeActual(dailyActual, datesAsc)
-    Debug.Print "Calcul cumulatifs terminÃ©"
-    
     datesDesc = ReverseArray(datesAsc)
+    Debug.Print "Calculs globaux termines"
+    
+    ' Calculs pour feuille Est
+    Dim totalPlannedEst As Object, dailyActualEst As Object, cumActualEst As Object
+    Dim datesAscEst As Variant, datesDescEst As Variant
+    Set totalPlannedEst = ComputeTotalPlannedWork(resAssignmentsEst)
+    Set dailyActualEst = ComputeDailyActualWork(resAssignmentsEst, startDate, endDate)
+    datesAscEst = BuildActualDatesIndex(dailyActualEst, True)
+    Set cumActualEst = ComputeCumulativeActual(dailyActualEst, datesAscEst)
+    datesDescEst = ReverseArray(datesAscEst)
+    Debug.Print "Calculs Est termines"
+    
+    ' Calculs pour feuille Ouest
+    Dim totalPlannedOuest As Object, dailyActualOuest As Object, cumActualOuest As Object
+    Dim datesAscOuest As Variant, datesDescOuest As Variant
+    Set totalPlannedOuest = ComputeTotalPlannedWork(resAssignmentsOuest)
+    Set dailyActualOuest = ComputeDailyActualWork(resAssignmentsOuest, startDate, endDate)
+    datesAscOuest = BuildActualDatesIndex(dailyActualOuest, True)
+    Set cumActualOuest = ComputeCumulativeActual(dailyActualOuest, datesAscOuest)
+    datesDescOuest = ReverseArray(datesAscOuest)
+    Debug.Print "Calculs Ouest termines"
     Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
     currentStep = "CALCUL_RECAPITULATIF"
     Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
-    Debug.Print "=== ETAPE 4: Calcul du recapitulatif global ==="
+    Debug.Print "=== ETAPE 4: Calcul du recapitulatif global par ressource consolidee ==="
     
-    ' Calculer le recapitulatif global (utilise totalPlanned et cumActual)
+    ' Créer un dictionnaire pour consolider les ressources par nom (sans Est/Ouest)
+    Dim consolidatedResources As Object
+    Set consolidatedResources = CreateObject("Scripting.Dictionary")
+    
+    ' Fonction pour nettoyer le nom de ressource (enlever Est/Ouest)
     Dim resName As Variant
     For Each resName In resList
-        Dim recapTotalWork As Double: recapTotalWork = totalPlanned(resName)
+        Dim cleanName As String
+        cleanName = CStr(resName)
+        
+        ' Enlever les suffixes Est/Ouest (et leurs variantes)
+        cleanName = Replace(cleanName, " Est", "", 1, -1, vbTextCompare)
+        cleanName = Replace(cleanName, " Ouest", "", 1, -1, vbTextCompare)
+        cleanName = Replace(cleanName, " E", "", 1, -1, vbTextCompare)
+        cleanName = Replace(cleanName, " O", "", 1, -1, vbTextCompare)
+        cleanName = Replace(cleanName, "_Est", "", 1, -1, vbTextCompare)
+        cleanName = Replace(cleanName, "_Ouest", "", 1, -1, vbTextCompare)
+        cleanName = Replace(cleanName, "-Est", "", 1, -1, vbTextCompare)
+        cleanName = Replace(cleanName, "-Ouest", "", 1, -1, vbTextCompare)
+        cleanName = Trim(cleanName)
+        
+        ' Ignorer les ressources Implantation
+        If UCase(cleanName) = "IMPLANTATION" Then
+            Debug.Print "Ressource Implantation ignorée: " & resName
+            GoTo NextResName
+        End If
+        
+        ' Calculer les valeurs pour cette ressource
+        Dim recapTotalWork As Double: recapTotalWork = 0
         Dim recapTotalActual As Double: recapTotalActual = 0
+        
+        ' Vérifier si totalPlanned contient cette ressource
+        If totalPlanned.exists(resName) Then
+            recapTotalWork = totalPlanned(resName)
+        End If
         
         ' Calculer le total reel (maximum du cumul)
         If Not IsEmpty(datesAsc) And UBound(datesAsc) >= LBound(datesAsc) Then
             Dim lastDate As String: lastDate = datesAsc(UBound(datesAsc))
-            If cumActual(resName).exists(lastDate) Then
+            If cumActual.exists(resName) And cumActual(resName).exists(lastDate) Then
                 recapTotalActual = cumActual(resName)(lastDate)
             End If
         End If
-
-        Dim recapPercent As Double
-        If recapTotalWork > 0 Then
-            recapPercent = Round((recapTotalActual / recapTotalWork) * 100, 1)
+        
+        ' Ajouter ou consolider dans le dictionnaire
+        If consolidatedResources.exists(cleanName) Then
+            ' Ajouter aux valeurs existantes
+            Dim existingValues As Variant
+            existingValues = consolidatedResources(cleanName)
+            ' existingValues est un array: [0]=Prévu, [1]=Réalisé
+            existingValues(0) = existingValues(0) + recapTotalWork
+            existingValues(1) = existingValues(1) + recapTotalActual
+            consolidatedResources(cleanName) = existingValues
+        Else
+            ' Créer nouvelle entrée
+            Dim newValues(1) As Double
+            newValues(0) = recapTotalWork   ' Prévu
+            newValues(1) = recapTotalActual ' Réalisé
+            consolidatedResources.Add cleanName, newValues
         End If
-
+        
+        Debug.Print "Ressource " & resName & " -> " & cleanName & ": " & recapTotalWork & "/" & recapTotalActual
+NextResName:
+    Next
+    
+    ' Créer les lignes du récapitulatif à partir des ressources consolidées
+    Dim consolidatedName As Variant
+    For Each consolidatedName In consolidatedResources.Keys
+        Dim consolidatedValues As Variant
+        consolidatedValues = consolidatedResources(consolidatedName)
+        
+        Dim totalWork As Double: totalWork = consolidatedValues(0)
+        Dim totalActual As Double: totalActual = consolidatedValues(1)
+        
+        Dim recapPercent As Double
+        If totalWork > 0 Then
+            recapPercent = Round((totalActual / totalWork) * 100, 1)
+        End If
+        
         Dim recapLineCalc As Collection
         Set recapLineCalc = New Collection
-        recapLineCalc.Add resName
-        recapLineCalc.Add Round(recapTotalWork, 0)
-        recapLineCalc.Add Round(recapTotalActual, 0)
+        recapLineCalc.Add consolidatedName
+        recapLineCalc.Add Round(totalWork, 0)
+        recapLineCalc.Add Round(totalActual, 0)
         recapLineCalc.Add recapPercent
         recapData.Add recapLineCalc
         
-        Debug.Print "Recap " & resName & ": " & recapTotalWork & "/" & recapTotalActual & " (" & recapPercent & "%)"
+        Debug.Print "Recap consolidé " & consolidatedName & ": " & totalWork & "/" & totalActual & " (" & recapPercent & "%)"
     Next
     Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
@@ -198,17 +294,23 @@ Sub ExportMecaniqueComplet()
         xlBook.Worksheets(xlBook.Worksheets.Count).Delete
     Loop
     xlApp.DisplayAlerts = True
-    Debug.Print "Feuilles par dÃ©faut supprimÃ©es"
+    Debug.Print "Feuilles par defaut supprimees"
     
-    ' Creer les 2 onglets
+    ' Creer les 3 onglets
     Set xlRecapSheet = xlBook.Worksheets(1)
     xlRecapSheet.Name = "Recapitulatif"
-    Debug.Print "Onglet Recapitulatif crÃ©Ã©"
+    Debug.Print "Onglet Recapitulatif cree"
     
-    Set xlDetailSheet = xlBook.Worksheets.Add
-    xlDetailSheet.Name = "Donnees detaillees"
-    xlDetailSheet.Move After:=xlRecapSheet
-    Debug.Print "Onglet DonnÃ©es dÃ©taillÃ©es crÃ©Ã©"
+    Dim xlDetailSheetEst As Object, xlDetailSheetOuest As Object
+    Set xlDetailSheetEst = xlBook.Worksheets.Add
+    xlDetailSheetEst.Name = "Donnees Est"
+    xlDetailSheetEst.Move After:=xlRecapSheet
+    Debug.Print "Onglet Donnees Est cree"
+    
+    Set xlDetailSheetOuest = xlBook.Worksheets.Add
+    xlDetailSheetOuest.Name = "Donnees Ouest"
+    xlDetailSheetOuest.Move After:=xlDetailSheetEst
+    Debug.Print "Onglet DonnÃ©es Ouest crÃ©Ã©"
     Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
     currentStep = "INSERTION_LOGOS"
@@ -237,16 +339,18 @@ Sub ExportMecaniqueComplet()
         For Each recapLineDetail In recapData
             Dim col As Integer: col = 1
             Dim cellValue As Variant
+            
             For Each cellValue In recapLineDetail
                 If col = 4 Then
                     .Cells(row, col).Value = cellValue & "%"
                 Else
                     .Cells(row, col).Value = cellValue
-                    If col = 2 Then globalWork = globalWork + cellValue
-                    If col = 3 Then globalActual = globalActual + cellValue
+                    If col = 2 And IsNumeric(cellValue) Then globalWork = globalWork + cellValue
+                    If col = 3 And IsNumeric(cellValue) Then globalActual = globalActual + cellValue
                 End If
                 col = col + 1
             Next
+            
             row = row + 1
         Next
         
@@ -275,14 +379,29 @@ Sub ExportMecaniqueComplet()
 
     currentStep = "ONGLET_DETAILS"
     Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
-    Debug.Print "=== ONGLET 2: Ecriture des donnees detaillees ==="
+    Debug.Print "=== ONGLETS 2 et 3: Ecriture des donnees detaillees ==="
     
-    ' === ONGLET 2 : DONNEES DETAILLEES ===
-    Call WriteDetailSheet(xlDetailSheet, datesDesc, resList, totalPlanned, dailyActual, cumActual)
-    Debug.Print "DonnÃ©es dÃ©taillÃ©es Ã©crites"
+    ' === ONGLET 2 : DONNEES EST ===
+    If resListEst.Count > 0 Then
+        Call WriteDetailSheet(xlDetailSheetEst, datesDescEst, resListEst, totalPlannedEst, dailyActualEst, cumActualEst)
+        Debug.Print "DonnÃ©es Est Ã©crites"
+        Call FormatDetailSheet(xlDetailSheetEst)
+        Debug.Print "Formatage Est terminÃ©"
+    Else
+        xlDetailSheetEst.Cells(1, 1).Value = "Aucune ressource avec Texte2='Est' trouvee"
+        Debug.Print "Aucune donnÃ©e Est Ã  Ã©crire"
+    End If
     
-    Call FormatDetailSheet(xlDetailSheet)
-    Debug.Print "Formatage des donnÃ©es dÃ©taillÃ©es terminÃ©"
+    ' === ONGLET 3 : DONNEES OUEST ===
+    If resListOuest.Count > 0 Then
+        Call WriteDetailSheet(xlDetailSheetOuest, datesDescOuest, resListOuest, totalPlannedOuest, dailyActualOuest, cumActualOuest)
+        Debug.Print "DonnÃ©es Ouest Ã©crites"
+        Call FormatDetailSheet(xlDetailSheetOuest)
+        Debug.Print "Formatage Ouest terminÃ©"
+    Else
+        xlDetailSheetOuest.Cells(1, 1).Value = "Aucune ressource avec Texte2='Ouest' trouvee"
+        Debug.Print "Aucune donnÃ©e Ouest Ã  Ã©crire"
+    End If
     Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
     ' Sauvegarder et ouvrir
@@ -309,9 +428,10 @@ Sub ExportMecaniqueComplet()
     
     MsgBox "Export termine :" & vbCrLf & _
            "Fichier Excel : " & fileName & vbCrLf & _
-           "Onglet 1 : Recapitulatif (" & recapData.Count & " ressources)" & vbCrLf & _
-           "Onglet 2 : Donnees detaillees (" & dateCount & ")" & vbCrLf & _
-           "" & resList.Count & " ressource(s) mecanique(s) exportee(s)", vbInformation
+           "Onglet 1 : Recapitulatif consolidé (" & recapData.Count & " types de ressources)" & vbCrLf & _
+           "Onglet 2 : Donnees Est (" & resListEst.Count & " ressources)" & vbCrLf & _
+           "Onglet 3 : Donnees Ouest (" & resListOuest.Count & " ressources)" & vbCrLf & _
+           "Total : " & resList.Count & " ressource(s) mecanique(s)", vbInformation
     
     ' Tentative d'ouvrir l'explorateur (peut echouer selon les politiques de securite)
     On Error Resume Next
@@ -346,9 +466,9 @@ ExcelError:
     Debug.Print "ERREUR EXCEL: Err=" & Err.Number & " - " & Err.Description
     
     MsgBox "Probleme d'automation Excel detecte Ã  l'Ã©tape: " & currentStep & vbCrLf & _
-           "â€¢ Verifiez qu'Excel est installe" & vbCrLf & _
-           "â€¢ Fermez Excel s'il est ouvert" & vbCrLf & _
-           "â€¢ Redemarrez MS Project" & vbCrLf & _
+           "- Verifiez qu'Excel est installe" & vbCrLf & _
+           "- Fermez Excel s'il est ouvert" & vbCrLf & _
+           "- Redemarrez MS Project" & vbCrLf & _
            "Erreur: " & Err.Number & " - " & Err.Description, vbCritical
     Exit Sub
 End Sub
@@ -381,27 +501,87 @@ End Sub
 ' === NOUVELLES FONCTIONS REFACTORISEES ===
 
 ' Tri des ressources mecaniques par ID de tache ascendant
-Private Function GetSortedMechanicalResources(proj As Project) As Collection
-    Debug.Print "Start: Collecte ressources mÃ©caniques | " & Format(Now, "hh:nn:ss")
+Private Function GetSortedMechanicalResources(proj As Project, Optional zoneFilter As String = "") As Collection
+    Debug.Print "Start: Collecte ressources mecaniques specifiques" & IIf(zoneFilter <> "", " (Zone=" & zoneFilter & ")", "") & " | " & Format(Now, "hh:nn:ss")
     
     On Error GoTo ErrorHandler
+
+    ' Liste exacte des ressources autorisées
+    Dim validResources As Collection
+    Set validResources = New Collection
+    validResources.Add "Battage Est"
+    validResources.Add "Battage Ouest"
+    validResources.Add "CQ Fondations Est"
+    validResources.Add "CQ Fondations Ouest"
+    validResources.Add "Arbaletrier Est"
+    validResources.Add "Arbaletrier Ouest"
+    validResources.Add "Pannes Est"
+    validResources.Add "Pannes Ouest"
+    validResources.Add "Renfort Est"
+    validResources.Add "Renfort Ouest"
+    validResources.Add "CQ Structure Est"
+    validResources.Add "CQ Structure Ouest"
+    validResources.Add "Pose Est"
+    validResources.Add "Pose Ouest"
+    validResources.Add "CQ Modules Est"
+    validResources.Add "CQ Modules Ouest"
+    validResources.Add "Modules Est"
+    validResources.Add "Modules Ouest"
     
-    ' Utiliser un tableau dynamique au lieu d'ArrayList pour Ã©viter les problÃ¨mes de compatibilitÃ©
+    ' Compteurs pour le logging
+    Dim countEst As Long, countOuest As Long, countTotal As Long
+    countEst = 0
+    countOuest = 0
+    countTotal = 0
+    
+    ' Utiliser un tableau dynamique
     Dim resArray() As Variant
     Dim resCount As Long
     resCount = 0
     
     ' Redimensionner le tableau initial
-    ReDim resArray(0 To 100) ' Commencer avec 100 Ã©lÃ©ments, on redimensionnera si nÃ©cessaire
+    ReDim resArray(0 To 20) ' 16 ressources max + marge
 
     Dim res As Resource
     For Each res In proj.Resources
         If Not res Is Nothing Then
-            Dim cleanGroup As String
-            cleanGroup = Trim(Replace(Replace(res.Group, Chr(160), ""), Chr(32), " "))
+            Dim resName As String
+            resName = Trim(res.Name)
             
-            If (res.Type = 1 Or res.Type = 2) And _
-               (cleanGroup = "Mecanique" Or UCase(cleanGroup) = "MECANIQUE") Then
+            ' Vérifier si le nom est dans la liste des ressources autorisées
+            Dim isValidResource As Boolean
+            isValidResource = False
+            
+            Dim validName As Variant
+            For Each validName In validResources
+                If UCase(resName) = UCase(validName) Then
+                    isValidResource = True
+                    Exit For
+                End If
+            Next
+            
+            ' Si la ressource n'est pas dans la liste, l'ignorer
+            If Not isValidResource Then
+                GoTo NextResource
+            End If
+            
+            ' Appliquer le filtre de zone si spécifié
+            Dim zoneMatch As Boolean
+            If zoneFilter = "" Then
+                ' Pour le récapitulatif global : accepter toutes les ressources valides
+                zoneMatch = True
+                countTotal = countTotal + 1
+                
+                ' Comptage pour le log
+                If (InStr(1, resName, " Est", vbTextCompare) > 0) Then countEst = countEst + 1
+                If (InStr(1, resName, " Ouest", vbTextCompare) > 0) Then countOuest = countOuest + 1
+            Else
+                ' Pour les feuilles Est/Ouest : filtrer selon la zone demandée
+                zoneMatch = (InStr(1, resName, " " & zoneFilter, vbTextCompare) > 0)
+                If zoneMatch Then countTotal = countTotal + 1
+            End If
+            
+            If zoneMatch Then
                 
                 Dim minTaskId As Long
                 minTaskId = 2147483647 ' Max value for Long
@@ -423,10 +603,17 @@ Private Function GetSortedMechanicalResources(proj As Project) As Collection
                 resArray(resCount) = Array(res.Name, minTaskId)
                 resCount = resCount + 1
             End If
+            
+NextResource:
         End If
     Next res
     
-    Debug.Print "Ressources mÃ©caniques trouvÃ©es: " & resCount
+    ' Log détaillé des ressources trouvées
+    If zoneFilter = "" Then
+        Debug.Print "Ressources valides trouvees: " & resCount & " (Est: " & countEst & ", Ouest: " & countOuest & ")"
+    Else
+        Debug.Print "Ressources valides trouvees (Zone " & zoneFilter & "): " & resCount
+    End If
 
     ' Redimensionner le tableau Ã  la taille exacte
     If resCount > 0 Then
@@ -448,7 +635,7 @@ Private Function GetSortedMechanicalResources(proj As Project) As Collection
         Debug.Print "Ressource triee: " & resArray(i)(0) & " (TaskID: " & resArray(i)(1) & ")"
     Next i
     
-    Debug.Print "Done: Collecte ressources mÃ©caniques | " & Format(Now, "hh:nn:ss")
+    Debug.Print "Done: Collecte ressources mecaniques | " & Format(Now, "hh:nn:ss")
     Set GetSortedMechanicalResources = sortedResList
     Exit Function
     
@@ -456,6 +643,15 @@ ErrorHandler:
     Debug.Print "Erreur dans GetSortedMechanicalResources: " & Err.Description
     Set sortedResList = New Collection
     Set GetSortedMechanicalResources = sortedResList
+End Function
+
+' Fonctions wrapper pour filtrer par Texte2
+Private Function GetSortedMechanicalResourcesEst(proj As Project) As Collection
+    Set GetSortedMechanicalResourcesEst = GetSortedMechanicalResources(proj, "Est")
+End Function
+
+Private Function GetSortedMechanicalResourcesOuest(proj As Project) As Collection
+    Set GetSortedMechanicalResourcesOuest = GetSortedMechanicalResources(proj, "Ouest")
 End Function
 
 ' Quicksort pour l'array de ressources (array de arrays)
@@ -522,13 +718,13 @@ Private Function MapAssignmentsByResource(resList As Collection) As Object
         End If
     Next
     
-    Debug.Print "Assignations trouvÃ©es: " & totalAssignments
+    Debug.Print "Assignations trouvees: " & totalAssignments
     Debug.Print "Done: Index assignations par ressource | " & Format(Now, "hh:nn:ss")
     Set MapAssignmentsByResource = resAssignments
     Exit Function
     
 DictError:
-    Debug.Print "ERREUR crÃ©ation Dictionary: " & Err.Number & " - " & Err.Description
+    Debug.Print "ERREUR creation Dictionary: " & Err.Number & " - " & Err.Description
     MsgBox "Erreur : Impossible de creer l'objet Dictionary." & vbCrLf & _
            "Verifiez que Microsoft Scripting Runtime est disponible.", vbCritical
 End Function
@@ -659,9 +855,9 @@ End Function
 ' Ecriture onglet Donnees detaillees (Qte, Reel, Jour, %)
 Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
     resOrder As Collection, totalPlanned As Object, dailyActual As Object, cumActual As Object)
-    
-    Debug.Print "Start: Ecriture onglet dÃ©taillÃ© | " & Format(Now, "hh:nn:ss")
-    
+
+    Debug.Print "Start: Ecriture onglet detaille | " & Format(Now, "hh:nn:ss")
+
     ' Declarations de variables
     Dim col As Integer
     Dim resColMap As Object
@@ -688,8 +884,8 @@ Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
         resColMap(resName) = col
         col = col + 4
     Next
-    Debug.Print "En-tÃªtes ressources crÃ©Ã©s"
-    
+    Debug.Print "En-tetes ressources cree"
+
     ' Ligne 2 : "Date" en A2, puis sous-en-tetes pour chaque ressource
     xlWs.Cells(2, 1).Value = "Date"
     
@@ -700,12 +896,12 @@ Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
         xlWs.Cells(2, baseCol + 2).Value = "Jour"
         xlWs.Cells(2, baseCol + 3).Value = "%"
     Next
-    Debug.Print "Sous-en-tÃªtes crÃ©Ã©s"
-    
+    Debug.Print "Sous-en-tetes cree"
+
     ' Donnees par date
     If IsEmpty(orderedDatesDesc) Or UBound(orderedDatesDesc) < LBound(orderedDatesDesc) Then
         xlWs.Cells(3, 1).Value = "Aucune donnee reelle trouvee"
-        Debug.Print "Aucune donnÃ©e rÃ©elle trouvÃ©e"
+        Debug.Print "Aucune donnee reelle trouvee"
         Exit Sub
     End If
     
@@ -746,16 +942,21 @@ Private Sub WriteDetailSheet(xlWs As Object, orderedDatesDesc As Variant, _
         row = row + 1
         dateCount = dateCount + 1
     Next
-    
-    Debug.Print "DonnÃ©es Ã©crites: " & dateCount & " dates"
-    Debug.Print "Done: Ecriture onglet dÃ©taillÃ© | " & Format(Now, "hh:nn:ss")
+
+    Debug.Print "Donnees ecrites: " & dateCount & " dates"
+    Debug.Print "Done: Ecriture onglet detaille | " & Format(Now, "hh:nn:ss")
 End Sub
 
 ' Mise en forme (fige ligne 1, formats, bordures)
 Private Sub FormatDetailSheet(xlWs As Object)
-    ' Figer la ligne 1
-    xlWs.Range("A2").Select
-    xlWs.Application.ActiveWindow.FreezePanes = True
+    On Error Resume Next
+    ' Figer la ligne 1 - seulement si Excel est visible
+    If xlWs.Application.Visible Then
+        xlWs.Activate
+        xlWs.Range("A2").Select
+        xlWs.Application.ActiveWindow.FreezePanes = True
+    End If
+    On Error GoTo 0
     
     ' Mise en forme des en-tÃƒÂªtes
     Dim lastCol As Integer: lastCol = xlWs.UsedRange.Columns.Count
@@ -777,9 +978,37 @@ Private Sub FormatDetailSheet(xlWs As Object)
     ' Appliquer le format entier/pourcentage ÃƒÂ  toutes les colonnes de donnÃƒÂ©es
     If lastRow > 2 Then ' S'il y a des donnÃƒÂ©es (au-delÃƒÂ  des en-tÃƒÂªtes)
         Dim formatCol As Integer
+        Dim colorIndex As Integer
+        
+        ' Palette de couleurs plus foncées pour les ressources consommables
+        Dim resourceColors As Variant
+        resourceColors = Array(RGB(255, 182, 193), RGB(144, 238, 144), RGB(173, 216, 230), _
+                              RGB(255, 255, 0), RGB(221, 160, 221), RGB(0, 255, 255), _
+                              RGB(255, 165, 0), RGB(154, 205, 50), RGB(135, 206, 250), _
+                              RGB(255, 105, 180), RGB(186, 85, 211), RGB(0, 250, 154))
+        
+        colorIndex = 0
         
         ' Parcourir toutes les colonnes de donnÃƒÂ©es (colonnes 2 et suivantes, par groupes de 4)
         For formatCol = 2 To lastCol Step 4
+            ' Appliquer la couleur de fond pour le groupe de 4 colonnes de la ressource
+            Dim currentColor As Long
+            currentColor = resourceColors(colorIndex Mod UBound(resourceColors) + 1)
+            
+            ' Appliquer la couleur aux en-têtes (lignes 1 et 2) et aux données pour les 4 colonnes
+            If formatCol + 3 <= lastCol Then
+                ' Colorer les en-têtes de la ressource (ligne 1 fusionnée et ligne 2)
+                xlWs.Range(xlWs.Cells(1, formatCol), xlWs.Cells(2, formatCol + 3)).Interior.Color = currentColor
+                
+                ' Mettre le texte des noms de ressources en noir (ligne 1)
+                xlWs.Range(xlWs.Cells(1, formatCol), xlWs.Cells(1, formatCol + 3)).Font.Color = RGB(0, 0, 0)
+                
+                ' Mettre le texte des sous-en-têtes en noir (ligne 2)
+                xlWs.Range(xlWs.Cells(2, formatCol), xlWs.Cells(2, formatCol + 3)).Font.Color = RGB(0, 0, 0)
+                
+                ' Colorer toutes les données de cette ressource
+                xlWs.Range(xlWs.Cells(3, formatCol), xlWs.Cells(lastRow, formatCol + 3)).Interior.Color = currentColor
+            End If
             If formatCol <= lastCol Then
                 ' Colonne "QtÃƒÂ©" Ã¢â€ â€™ format entier
                 xlWs.Range(xlWs.Cells(3, formatCol), xlWs.Cells(lastRow, formatCol)).NumberFormat = "0"
@@ -800,6 +1029,8 @@ Private Sub FormatDetailSheet(xlWs As Object)
                 ' On garde le format texte car les valeurs contiennent dÃƒÂ©jÃƒÂ  le symbole %
                 ' Si on voulait un vrai format pourcentage : xlWs.Range(...).NumberFormat = "0%"
             End If
+            
+            colorIndex = colorIndex + 1
         Next formatCol
     End If
 End Sub
@@ -828,7 +1059,7 @@ Public Sub InstallerBoutonExportMeca()
     Set btn = cb.Controls.Add(Type:=msoControlButton)
 
     With btn
-        .Caption = "Export MÃƒÂ©canique"
+        .Caption = "Export Mecanique"
         .OnAction = "ExportMeca_Bouton"  ' appelle le wrapper
         .Style = msoButtonIconAndCaption
         .FaceId = 176  ' icone standard Office ; changeable si besoin
@@ -870,7 +1101,7 @@ Sub InsererLogoOmexom(ws As Object)
     
     ' === Logo Omexom en base64 ===
     base64Image = GetBase64()
-    Debug.Print "Logo Omexom: Base64 rÃ©cupÃ©rÃ©"
+    Debug.Print "Logo Omexom: Base64 recuperee"
 
     ' Conversion Base64 ? octets
     Set xml = CreateObject("MSXML2.DOMDocument.6.0")
@@ -878,7 +1109,7 @@ Sub InsererLogoOmexom(ws As Object)
     node.DataType = "bin.base64"
     node.Text = base64Image
     byteData = node.nodeTypedValue
-    Debug.Print "Logo Omexom: Conversion Base64 rÃ©alisÃ©e"
+    Debug.Print "Logo Omexom: Conversion Base64 realisee"
 
     ' Fichier temporaire
     tempFile = Environ$("TEMP") & "\omexom_logo.png"
@@ -890,7 +1121,7 @@ Sub InsererLogoOmexom(ws As Object)
         .SaveToFile tempFile, 2
         .Close
     End With
-    Debug.Print "Logo Omexom: Fichier temporaire crÃ©Ã©: " & tempFile
+    Debug.Print "Logo Omexom: Fichier temporaire cree: " & tempFile
 
     ' Insertion du logo Omexom (Ã  gauche)
     ws.Shapes.AddPicture tempFile, _
