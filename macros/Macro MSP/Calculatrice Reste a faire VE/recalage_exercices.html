@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recalcule du reste à faire — Feuille d'exercices</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 992px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .card h2 {
+            color: #2a5298;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #2a5298;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #2a5298;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .form-group input.error {
+            border-color: #e74c3c;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 82, 152, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .results-display {
+            background: linear-gradient(135deg, #e8f4f8, #f0f7ff);
+            border: 2px solid #2a5298;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .result-item {
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .result-value {
+            color: #2a5298;
+            font-size: 1.2em;
+        }
+
+        .exercise {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 5px solid #2a5298;
+        }
+
+        .exercise h4 {
+            color: #2a5298;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .exercise-content {
+            margin-bottom: 15px;
+        }
+
+        .exercise-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .exercise-input input {
+            width: 120px;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .feedback.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .feedback.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .hint {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .hint-toggle {
+            background: none;
+            border: none;
+            color: #856404;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px 0;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .formula-box {
+            background: #f0f7ff;
+            border: 2px solid #2a5298;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checklist li:hover {
+            background: #e9ecef;
+        }
+
+        .checklist li.checked {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .checklist input[type="checkbox"] {
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        .error-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .error-type {
+            background: #fff5f5;
+            border: 2px solid #fed7d7;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .error-type h4 {
+            color: #c53030;
+            margin-bottom: 10px;
+        }
+
+        .path-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .path-a { background: #e74c3c; }
+        .path-b { background: #f39c12; }
+        .path-c { background: #27ae60; }
+        .path-d { background: #8e44ad; }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2a5298, #1e3c72);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .icon {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Recalcule du reste à faire — Feuille d'exercices</h1>
+            <p>Chemins A–D (MS Project)</p>
+        </div>
+
+        <div class="main-layout">
+            <!-- Mini-simulateur -->
+            <div class="card">
+                <h2><span class="icon">🔧</span>Mini-simulateur</h2>
+                <form id="simulatorForm">
+                    <div class="form-group">
+                        <label for="quantiteRestante">Quantité restante (m) :</label>
+                        <input type="number" id="quantiteRestante" name="quantiteRestante" placeholder="128519" min="1" step="0.01">
+                        <div class="error-message">Valeur > 0 attendue</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rendement">Rendement réel (m/jour) :</label>
+                        <input type="number" id="rendement" name="rendement" placeholder="2005" min="1" step="0.01">
+                        <div class="error-message">Valeur > 0 attendue</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="personnes">Nombre de personnes :</label>
+                        <input type="number" id="personnes" name="personnes" placeholder="3" min="1" step="1">
+                        <div class="error-message">Valeur > 0 attendue</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="heuresJour">Durée journalière (h) :</label>
+                        <input type="number" id="heuresJour" name="heuresJour" placeholder="9" min="1" step="0.1">
+                        <div class="error-message">Valeur > 0 attendue</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dateDebut">Date de début :</label>
+                        <input type="date" id="dateDebut" name="dateDebut" value="2025-07-10">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dateFinSouhaitee">Date de fin souhaitée (optionnelle) :</label>
+                        <input type="date" id="dateFinSouhaitee" name="dateFinSouhaitee" placeholder="2025-08-13">
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="btn-primary" onclick="calculer()">
+                            <span class="icon">🔢</span>Calculer
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="copierValeur()">
+                            <span class="icon">📋</span>Copier valeur
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="reinitialiser()">
+                            <span class="icon">🔄</span>Réinitialiser
+                        </button>
+                    </div>
+                </form>
+
+                <div class="results-display" id="resultatsSimulateur" style="display: none;">
+                    <div class="result-item">
+                        📊 Travail estimé : <span class="result-value" id="travailEstime">0 heures</span>
+                    </div>
+                    <div class="result-item">
+                        📅 Fin estimée : <span class="result-value" id="dateFinEstimee">-</span>
+                    </div>
+                    <div class="result-item">
+                        👥 <span class="result-value" id="personnesNecessaires">- personnes</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exercices guidés -->
+            <div class="card">
+                <h2><span class="icon">📚</span>Exercices guidés</h2>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="exercicesContainer">
+                    <!-- Les exercices seront générés par JavaScript -->
+                </div>
+                <button class="btn-success" onclick="exporterResultats()">
+                    <span class="icon">📥</span>Exporter mes résultats
+                </button>
+            </div>
+        </div>
+
+        <!-- Formules & Rappels -->
+        <div class="sidebar">
+            <h2><span class="icon">📐</span>Formules & Rappels</h2>
+            <div class="formula-box">
+                <strong>Formules clés :</strong><br><br>
+                TravailRestant(h) = (QtéRestante / Rendement) × HeuresJour × Pers<br><br>
+                Personnes = TravailRestant / (JoursOuvrés × HeuresJour) [arrondi supérieur]<br><br>
+                DateFinOuvrée = DateDébut + n JOURS OUVRÉS (excl. sam/dim + fériés FR 2025)
+            </div>
+        </div>
+
+        <!-- Erreurs fréquentes -->
+        <div class="sidebar">
+            <h2><span class="icon">⚠️</span>Erreurs fréquentes</h2>
+            <div class="error-types">
+                <div class="error-type">
+                    <h4>🗓️ Confondre jours calendaires/ouvrés</h4>
+                    <p>Toujours utiliser les jours ouvrés (lun-ven, hors fériés)</p>
+                </div>
+                <div class="error-type">
+                    <h4>📅 Oublier les jours fériés</h4>
+                    <p>France 2025 : 12 jours fériés à exclure</p>
+                </div>
+                <div class="error-type">
+                    <h4>🔢 Division par zéro</h4>
+                    <p>Vérifier que rendement et personnes > 0</p>
+                </div>
+                <div class="error-type">
+                    <h4>👥 Arrondi personnes</h4>
+                    <p>Toujours arrondir à l'entier supérieur</p>
+                </div>
+                <div class="error-type">
+                    <h4>📏 Incohérence unités</h4>
+                    <p>Mètres, heures, jours : vérifier la cohérence</p>
+                </div>
+                <div class="error-type">
+                    <h4>🎯 Mauvaise colonne MS Project</h4>
+                    <p>Chemin A : Travail restant / Chemin B : Unités</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Check-list -->
+        <div class="sidebar">
+            <h2><span class="icon">✅</span>Check-list avant saisie MS Project</h2>
+            <ul class="checklist" id="checklist">
+                <li><input type="checkbox"> Ai-je identifié le bon chemin (A/B/C/D) ?</li>
+                <li><input type="checkbox"> Les données d'entrée sont-elles cohérentes ?</li>
+                <li><input type="checkbox"> Ai-je vérifié les jours ouvrés (hors fériés) ?</li>
+                <li><input type="checkbox"> Le rendement est-il réaliste/mesuré ?</li>
+                <li><input type="checkbox"> L'arrondi des personnes est-il correct ?</li>
+                <li><input type="checkbox"> Ai-je validé la colonne à modifier (Travail/Unités) ?</li>
+                <li><input type="checkbox"> Le résultat respecte-t-il les contraintes ?</li>
+                <li><input type="checkbox"> Ai-je documenté les hypothèses retenues ?</li>
+            </ul>
+        </div>
+
+        <!-- Mode opératoire MS Project -->
+        <div class="sidebar">
+            <h2><span class="icon">🎯</span>Mode opératoire MS Project</h2>
+            <div class="formula-box">
+                <span class="path-indicator path-a">A</span> <strong>Chemin A :</strong> Coller Travail restant → laisser Project recalculer Durée et Fin<br><br>
+                <span class="path-indicator path-b">B</span> <strong>Chemin B :</strong> Conserver Travail restant (budget) → ajuster Unités 100/200/300% → lire Fin<br><br>
+                <span class="path-indicator path-c">C</span> <strong>Chemin C :</strong> Modifier Travail restant ET Unités → itérer<br><br>
+                <span class="path-indicator path-d">D</span> <strong>Chemin D :</strong> Contraindre la Fin → dimensionner personnes → appliquer Unités
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Jours fériés France 2025
+        const joursFeries2025 = [
+            '2025-01-01', '2025-04-21', '2025-04-22', '2025-05-01', 
+            '2025-05-08', '2025-05-29', '2025-06-09', '2025-07-14', 
+            '2025-08-15', '2025-11-01', '2025-11-11', '2025-12-25'
+        ];
+
+        // Variables globales
+        let exercicesResultats = [];
+
+        // Utilitaires de date
+        function estJourOuvre(date) {
+            const jour = date.getDay();
+            const dateStr = date.toISOString().split('T')[0];
+            return jour !== 0 && jour !== 6 && !joursFeries2025.includes(dateStr);
+        }
+
+        function ajouterJoursOuvres(dateDebut, nbJours) {
+            let date = new Date(dateDebut);
+            let joursAjoutes = 0;
+            
+            while (joursAjoutes < nbJours) {
+                date.setDate(date.getDate() + 1);
+                if (estJourOuvre(date)) {
+                    joursAjoutes++;
+                }
+            }
+            return date;
+        }
+
+        function calculerJoursOuvres(dateDebut, dateFin) {
+            let date = new Date(dateDebut);
+            let joursOuvres = 0;
+            
+            while (date <= dateFin) {
+                if (estJourOuvre(date)) {
+                    joursOuvres++;
+                }
+                date.setDate(date.getDate() + 1);
+            }
+            return joursOuvres;
+        }
+
+        // Validation des champs
+        function validerChamp(input) {
+            const valeur = parseFloat(input.value);
+            const errorDiv = input.nextElementSibling;
+            
+            if (isNaN(valeur) || valeur <= 0) {
+                input.classList.add('error');
+                errorDiv.style.display = 'block';
+                return false;
+            } else {
+                input.classList.remove('error');
+                errorDiv.style.display = 'none';
+                return true;
+            }
+        }
+
+        // Fonction principale de calcul
+        function calculer() {
+            const form = document.getElementById('simulatorForm');
+            const inputs = form.querySelectorAll('input[type="number"]');
+            let valide = true;
+
+            // Validation
+            inputs.forEach(input => {
+                if (!validerChamp(input)) {
+                    valide = false;
+                }
+            });
+
+            if (!valide) return;
+
+            // Récupération des valeurs
+            const quantiteRestante = parseFloat(document.getElementById('quantiteRestante').value);
+            const rendement = parseFloat(document.getElementById('rendement').value);
+            const personnes = parseFloat(document.getElementById('personnes').value);
+            const heuresJour = parseFloat(document.getElementById('heuresJour').value);
+            const dateDebut = new Date(document.getElementById('dateDebut').value);
+            const dateFinSouhaitee = document.getElementById('dateFinSouhaitee').value;
+
+            // Calculs
+            const joursNecessaires = quantiteRestante / rendement;
+            const travailTotal = joursNecessaires * heuresJour * personnes;
+            const dateFinEstimee = ajouterJoursOuvres(dateDebut, Math.ceil(joursNecessaires));
+
+            // Calcul personnes nécessaires si date fin souhaitée fournie
+            let personnesNecessaires = null;
+            if (dateFinSouhaitee) {
+                const dateFin = new Date(dateFinSouhaitee);
+                const joursDisponibles = calculerJoursOuvres(dateDebut, dateFin);
+                personnesNecessaires = Math.ceil(travailTotal / (joursDisponibles * heuresJour));
+            }
+
+            // Affichage des résultats
+            document.getElementById('travailEstime').textContent = `${travailTotal.toFixed(1)} heures`;
+            document.getElementById('dateFinEstimee').textContent = dateFinEstimee.toLocaleDateString('fr-FR');
+            
+            if (personnesNecessaires) {
+                document.getElementById('personnesNecessaires').textContent = `${personnesNecessaires} personnes nécessaires`;
+            } else {
+                document.getElementById('personnesNecessaires').textContent = '- personnes';
+            }
+
+            document.getElementById('resultatsSimulateur').style.display = 'block';
+        }
+
+        // Fonction copier valeur
+        function copierValeur() {
+            const personnesText = document.getElementById('personnesNecessaires').textContent;
+            const travailText = document.getElementById('travailEstime').textContent;
+            
+            let valeurACopier;
+            if (personnesText !== '- personnes') {
+                valeurACopier = personnesText.match(/\d+/)[0];
+            } else {
+                valeurACopier = travailText.match(/[\d.]+/)[0];
+            }
+            
+            navigator.clipboard.writeText(valeurACopier).then(() => {
+                alert(`Valeur copiée : ${valeurACopier}`);
+            });
+        }
+
+        // Fonction réinitialiser
+        function reinitialiser() {
+            document.getElementById('simulatorForm').reset();
+            document.getElementById('resultatsSimulateur').style.display = 'none';
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+        }
+
+        // Génération des exercices
+        function genererExercices() {
+            const exercices = [
+                // Chemin A (3 exercices)
+                {
+                    chemin: 'A',
+                    titre: 'Chemin A - Recalcul rendement réel #1',
+                    enonce: 'Données terrain : 128 519 m restants, rendement constaté 2 005 m/jour, 3 personnes, 9h/jour.',
+                    question: 'Calculez le travail restant en heures :',
+                    type: 'number',
+                    reponseAttendue: 1730.4,
+                    tolerance: 0.5,
+                    formule: '(128519 / 2005) × 9 × 3'
+                },
+                {
+                    chemin: 'A',
+                    titre: 'Chemin A - Recalcul rendement réel #2',
+                    enonce: 'Nouvelle mesure : 95 000 m restants, rendement 1 800 m/jour, 4 personnes, 8h/jour.',
+                    question: 'Calculez le travail restant en heures :',
+                    type: 'number',
+                    reponseAttendue: 1688.9,
+                    tolerance: 0.5,
+                    formule: '(95000 / 1800) × 8 × 4'
+                },
+                {
+                    chemin: 'A',
+                    titre: 'Chemin A - Date de fin estimée',
+                    enonce: 'Avec les données précédentes (95 000 m, 1 800 m/j, 4 pers, 8h/j), début le 15/07/2025.',
+                    question: 'Quelle sera la date de fin ? (format JJ/MM/AAAA)',
+                    type: 'date',
+                    reponseAttendue: '12/09/2025',
+                    tolerance: 0,
+                    formule: '15/07/2025 + 53 jours ouvrés'
+                },
+                // Chemin B (3 exercices)
+                {
+                    chemin: 'B',
+                    titre: 'Chemin B - Budget fixe 643h',
+                    enonce: 'Budget fixe : 643,08 heures. Testez avec 6 personnes (200%) au lieu de 3.',
+                    question: 'Combien de jours ouvrés nécessaires avec 6 personnes à 9h/jour ?',
+                    type: 'number',
+                    reponseAttendue: 12,
+                    tolerance: 0,
+                    formule: '643,08 / (6 × 9) ≈ 12 jours'
+                },
+                {
+                    chemin: 'B',
+                    titre: 'Chemin B - Impact effectif',
+                    enonce: 'Même budget 643h. Début 10/07/2025. Comparez 3 vs 9 personnes.',
+                    question: 'Gain en jours ouvrés avec 9 personnes vs 3 personnes :',
+                    type: 'number',
+                    reponseAttendue: 16,
+                    tolerance: 0,
+                    formule: '(643/27) - (643/81) = 24 - 8 = 16 jours'
+                },
+                {
+                    chemin: 'B',
+                    titre: 'Chemin B - Optimisation budget',
+                    enonce: 'Budget 643h, début 10/07/2025, fin souhaitée 25/07/2025 (11 jours ouvrés).',
+                    question: 'Combien de personnes minimum à 9h/jour ?',
+                    type: 'number',
+                    reponseAttendue: 7,
+                    tolerance: 0,
+                    formule: '643 / (11 × 9) ≈ 6.5 → 7 personnes'
+                },
+                // Chemin C (2 exercices)
+                {
+                    chemin: 'C',
+                    titre: 'Chemin C - Rendement amélioré',
+                    enonce: 'Amélioration prévue : 128 519 m restants, nouveau rendement 3 000 m/jour, 4 personnes, 9h/jour.',
+                    question: 'Nouveau travail restant en heures :',
+                    type: 'number',
+                    reponseAttendue: 1542.2,
+                    tolerance: 0.5,
+                    formule: '(128519 / 3000) × 9 × 4'
+                },
+                {
+                    chemin: 'C',
+                    titre: 'Chemin C - Arbitrage combiné',
+                    enonce: 'Pour tenir 13/08/2025 (24 jours ouvrés), rendement 2 500 m/jour, 9h/jour.',
+                    question: 'Combien de personnes nécessaires ?',
+                    type: 'number',
+                    reponseAttendue: 9,
+                    tolerance: 0,
+                    formule: '(128519 / 2500) × 9 / (24 × 9) ≈ 8.9 → 9'
+                },
+                // Chemin D (2 exercices)
+                {
+                    chemin: 'D',
+                    titre: 'Chemin D - Date impérative',
+                    enonce: 'Date contractuelle : 13/08/2025 (24 jours ouvrés depuis 10/07/2025). Travail estimé : 1730h.',
+                    question: 'Personnes nécessaires à 9h/jour :',
+                    type: 'number',
+                    reponseAttendue: 9,
+                    tolerance: 0,
+                    formule: '1730 / (24 × 9) ≈ 8.01 → 9 personnes'
+                },
+                {
+                    chemin: 'D',
+                    titre: 'Chemin D - Back-calculation',
+                    enonce: 'Client impose 20/08/2025. Début 15/07/2025 = 26 jours ouvrés. Travail : 2000h, 8h/jour.',
+                    question: 'Personnes nécessaires :',
+                    type: 'number',
+                    reponseAttendue: 10,
+                    tolerance: 0,
+                    formule: '2000 / (26 × 8) ≈ 9.6 → 10 personnes'
+                }
+            ];
+
+            const container = document.getElementById('exercicesContainer');
+            container.innerHTML = '';
+
+            exercices.forEach((ex, index) => {
+                const div = document.createElement('div');
+                div.className = 'exercise';
+                div.innerHTML = `
+                    <h4><span class="path-indicator path-${ex.chemin.toLowerCase()}">${ex.chemin}</span>${ex.titre}</h4>
+                    <div class="exercise-content">
+                        <p><strong>📋 Énoncé :</strong> ${ex.enonce}</p>
+                        <div class="exercise-input">
+                            <label>${ex.question}</label>
+                            <input type="${ex.type === 'date' ? 'text' : 'number'}" 
+                                   id="reponse${index}" 
+                                   placeholder="${ex.type === 'date' ? 'JJ/MM/AAAA' : 'Votre réponse'}"
+                                   ${ex.type === 'number' ? 'step="0.1"' : ''}
+                                   onkeypress="if(event.key==='Enter') verifierReponse(${index})"
+                        </div>
+                        <button class="hint-toggle" onclick="toggleHint(${index})">💡 Afficher l'indice</button>
+                        <div class="hint" id="hint${index}">
+                            <strong>Formule :</strong> ${ex.formule}
+                        </div>
+                        <div class="feedback" id="feedback${index}"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Vérification des réponses
+        function verifierReponse(index) {
+            const input = document.getElementById(`reponse${index}`);
+            const feedback = document.getElementById(`feedback${index}`);
+            const exercices = getExercicesData();
+            const exercice = exercices[index];
+            
+            if (!input || !feedback) {
+                return;
+            }
+            
+            // Validation préalable
+            if (!input.value || input.value.trim() === '') {
+                console.log('Champ vide détecté');
+                feedback.style.display = 'block';
+                feedback.className = 'feedback error';
+                feedback.innerHTML = `
+                    <strong>⚠️ Champ vide !</strong><br>
+                    Veuillez saisir une réponse avant de vérifier.
+                `;
+                return;
+            }
+
+            let reponse;
+            let correct = false;
+            let messageErreur = '';
+
+            if (exercice.type === 'date') {
+                console.log('Traitement date...');
+                reponse = input.value.trim();
+                // Validation format date JJ/MM/AAAA
+                const formatDateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+                const match = reponse.match(formatDateRegex);
+                
+                if (!match) {
+                    messageErreur = 'Format de date invalide. Utilisez JJ/MM/AAAA (ex: 15/08/2025)';
+                } else {
+                    const [, jour, mois, annee] = match;
+                    const date = new Date(annee, mois - 1, jour);
+                    
+                    if (date.getDate() != jour || date.getMonth() != mois - 1 || date.getFullYear() != annee) {
+                        messageErreur = 'Date invalide. Vérifiez jour/mois/année.';
+                    } else {
+                        correct = reponse === exercice.reponseAttendue;
+                        console.log('Comparaison date:', reponse, '===', exercice.reponseAttendue, '→', correct);
+                    }
+                }
+            } else {
+                console.log('Traitement nombre...');
+                const valeurNumerique = parseFloat(input.value);
+                console.log('Valeur numérique:', valeurNumerique);
+                
+                if (isNaN(valeurNumerique)) {
+                    messageErreur = 'Valeur numérique attendue.';
+                } else if (valeurNumerique < 0) {
+                    messageErreur = 'Valeur négative non autorisée.';
+                } else if (valeurNumerique > 100000) {
+                    messageErreur = 'Valeur trop élevée. Vérifiez vos calculs.';
+                } else {
+                    reponse = valeurNumerique;
+                    const ecart = Math.abs(reponse - exercice.reponseAttendue);
+                    const tolerance = exercice.reponseAttendue * exercice.tolerance / 100;
+                    correct = ecart <= tolerance || ecart <= 0.1;
+                    
+                    console.log('Calculs:', {
+                        reponse,
+                        attendu: exercice.reponseAttendue,
+                        ecart,
+                        tolerance,
+                        correct
+                    });
+                    
+                    if (!correct && exercice.tolerance === 0) {
+                        // Pour les valeurs entières (personnes, jours)
+                        correct = Math.round(reponse) === exercice.reponseAttendue;
+                        console.log('Test arrondi:', Math.round(reponse), '===', exercice.reponseAttendue, '→', correct);
+                    }
+                }
+            }
+
+            // Enregistrer le résultat
+            exercicesResultats[index] = {
+                exercice: exercice.titre,
+                reponse: input.value,
+                correct: correct && !messageErreur,
+                solution: exercice.reponseAttendue
+            };
+            
+            console.log('Résultat enregistré:', exercicesResultats[index]);
+
+            // Afficher le feedback
+            console.log('Affichage du feedback...');
+            feedback.style.display = 'block';
+            
+            if (messageErreur) {
+                feedback.className = 'feedback error';
+                feedback.innerHTML = `
+                    <strong>❌ Erreur de saisie !</strong><br>
+                    ${messageErreur}
+                `;
+            } else if (correct) {
+                feedback.className = 'feedback success';
+                feedback.innerHTML = `
+                    <strong>✅ Excellent !</strong><br>
+                    Calcul : ${exercice.formule} = ${exercice.reponseAttendue}<br>
+                    <em>💡 Vous maîtrisez ce type de calcul !</em>
+                `;
+            } else {
+                feedback.className = 'feedback error';
+                const ecartPct = exercice.type === 'number' ? 
+                    `(écart: ${Math.abs(reponse - exercice.reponseAttendue).toFixed(1)})` : '';
+                
+                feedback.innerHTML = `
+                    <strong>❌ Pas tout à fait...</strong><br>
+                    Votre réponse : <span style="color: #c53030;">${input.value}</span> ${ecartPct}<br>
+                    Solution attendue : <span style="color: #27ae60;">${exercice.reponseAttendue}</span><br>
+                    Démarche : ${exercice.formule}<br>
+                    <em>💡 Revérifiez les unités et les arrondis !</em>
+                `;
+            }
+            
+            console.log('Feedback affiché:', feedback.innerHTML);
+
+            mettreAJourProgres();
+            console.log('=== FIN VÉRIFICATION ===');
+        }
+
+        // Fonction pour récupérer les données des exercices
+        function getExercicesData() {
+            return [
+                {titre: 'Chemin A - Recalcul rendement réel #1', reponseAttendue: 1730.4, tolerance: 0.5, formule: '(128519 / 2005) × 9 × 3', type: 'number'},
+                {titre: 'Chemin A - Recalcul rendement réel #2', reponseAttendue: 1688.9, tolerance: 0.5, formule: '(95000 / 1800) × 8 × 4', type: 'number'},
+                {titre: 'Chemin A - Date de fin estimée', reponseAttendue: '12/09/2025', tolerance: 0, formule: '15/07/2025 + 53 jours ouvrés', type: 'date'},
+                {titre: 'Chemin B - Budget fixe 643h', reponseAttendue: 12, tolerance: 0, formule: '643,08 / (6 × 9) ≈ 12 jours', type: 'number'},
+                {titre: 'Chemin B - Impact effectif', reponseAttendue: 16, tolerance: 0, formule: '(643/27) - (643/81) = 24 - 8 = 16 jours', type: 'number'},
+                {titre: 'Chemin B - Optimisation budget', reponseAttendue: 7, tolerance: 0, formule: '643 / (11 × 9) ≈ 6.5 → 7 personnes', type: 'number'},
+                {titre: 'Chemin C - Rendement amélioré', reponseAttendue: 1542.2, tolerance: 0.5, formule: '(128519 / 3000) × 9 × 4', type: 'number'},
+                {titre: 'Chemin C - Arbitrage combiné', reponseAttendue: 9, tolerance: 0, formule: '(128519 / 2500) × 9 / (24 × 9) ≈ 8.9 → 9', type: 'number'},
+                {titre: 'Chemin D - Date impérative', reponseAttendue: 9, tolerance: 0, formule: '1730 / (24 × 9) ≈ 8.01 → 9 personnes', type: 'number'},
+                {titre: 'Chemin D - Back-calculation', reponseAttendue: 10, tolerance: 0, formule: '2000 / (26 × 8) ≈ 9.6 → 10 personnes', type: 'number'}
+            ];
+        }
+
+        // Afficher/masquer les indices
+        function toggleHint(index) {
+            const hint = document.getElementById(`hint${index}`);
+            hint.style.display = hint.style.display === 'none' || hint.style.display === '' ? 'block' : 'none';
+        }
+
+        // Mise à jour de la barre de progression
+        function mettreAJourProgres() {
+            const total = exercicesResultats.length;
+            const corrects = exercicesResultats.filter(r => r && r.correct).length;
+            const pourcentage = total > 0 ? (corrects / 10) * 100 : 0;
+            document.getElementById('progressFill').style.width = pourcentage + '%';
+        }
+
+        // Export des résultats
+        function exporterResultats() {
+            const donnees = exercicesResultats.filter(r => r);
+            if (donnees.length === 0) {
+                alert('Aucun exercice tenté à exporter.');
+                return;
+            }
+
+            let csv = 'Exercice,Réponse,Verdict,Solution\n';
+            donnees.forEach(r => {
+                csv += `"${r.exercice}","${r.reponse}","${r.correct ? 'Correct' : 'Incorrect'}","${r.solution}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'resultats_exercices_recalage.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Gestion de la checklist
+        document.addEventListener('DOMContentLoaded', function() {
+            genererExercices();
+            
+            // Gestion de la checklist
+            const checklistItems = document.querySelectorAll('.checklist li');
+            checklistItems.forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        item.classList.add('checked');
+                    } else {
+                        item.classList.remove('checked');
+                    }
+                });
+            });
+
+            // Validation en temps réel
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.addEventListener('blur', () => validerChamp(input));
+            });
+        });
+    </script>
+</body>
+</html>

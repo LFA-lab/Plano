@@ -17,6 +17,14 @@
       "lastUpdated": "12/08/2025"
     },
     {
+      "name": "exercices-recalage-reste-a-faire",
+      "title": "Exercices - Recalage du Reste à Faire",
+      "description": "Feuille d'exercices interactifs pour s'entraîner au recalage du reste à faire avec validation par touche Entrée",
+      "basFile": "Macro MSP/Calculatrice Reste a faire VE/V6userform.vb",
+      "htmlFile": "Macro MSP/Calculatrice Reste a faire VE/recalage_exercices.html",
+      "lastUpdated": "19/08/2025"
+    },
+    {
       "name": "creation-ms-project",
       "title": "Création MS Project - Import Simple",
       "description": "Import de tâches simples avec titre depuis Excel vers MS Project",
