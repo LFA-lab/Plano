@@ -1,4 +1,3 @@
-Attribute VB_Name = "PlanDeCharge"
 Sub VE_Plandecharge()
 
     ' Initialisation Excel
@@ -6,23 +5,23 @@ Sub VE_Plandecharge()
     Set xlApp = CreateObject("Excel.Application")
     xlApp.Visible = False
     
-    Application.StatusBar = "Génération du plan de charge - Initialisation Excel..."
+    Application.StatusBar = "Gï¿½nï¿½ration du plan de charge - Initialisation Excel..."
     Set xlBook = xlApp.Workbooks.Add
     Set xlSheet = xlBook.Sheets(1)
 
-    ' Logo + entête
-    Application.StatusBar = "Génération du plan de charge - Insertion du logo..."
+    ' Logo + entï¿½te
+    Application.StatusBar = "Gï¿½nï¿½ration du plan de charge - Insertion du logo..."
     InsererLogoOmexom xlSheet
     
-    Application.StatusBar = "Génération du plan de charge - Compilation des données..."
+    Application.StatusBar = "Gï¿½nï¿½ration du plan de charge - Compilation des donnï¿½es..."
     
     With xlSheet.Range("A1:F1")
         .Merge
         .Value = "Plan de charge - Monteurs"
         .Font.Size = 16
         .Font.Bold = True
-        .HorizontalAlignment = -4108 ' Centré horizontalement
-        .VerticalAlignment = -4108   ' Centré verticalement
+        .HorizontalAlignment = -4108 ' Centrï¿½ horizontalement
+        .VerticalAlignment = -4108   ' Centrï¿½ verticalement
         .Interior.Color = RGB(0, 112, 192)
         .Font.Color = RGB(255, 255, 255)
         .RowHeight = 50
@@ -31,9 +30,9 @@ Sub VE_Plandecharge()
     ' Ligne 2 vide
     xlSheet.Rows(2).RowHeight = 10
 
-    ' En-têtes
+    ' En-tï¿½tes
     xlSheet.Cells(3, 1).Value = "Semaine"
-    xlSheet.Cells(3, 2).Value = "Date Début"
+    xlSheet.Cells(3, 2).Value = "Date Dï¿½but"
     xlSheet.Cells(3, 3).Value = "Date Fin"
     xlSheet.Cells(3, 4).Value = "Total Heures Monteurs"
     xlSheet.Cells(3, 5).Value = "Moyenne Hommes / jour (5j)"
@@ -48,7 +47,7 @@ Sub VE_Plandecharge()
     Dim t As task, a As assignment, d As Date
     Dim weekNum As Integer, dayKey As String
 
-    ' Collecte des données
+    ' Collecte des donnï¿½es
     For Each t In ActiveProject.Tasks
         If Not t Is Nothing And Not t.Summary Then
             For Each a In t.Assignments
@@ -81,7 +80,7 @@ Sub VE_Plandecharge()
         End If
     Next t
 
-    ' Affichage des résultats
+    ' Affichage des rï¿½sultats
     Dim week As Variant, day As Variant
     Dim maxUnits As Double, maxDay As String
     Dim rowOut As Long: rowOut = 4
@@ -112,7 +111,7 @@ Sub VE_Plandecharge()
         .Columns("A:F").AutoFit
     End With
 
-    ' Tri numérique sur la colonne Semaine (valeurs réelles)
+    ' Tri numï¿½rique sur la colonne Semaine (valeurs rï¿½elles)
     With xlSheet.Sort
         .SortFields.Clear
         .SortFields.Add xlSheet.Range("A4:A" & rowOut - 1), 0, 1
