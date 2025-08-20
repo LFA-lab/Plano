@@ -314,6 +314,7 @@ Sub AjouterTotalMonteursParSemaine(ws As Object, weekDates() As Date, maxWeeks A
             If dictWeeklyTotal.Exists(weekNum) Then
                 totalMonteurs = dictWeeklyTotal(weekNum)
                 If totalMonteurs > 0 Then
+                    ' Afficher le total direct (nombre total de monteurs-jours dans la semaine)
                     ws.Cells(3, i + 2).Value = Round(totalMonteurs, 1)
                 Else
                     ws.Cells(3, i + 2).Value = ""
@@ -793,7 +794,7 @@ Sub VE_Plandecharge()
                                 dictWeeklyFinish.Add weekNum, d
                             End If
 
-                            dictWeeklyTotal(weekNum) = dictWeeklyTotal(weekNum) + a.Units * 8
+                            dictWeeklyTotal(weekNum) = dictWeeklyTotal(weekNum) + a.Units * 9
 
                             dayKey = Format(d, "dddd dd/mm")
                             If Not dictWeeklyDailyPeak(weekNum).Exists(dayKey) Then
@@ -830,7 +831,7 @@ Sub VE_Plandecharge()
         xlSheet.Cells(rowOut, 2).Value = Format(dictWeeklyStart(week), "dd/mm/yyyy")
         xlSheet.Cells(rowOut, 3).Value = Format(dictWeeklyFinish(week), "dd/mm/yyyy")
         xlSheet.Cells(rowOut, 4).Value = Round(dictWeeklyTotal(week), 1)
-        xlSheet.Cells(rowOut, 5).Value = Round(dictWeeklyTotal(week) / (5 * 8), 2)
+        xlSheet.Cells(rowOut, 5).Value = Round(dictWeeklyTotal(week) / (5 * 9), 2)
         xlSheet.Cells(rowOut, 6).Value = Round(maxUnits, 2) & " (" & maxDay & ")"
 
         rowOut = rowOut + 1
@@ -932,7 +933,7 @@ Sub Generer_Contenu_VE_Plandecharge(xlSheet As Object)
                                 dictWeeklyFinish.Add weekNum, d
                             End If
 
-                            dictWeeklyTotal(weekNum) = dictWeeklyTotal(weekNum) + a.Units * 8
+                            dictWeeklyTotal(weekNum) = dictWeeklyTotal(weekNum) + a.Units * 9
 
                             dayKey = Format(d, "dddd dd/mm")
                             If Not dictWeeklyDailyPeak(weekNum).Exists(dayKey) Then
@@ -969,7 +970,7 @@ Sub Generer_Contenu_VE_Plandecharge(xlSheet As Object)
         xlSheet.Cells(rowOut, 2).Value = Format(dictWeeklyStart(week), "dd/mm/yyyy")
         xlSheet.Cells(rowOut, 3).Value = Format(dictWeeklyFinish(week), "dd/mm/yyyy")
         xlSheet.Cells(rowOut, 4).Value = Round(dictWeeklyTotal(week), 1)
-        xlSheet.Cells(rowOut, 5).Value = Round(dictWeeklyTotal(week) / (5 * 8), 2)
+        xlSheet.Cells(rowOut, 5).Value = Round(dictWeeklyTotal(week) / (5 * 9), 2)
         xlSheet.Cells(rowOut, 6).Value = Round(maxUnits, 2) & " (" & maxDay & ")"
 
         rowOut = rowOut + 1
