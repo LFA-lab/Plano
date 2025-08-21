@@ -253,6 +253,111 @@
             font-size: 1.3em;
         }
         
+        /* Styles pour les exercices */
+        .exercise-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .exercise-card h3 {
+            color: #2a5298;
+            margin-bottom: 15px;
+        }
+        
+        .exercise-input {
+            width: 200px;
+            padding: 8px;
+            margin: 5px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .exercise-input:focus {
+            border-color: #2a5298;
+            outline: none;
+        }
+        
+        .exercise-btn {
+            background: #2a5298;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .exercise-btn:hover {
+            background: #1e3c72;
+        }
+        
+        .exercise-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .exercise-correct {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .exercise-incorrect {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .mini-simulator {
+            background: #e8f4f8;
+            border: 2px solid #2a5298;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .simulator-row {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        .simulator-row label {
+            width: 200px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .simulator-row input {
+            width: 150px;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
         @media (max-width: 768px) {
             .flow-diagram {
                 flex-direction: column;
@@ -260,6 +365,20 @@
             
             .flow-arrow {
                 transform: rotate(90deg);
+            }
+            
+            .simulator-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .simulator-row label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            
+            .simulator-row input {
+                width: 100%;
             }
         }
     </style>
@@ -279,6 +398,7 @@
             <li><a href="#chemin-c">⚖️ Chemin C - Ajustement Combiné</a></li>
             <li><a href="#chemin-d">🎯 Chemin D - Date Cible</a></li>
             <li><a href="#userform">💻 UserForm et Automatisation</a></li>
+            <li><a href="#exercices">📝 Exercices Pratiques</a></li>
             <li><a href="#annexes">📖 Annexes et Références</a></li>
         </ul>
     </div>
@@ -352,20 +472,6 @@
                 <strong>3️⃣ RÉSULTAT</strong><br>
                 1 730,4 heures<br>
                 de travail restant
-            </div>
-        </div>
-        
-        <div class="userform">
-            <h4>Interface UserForm - Chemin A</h4>
-            <div>
-                Quantité restante (m) : <input type="text" value="128519" /><br>
-                Rendement réel (m/jour) : <input type="text" value="2005" /><br>
-                Nombre de personnes : <input type="text" value="3" /><br>
-                Durée journalière (h) : <input type="text" value="9" /><br>
-                <button>Calculer le Travail</button>
-                <div class="result-box" style="margin-top: 15px;">
-                    Résultat : <strong>1 730,4 heures</strong>
-                </div>
             </div>
         </div>
         
@@ -510,21 +616,6 @@
             </div>
         </div>
         
-        <div class="userform">
-            <h4>Interface UserForm - Chemin D</h4>
-            <div>
-                Quantité restante (m) : <input type="text" value="128519" /><br>
-                Rendement réel (m/jour) : <input type="text" value="2005" /><br>
-                Durée journalière (h) : <input type="text" value="9" /><br>
-                Date de début : <input type="date" value="2025-07-10" /><br>
-                Date de fin cible : <input type="date" value="2025-08-13" style="border: 2px solid #ff6b6b;" /><br>
-                <button>Calculer</button>
-                <div class="result-box" style="margin-top: 15px;">
-                    Résultat : <strong>9 personnes nécessaires</strong>
-                </div>
-            </div>
-        </div>
-        
         <div class="formula-box">
             Personnes Nécessaires = Travail Restant ÷ (NETWORKDAYS × h/pers/jour)<br>
             = 1 730,4h ÷ (24 jours × 9h/jour) = 8,01 → <strong>9 personnes</strong>
@@ -563,8 +654,219 @@
         </div>
     </div>
     
+    <div class="section" id="exercices">
+        <h2>📝 7. Exercices Pratiques</h2>
+        
+        <h3>🔧 Mini-Simulateur</h3>
+        <div class="mini-simulator">
+            <p><strong>Testez vos calculs en temps réel :</strong></p>
+            
+            <div class="simulator-row">
+                <label>Quantité restante (m) :</label>
+                <input type="number" id="simQuantite" placeholder="128519" min="1">
+            </div>
+            
+            <div class="simulator-row">
+                <label>Rendement réel (m/jour) :</label>
+                <input type="number" id="simRendement" placeholder="2005" min="1">
+            </div>
+            
+            <div class="simulator-row">
+                <label>Nombre de personnes :</label>
+                <input type="number" id="simPersonnes" placeholder="3" min="1">
+            </div>
+            
+            <div class="simulator-row">
+                <label>Durée journalière (h) :</label>
+                <input type="number" id="simHeures" placeholder="9" min="1">
+            </div>
+            
+            <div class="simulator-row">
+                <label>Date de début :</label>
+                <input type="date" id="simDateDebut" value="2025-07-10">
+            </div>
+            
+            <div class="simulator-row">
+                <label>Date de fin impérative :</label>
+                <input type="date" id="simDateFin" placeholder="Optionnel">
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="exercise-btn" onclick="calculerSimulation()">🔢 Calculer</button>
+                <button class="exercise-btn" onclick="reinitialiserSimulation()">🔄 Réinitialiser</button>
+            </div>
+            
+            <div id="simulationResultat" style="display: none;" class="result-box">
+                <div id="simulationDetails"></div>
+            </div>
+        </div>
+        
+        <h3>📚 Exercices Guidés</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="exercicesProgressFill"></div>
+        </div>
+        <p><em>Complétez les exercices ci-dessous pour tester votre compréhension des 4 chemins :</em></p>
+        
+        <div class="exercise-card">
+            <h3>🔧 Exercice 1 - Chemin A (Rendement Réel)</h3>
+            <p><strong>Situation :</strong> Reste 128 519 m à poser, rendement réel observé : 2 005 m/jour</p>
+            <p><strong>Équipe :</strong> 3 monteurs × 9h/jour</p>
+            <p><strong>Travail restant :</strong> À calculer en heures</p>
+            
+            <div class="alert-box alert-yellow">
+                <span class="icon">💻</span>
+                <div>
+                    <strong>Instructions :</strong> Utilisez le mini-simulateur ci-dessus avec ces valeurs :
+                    <br>• Quantité restante : 128519
+                    <br>• Rendement réel : 2005  
+                    <br>• Nombre de personnes : 3
+                    <br>• Durée journalière : 9
+                </div>
+            </div>
+            
+            <p><strong>Question :</strong> Quel est le "Travail estimé" affiché par le simulateur ?</p>
+            
+            <div>
+                <input type="number" id="ex1" class="exercise-input" placeholder="Résultat du simulateur" step="0.1">
+                <button class="exercise-btn" onclick="verifierExercice(1, 1730.4, 'ex1')">Vérifier</button>
+                <button class="exercise-btn" onclick="afficherIndice(1)">💡 Indice</button>
+            </div>
+            
+            <div id="indice1" style="display: none;" class="alert-box alert-yellow">
+                <strong>💡 Indice :</strong> Cliquez sur "🔢 Calculer" dans le simulateur après avoir saisi les valeurs
+            </div>
+            
+            <div id="resultat1" class="exercise-result" style="display: none;"></div>
+        </div>
+        
+        <div class="exercise-card">
+            <h3>📊 Exercice 2 - Chemin B (Budget Fixe)</h3>
+            <p><strong>Situation :</strong> Budget alloué : 643,08 heures (non modifiable)</p>
+            <p><strong>Équipe actuelle :</strong> 3 monteurs × 9h/jour</p>
+            <p><strong>Travail restant :</strong> 643,08 heures (budget fixe)</p>
+            
+            <div class="alert-box alert-yellow">
+                <span class="icon">💻</span>
+                <div>
+                    <strong>Instructions :</strong> Utilisez le mini-simulateur en mode inverse :
+                    <br>• Travail fixe : 643,08 heures
+                    <br>• Équipe : 3 personnes × 9h/jour = 27h/jour
+                    <br>• Calcul : 643,08 ÷ 27 = ? jours
+                </div>
+            </div>
+            
+            <p><strong>Question :</strong> Combien de jours ouvrés avec cette équipe ?</p>
+            
+            <div>
+                <input type="number" id="ex2" class="exercise-input" placeholder="Jours ouvrés" step="1">
+                <button class="exercise-btn" onclick="verifierExercice(2, 24, 'ex2')">Vérifier</button>
+                <button class="exercise-btn" onclick="afficherIndice(2)">💡 Indice</button>
+            </div>
+            
+            <div id="indice2" style="display: none;" class="alert-box alert-yellow">
+                <strong>💡 Indice :</strong> Jours = Budget total ÷ (Nb personnes × Heures/jour) = 643,08 ÷ 27
+            </div>
+            
+            <div id="resultat2" class="exercise-result" style="display: none;"></div>
+        </div>
+        
+        <div class="exercise-card">
+            <h3>⚖️ Exercice 3 - Chemin C (Combiné)</h3>
+            <p><strong>Situation :</strong> Reste 128 519 m à poser, rendement amélioré espéré : 3 000 m/jour</p>
+            <p><strong>Équipe renforcée :</strong> 4 monteurs × 9h/jour</p>
+            <p><strong>Travail restant :</strong> À recalculer avec nouveaux paramètres</p>
+            
+            <div class="alert-box alert-yellow">
+                <span class="icon">💻</span>
+                <div>
+                    <strong>Instructions :</strong> Utilisez le mini-simulateur avec ces nouvelles valeurs :
+                    <br>• Quantité restante : 128519
+                    <br>• Rendement amélioré : 3000  
+                    <br>• Équipe renforcée : 4 personnes
+                    <br>• Durée journalière : 9
+                </div>
+            </div>
+            
+            <p><strong>Question :</strong> Quel est le nouveau "Travail estimé" ?</p>
+            
+            <div>
+                <input type="number" id="ex3" class="exercise-input" placeholder="Résultat du simulateur" step="0.1">
+                <button class="exercise-btn" onclick="verifierExercice(3, 1542.2, 'ex3')">Vérifier</button>
+                <button class="exercise-btn" onclick="afficherIndice(3)">💡 Indice</button>
+            </div>
+            
+            <div id="indice3" style="display: none;" class="alert-box alert-yellow">
+                <strong>💡 Indice :</strong> Changez les valeurs dans le simulateur et cliquez "🔢 Calculer"
+            </div>
+            
+            <div id="resultat3" class="exercise-result" style="display: none;"></div>
+        </div>
+        
+        <div class="exercise-card">
+            <h3>🎯 Exercice 4 - Chemin D (Date Impérative)</h3>
+            <p><strong>Situation :</strong> Fin obligatoire le 13/08/2025 = 24 jours ouvrés max</p>
+            <p><strong>Travail estimé :</strong> 1 730 heures (calculé avec rendement réel)</p>
+            <p><strong>Contrainte :</strong> 9h/jour par personne</p>
+            
+            <div class="alert-box alert-yellow">
+                <span class="icon">💻</span>
+                <div>
+                    <strong>Instructions :</strong> Utilisez le mini-simulateur avec ces valeurs ET la date de fin :
+                    <br>• Quantité restante : 128519
+                    <br>• Rendement réel : 2005  
+                    <br>• Date de début : 2025-07-10
+                    <br>• <strong>Date de fin impérative : 2025-08-13</strong>
+                    <br>• Durée journalière : 9
+                </div>
+            </div>
+            
+            <p><strong>Question :</strong> Combien de "Personnes nécessaires" affiche le simulateur ?</p>
+            
+            <div>
+                <input type="number" id="ex4" class="exercise-input" placeholder="Personnes nécessaires" step="1">
+                <button class="exercise-btn" onclick="verifierExercice(4, 9, 'ex4')">Vérifier</button>
+                <button class="exercise-btn" onclick="afficherIndice(4)">💡 Indice</button>
+            </div>
+            
+            <div id="indice4" style="display: none;" class="alert-box alert-yellow">
+                <strong>💡 Indice :</strong> Remplissez le champ "Date de fin impérative" dans le simulateur pour voir le calcul automatique
+            </div>
+            
+            <div id="resultat4" class="exercise-result" style="display: none;"></div>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <button class="exercise-btn" onclick="reinitialiserExercices()" style="background: #6c757d;">🔄 Recommencer les exercices</button>
+            <button class="exercise-btn" onclick="afficherBilan()" style="background: #28a745;">📊 Voir mon bilan</button>
+        </div>
+        
+        <div id="bilanExercices" class="result-box" style="display: none;">
+            <h3>📋 Bilan de vos exercices</h3>
+            <div id="bilanDetails"></div>
+        </div>
+        
+        <h3>📐 Formules de Référence</h3>
+        <div class="formula-box">
+            <strong>Formules clés :</strong><br><br>
+            • <strong>Travail Restant (h)</strong> = (Quantité Restante ÷ Rendement) × Heures/jour × Nb Personnes<br><br>
+            • <strong>Personnes Nécessaires</strong> = Travail Restant ÷ (Jours Ouvrés × Heures/jour) [arrondi supérieur]<br><br>
+            • <strong>Jours Ouvrés</strong> = Lundi à Vendredi, hors jours fériés français 2025<br><br>
+            • <strong>Date Fin</strong> = Date Début + n JOURS OUVRÉS (exclut samedi/dimanche + fériés)
+        </div>
+        
+        <h3>⚠️ Points de Vigilance</h3>
+        <div class="alert-box alert-yellow">
+            <div>
+                <strong>🗓️ Jours ouvrés vs calendaires :</strong> Toujours utiliser les jours ouvrés (lun-ven, hors fériés)<br>
+                <strong>👥 Arrondi des personnes :</strong> Toujours arrondir à l'entier supérieur<br>
+                <strong>📏 Cohérence des unités :</strong> Vérifier mètres, heures, jours<br>
+                <strong>🎯 Bonne colonne MS Project :</strong> Chemin A = Travail restant / Chemin B = Unités
+            </div>
+        </div>
+    </div>
+    
     <div class="section" id="annexes">
-        <h2>📖 7. Annexes - Formules et Références</h2>
+        <h2>📖 8. Annexes - Formules et Références</h2>
         
         <h3>Tableau de Synthèse des 4 Chemins</h3>
         
@@ -686,4 +988,172 @@
             </div>
         </div>
         
-        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 8px
+        <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 8px;">
+            <p style="text-align: center; margin: 0; font-weight: bold;">
+                📋 <strong>Documentation mise à jour :</strong> Version complète avec exercices intégrés - Août 2025
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Variables pour les exercices
+        let exercicesNouveauxResultats = [null, null, null, null];
+        
+        // Fonctions pour les exercices simplifiés
+        function verifierExercice(numero, reponseAttendue, inputId) {
+            const input = document.getElementById(inputId);
+            const resultatDiv = document.getElementById('resultat' + numero);
+            const reponse = parseFloat(input.value);
+            
+            if (isNaN(reponse)) {
+                resultatDiv.innerHTML = '❌ Veuillez entrer une valeur numérique valide.';
+                resultatDiv.className = 'exercise-result exercise-incorrect';
+                resultatDiv.style.display = 'block';
+                return;
+            }
+            
+            const tolerance = Math.abs(reponseAttendue * 0.01); // 1% de tolerance
+            const correct = Math.abs(reponse - reponseAttendue) <= tolerance;
+            
+            exercicesNouveauxResultats[numero - 1] = {
+                numero: numero,
+                reponse: reponse,
+                correct: correct,
+                attendu: reponseAttendue
+            };
+            
+            if (correct) {
+                resultatDiv.innerHTML = '✅ <strong>Correct !</strong> La réponse est bien ' + reponseAttendue + '.';
+                resultatDiv.className = 'exercise-result exercise-correct';
+            } else {
+                resultatDiv.innerHTML = '❌ <strong>Incorrect.</strong> La bonne réponse est ' + reponseAttendue + '. Réponse donnée : ' + reponse;
+                resultatDiv.className = 'exercise-result exercise-incorrect';
+            }
+            
+            resultatDiv.style.display = 'block';
+            mettreAJourProgressionExercices();
+        }
+        
+        function afficherIndice(numero) {
+            const indice = document.getElementById('indice' + numero);
+            indice.style.display = indice.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function mettreAJourProgressionExercices() {
+            const total = 4;
+            const corrects = exercicesNouveauxResultats.filter(r => r && r.correct).length;
+            const pourcentage = (corrects / total) * 100;
+            const progressFill = document.getElementById('exercicesProgressFill');
+            if (progressFill) {
+                progressFill.style.width = pourcentage + '%';
+            }
+        }
+        
+        function reinitialiserExercices() {
+            exercicesNouveauxResultats = [null, null, null, null];
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('ex' + i).value = '';
+                document.getElementById('resultat' + i).style.display = 'none';
+                document.getElementById('indice' + i).style.display = 'none';
+            }
+            document.getElementById('bilanExercices').style.display = 'none';
+            mettreAJourProgressionExercices();
+        }
+        
+        function afficherBilan() {
+            const total = 4;
+            const corrects = exercicesNouveauxResultats.filter(r => r && r.correct).length;
+            const tentes = exercicesNouveauxResultats.filter(r => r !== null).length;
+            
+            let bilanHtml = `
+                <p><strong>Exercices tentés :</strong> ${tentes}/4</p>
+                <p><strong>Exercices corrects :</strong> ${corrects}/4</p>
+                <p><strong>Score :</strong> ${tentes > 0 ? Math.round((corrects/tentes) * 100) : 0}%</p>
+            `;
+            
+            if (corrects === 4) {
+                bilanHtml += '<p style="color: #28a745;"><strong>🎉 Félicitations ! Vous maîtrisez parfaitement les 4 chemins de recalage !</strong></p>';
+            } else if (corrects >= 2) {
+                bilanHtml += '<p style="color: #856404;"><strong>👍 Bon travail ! Continuez à vous exercer pour parfaire votre maîtrise.</strong></p>';
+            } else {
+                bilanHtml += '<p style="color: #721c24;"><strong>💪 Continuez vos efforts ! Relisez les exemples et réessayez.</strong></p>';
+            }
+            
+            document.getElementById('bilanDetails').innerHTML = bilanHtml;
+            document.getElementById('bilanExercices').style.display = 'block';
+        }
+        
+        // Fonctions pour le mini-simulateur
+        function calculerSimulation() {
+            const quantite = parseFloat(document.getElementById('simQuantite').value);
+            const rendement = parseFloat(document.getElementById('simRendement').value);
+            const personnes = parseInt(document.getElementById('simPersonnes').value);
+            const heures = parseFloat(document.getElementById('simHeures').value);
+            const dateDebut = document.getElementById('simDateDebut').value;
+            const dateFin = document.getElementById('simDateFin').value;
+            
+            if (isNaN(quantite) || isNaN(rendement) || isNaN(personnes) || isNaN(heures)) {
+                alert('Veuillez remplir tous les champs numériques.');
+                return;
+            }
+            
+            if (quantite <= 0 || rendement <= 0 || personnes <= 0 || heures <= 0) {
+                alert('Toutes les valeurs doivent être positives.');
+                return;
+            }
+            
+            // Calculs
+            const travailEstime = (quantite / rendement) * heures * personnes;
+            const joursNecessaires = Math.ceil(travailEstime / (personnes * heures));
+            
+            // Simulation date de fin (estimation simple)
+            const dateDebutObj = new Date(dateDebut);
+            const dateFinEstimee = new Date(dateDebutObj);
+            dateFinEstimee.setDate(dateFinEstimee.getDate() + Math.ceil(joursNecessaires * 1.4)); // Facteur pour week-ends
+            
+            let resultats = `
+                <p><strong>📊 Travail estimé :</strong> ${travailEstime.toFixed(1)} heures</p>
+                <p><strong>📅 Durée estimée :</strong> ${joursNecessaires} jours ouvrés</p>
+                <p><strong>📅 Fin estimée :</strong> ${dateFinEstimee.toLocaleDateString('fr-FR')}</p>
+                <p><strong>👥 Charge :</strong> ${personnes} personne(s) × ${heures}h/jour</p>
+            `;
+            
+            // Si date de fin impérative fournie
+            if (dateFin) {
+                const dateFinObj = new Date(dateFin);
+                const joursDisponibles = Math.floor((dateFinObj - dateDebutObj) / (1000 * 60 * 60 * 24)) * 0.71; // Approximation jours ouvrés
+                const personnesNecessaires = Math.ceil(travailEstime / (joursDisponibles * heures));
+                
+                resultats += `
+                    <hr style="margin: 15px 0;">
+                    <p><strong>🎯 CONTRAINTE DATE IMPÉRATIVE :</strong></p>
+                    <p><strong>📅 Date limite :</strong> ${dateFinObj.toLocaleDateString('fr-FR')}</p>
+                    <p><strong>⏰ Jours disponibles :</strong> ~${Math.round(joursDisponibles)} jours ouvrés</p>
+                    <p><strong>👥 Personnes nécessaires :</strong> ${personnesNecessaires} personne(s)</p>
+                    <p style="color: ${personnesNecessaires > personnes ? '#721c24' : '#155724'};">
+                        <strong>${personnesNecessaires > personnes ? '⚠️ Renforcement nécessaire' : '✅ Effectif suffisant'}</strong>
+                    </p>
+                `;
+            }
+            
+            document.getElementById('simulationDetails').innerHTML = resultats;
+            document.getElementById('simulationResultat').style.display = 'block';
+        }
+        
+        function reinitialiserSimulation() {
+            document.getElementById('simQuantite').value = '';
+            document.getElementById('simRendement').value = '';
+            document.getElementById('simPersonnes').value = '';
+            document.getElementById('simHeures').value = '';
+            document.getElementById('simDateDebut').value = '2025-07-10';
+            document.getElementById('simDateFin').value = '';
+            document.getElementById('simulationResultat').style.display = 'none';
+        }
+
+        // Initialisation au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Guide de recalage MS Project - Version complète chargée');
+        });
+    </script>
+</body>
+</html>

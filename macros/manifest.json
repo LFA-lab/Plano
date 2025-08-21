@@ -10,18 +10,14 @@
     },
     {
       "name": "calculatrice-reste-a-faire",
-      "title": "Calculatrice Reste à Faire VE",
-      "description": "Processus de pilotage pour responsables d'affaires BTP/Énergie - 4 chemins de calcul",
+      "title": "Calculatrice Reste à Faire VE & Exercices de Recalage",
+      "description": "Processus de pilotage pour responsables d'affaires BTP/Énergie - 4 chemins de calcul + exercices interactifs de recalage",
       "basFile": "Macro MSP/Calculatrice Reste a faire VE/V6userform.vb",
       "htmlFile": "Macro MSP/Calculatrice Reste a faire VE/Recalage.html",
-      "lastUpdated": "12/08/2025"
-    },
-    {
-      "name": "exercices-recalage-reste-a-faire",
-      "title": "Exercices - Recalage du Reste à Faire",
-      "description": "Feuille d'exercices interactifs pour s'entraîner au recalage du reste à faire avec validation par touche Entrée",
-      "basFile": "Macro MSP/Calculatrice Reste a faire VE/V6userform.vb",
-      "htmlFile": "Macro MSP/Calculatrice Reste a faire VE/recalage_exercices.html",
+      "exercicesHtmlFile": "Macro MSP/Calculatrice Reste a faire VE/recalage_exercices.html",
+      "frmFile": "Macro MSP/Calculatrice Reste a faire VE/reste_a_faire.frm",
+      "frxFile": "Macro MSP/Calculatrice Reste a faire VE/reste_a_faire.frx",
+      "hasZipDownload": true,
       "lastUpdated": "19/08/2025"
     },
     {

@@ -83,14 +83,6 @@
                                 Accéder au cours
                             </a>
                         </div>
-                        
-                        <div class="task-item">
-                            <h4>Formation MS Project</h4>
-                            <p>Bases essentielles du logiciel de gestion de projet</p>
-                            <a href="" target="_blank" class="btn btn-secondary">
-                                Démarrer le cours
-                            </a>
-                        </div>
                     </div>
                 </div>
             </section>
@@ -221,6 +213,34 @@
                     const encodedHtmlFile = encodeURIComponent(macro.htmlFile).replace(/%2F/g, '/');
                     const encodedBasFile = encodeURIComponent(macro.basFile).replace(/%2F/g, '/');
                     
+                    let actionsHtml = `
+                        <a href="./macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
+                            📖 Documentation
+                        </a>
+                        <a href="./macros/${encodedBasFile}" download class="btn btn-primary btn-small">
+                            💾 Télécharger
+                        </a>
+                    `;
+                    
+                    // Ajouter les actions spécifiques pour la calculatrice reste à faire
+                    if (macro.name === 'calculatrice-reste-a-faire') {
+                        const encodedExercicesHtmlFile = encodeURIComponent(macro.exercicesHtmlFile).replace(/%2F/g, '/');
+                        actionsHtml = `
+                            <a href="./macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
+                                📖 Documentation
+                            </a>
+                            <a href="./macros/${encodedExercicesHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
+                                🎯 Exercices
+                            </a>
+                            <a href="./macros/${encodedBasFile}" download class="btn btn-primary btn-small">
+                                💾 Télécharger VB
+                            </a>
+                            <button onclick="downloadFormFiles('${macro.name}')" class="btn btn-primary btn-small">
+                                📦 Télécharger Forms (.frm + .frx)
+                            </button>
+                        `;
+                    }
+                    
                     macroCard.innerHTML = `
                         <div class="macro-header">
                             <h5 class="macro-title">
@@ -232,12 +252,7 @@
                         </div>
                         <p class="macro-description">${macro.description}</p>
                         <div class="macro-actions">
-                            <a href="./macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
-                                📖 Documentation
-                            </a>
-                            <a href="./macros/${encodedBasFile}" download class="btn btn-primary btn-small">
-                                💾 Télécharger
-                            </a>
+                            ${actionsHtml}
                         </div>
                     `;
                     
@@ -252,6 +267,50 @@
                         <br><small>Vérifiez que le fichier manifest.json est accessible</small>
                     </div>
                 `;
+            }
+        }
+        
+        // Fonction pour télécharger les fichiers forms en ZIP
+        async function downloadFormFiles(macroName) {
+            try {
+                // Récupérer les informations de la macro
+                const response = await fetch('./macros/manifest.json');
+                const data = await response.json();
+                const macro = data.macros.find(m => m.name === macroName);
+                
+                if (!macro || !macro.hasZipDownload) {
+                    alert('Téléchargement ZIP non disponible pour cette macro.');
+                    return;
+                }
+                
+                // Créer un zip avec JSZip
+                const JSZip = (await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm')).default;
+                const zip = new JSZip();
+                
+                // Télécharger et ajouter le fichier .frm
+                const frmResponse = await fetch(`./macros/${encodeURIComponent(macro.frmFile).replace(/%2F/g, '/')}`);
+                const frmBlob = await frmResponse.blob();
+                zip.file('reste_a_faire.frm', frmBlob);
+                
+                // Télécharger et ajouter le fichier .frx
+                const frxResponse = await fetch(`./macros/${encodeURIComponent(macro.frxFile).replace(/%2F/g, '/')}`);
+                const frxBlob = await frxResponse.blob();
+                zip.file('reste_a_faire.frx', frxBlob);
+                
+                // Générer et télécharger le ZIP
+                const zipBlob = await zip.generateAsync({type: 'blob'});
+                const url = URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'calculatrice_reste_a_faire_forms.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Erreur lors du téléchargement ZIP:', error);
+                alert('Erreur lors du téléchargement des fichiers. Veuillez réessayer.');
             }
         }
         
