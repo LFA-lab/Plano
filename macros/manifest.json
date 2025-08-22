@@ -45,14 +45,6 @@
       "lastUpdated": "12/08/2025"
     },
     {
-      "name": "macro-aucaleuc",
-      "title": "Macro Aucaleuc - Import BJ",
-      "description": "Import BJ avec hiérarchie pour Omexom et S...",
-      "basFile": "Macro MSP/Macro Aucaleuc/Sub Import_BJ_WithHierarchy_Omexom_And_S.vb",
-      "htmlFile": "Macro MSP/Macro Aucaleuc/BJ_Omexom_Sove.xlsx",
-      "lastUpdated": "07/08/2025"
-    },
-    {
       "name": "plan-de-charge-monteurs",
       "title": "Plan de Charge Monteurs",
       "description": "Export planning MS Project avec calcul des besoins en monteurs par semaine",
@@ -67,6 +59,14 @@
       "basFile": "Macro MSP/Planning prévisionnel/PlanningPrevisionnel.bas",
       "htmlFile": "Macro MSP/Planning prévisionnel/Processus_PlanningPrevisionnel.html",
       "lastUpdated": "12/08/2025"
+    },
+    {
+      "name": "export-heures-sapin",
+      "title": "Export Heures SAPIN - Analyse Hybride Confirmé/Prévisionnel",
+      "description": "Export optimisé pour dirigeants avec distinction gains confirmés vs prévisionnels et analyse temps réel du pilotage projet",
+      "basFile": "Macro MSP/Optimisation/ExportHeuresSapin.bas",
+      "htmlFile": "Macro MSP/Optimisation/Guide_Export_HeuresSapin.html",
+      "lastUpdated": "21/08/2025"
     }
   ]
 }

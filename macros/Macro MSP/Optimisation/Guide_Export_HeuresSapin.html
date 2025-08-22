@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Export Heures SAPIN - Analyse Hybride</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .version-info {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .section h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .highlight-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .success-box {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .warning-box {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .feature-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        .step-list {
+            counter-reset: step-counter;
+            list-style: none;
+            padding-left: 0;
+        }
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+            position: relative;
+            padding-left: 60px;
+        }
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 15px;
+            background: #007bff;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .kpi-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .kpi-table th, .kpi-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .kpi-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .kpi-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .code-block {
+            background-color: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 Export Heures SAPIN</h1>
+        <p>Analyse Hybride Confirmé/Prévisionnel pour Dirigeants</p>
+    </div>
+
+    <div class="version-info">
+        <h3>📌 Version 4.0 - Analyse Hybride pour Pilotage Temps Réel Optimal</h3>
+        <p><strong>Date :</strong> 18/08/2025 | <strong>Auteur :</strong> Copilot | <strong>Fichier :</strong> ExportHeuresSapin.bas</p>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2>🎯 Objectif</h2>
+            <p>Cette macro génère un export Excel spécialement conçu pour les <strong>dirigeants de Vinci Energies & Construction</strong>, permettant une lecture en <strong>1 minute maximum</strong> de la santé globale d'un projet.</p>
+            
+            <div class="success-box">
+                <h3>🚀 Innovation Clé : Distinction Confirmé vs Prévisionnel</h3>
+                <p>La macro différencie les <strong>gains/pertes confirmés</strong> (tâches 100% terminées) des <strong>gains/pertes prévisionnels</strong> (tâches en cours), offrant une vision hybride pour optimiser le pilotage temps réel.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Structure de l'Export</h2>
+            <p>L'export génère <strong>3 feuilles Excel</strong> :</p>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h3>📋 RESUME_DIRIGEANT</h3>
+                    <p>Vue synthétique en 1 minute avec KPI globaux, Top 3 lots critiques, gains/pertes confirmés et prévisionnels</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🌲 SAPIN</h3>
+                    <p>Analyse détaillée par lot avec structure arborescente et indicateurs de performance avancés</p>
+                </div>
+                <div class="feature-item">
+                    <h3>📈 RECAP_LOTS</h3>
+                    <p>Tableau de bord complet avec tous les lots, filtres et métriques de pilotage</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 Prérequis Techniques</h2>
+            <ol class="step-list">
+                <li><strong>MS Project ouvert</strong> avec un projet contenant des tâches avec heures planifiées et réalisées</li>
+                <li><strong>Date d'état définie</strong> dans MS Project (StatusDate) - sinon la date du jour sera utilisée</li>
+                <li><strong>Excel installé</strong> sur le poste de travail</li>
+                <li><strong>Données cohérentes :</strong> Tâches avec % d'avancement, heures budgétées (Work) et réalisées (ActualWork)</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>🏃‍♂️ Utilisation</h2>
+            <ol class="step-list">
+                <li>Ouvrir votre projet MS Project</li>
+                <li>Vérifier que la date d'état est correcte (Projet > Informations sur le projet > Date d'état)</li>
+                <li>Exécuter la macro <code>ExportHeuresSapin()</code></li>
+                <li>Choisir le répertoire de sauvegarde dans la boîte de dialogue</li>
+                <li>L'export Excel s'ouvre automatiquement avec les 3 feuilles</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>📊 KPI et Métriques Calculés</h2>
+            
+            <h3>🎯 KPI Globaux du Projet</h3>
+            <table class="kpi-table">
+                <thead>
+                    <tr>
+                        <th>Indicateur</th>
+                        <th>Formule</th>
+                        <th>Objectif</th>
+                        <th>Interprétation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>SPI Global</strong></td>
+                        <td>ΣEV / ΣPV</td>
+                        <td>≥ 0.90</td>
+                        <td>🟢 Dans les temps / 🟠 Retard modéré / 🔴 Retard critique</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CPI Global</strong></td>
+                        <td>ΣEV / ΣAC</td>
+                        <td>≥ 0.90</td>
+                        <td>🟢 Budget OK / 🟠 Surcoût modéré / 🔴 Surcoût critique</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Gains Confirmés</strong></td>
+                        <td>Σ(Gains tâches 100%)</td>
+                        <td>> 0</td>
+                        <td>Heures économisées validées</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pertes Confirmées</strong></td>
+                        <td>Σ(Pertes tâches 100%)</td>
+                        <td>= 0</td>
+                        <td>Heures perdues validées</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📈 Métriques par Lot</h3>
+            <ul>
+                <li><strong>Gains/Pertes Prévisionnels :</strong> Estimations basées sur l'avancement des tâches en cours</li>
+                <li><strong>Fiabilité :</strong> % de tâches avec données cohérentes (AC > 0 ET %C > 0)</li>
+                <li><strong>Écart Heures :</strong> Différence entre heures planifiées et réalisées</li>
+                <li><strong>SPI/CPI par Lot :</strong> Indicateurs de performance individuels</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Configuration Avancée</h2>
+            
+            <h3>🔧 Constantes Modifiables</h3>
+            <div class="code-block">
+Private Const SEUIL_REL As Double = 0.03  ' 3% - Seuil relatif pour détection écarts
+Private Const SEUIL_ABS_H As Double = 2   ' 2h - Seuil absolu heures
+Private Const SEUIL_MIN_AVANCEMENT As Double = 20  ' 20% minimum pour analyse prévisionnelle
+Private Const PERCENT_COMPLETE As Double = 100  ' 100% pour tâches terminées
+            </div>
+
+            <h3>🎨 Codes Couleur Automatiques</h3>
+            <ul>
+                <li><strong>🟢 Vert :</strong> Performance satisfaisante (SPI/CPI ≥ 0.90)</li>
+                <li><strong>🟠 Orange :</strong> Vigilance requise (0.80 ≤ SPI/CPI < 0.90)</li>
+                <li><strong>🔴 Rouge :</strong> Action immédiate (SPI/CPI < 0.80)</li>
+                <li><strong>⚠️ Gris :</strong> Données non fiables (fiabilité < 50%)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Points Forts de la Version 4.0</h2>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h3>🧠 Analyse Hybride</h3>
+                    <p>Distinction claire entre gains/pertes confirmés (certains) et prévisionnels (estimés)</p>
+                </div>
+                <div class="feature-item">
+                    <h3>⚡ Lecture 1 Minute</h3>
+                    <p>Résumé dirigeant optimisé pour une prise de décision rapide</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🔍 Détection Anomalies</h3>
+                    <p>Identification automatique des incohérences de données</p>
+                </div>
+                <div class="feature-item">
+                    <h3>📊 Top 3 Focus</h3>
+                    <p>Concentration sur les 3 lots les plus critiques au lieu de disperser l'attention</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚠️ Limitations et Bonnes Pratiques</h2>
+            
+            <div class="warning-box">
+                <h3>🚨 Limitations Connues</h3>
+                <ul>
+                    <li>Les tâches sans heures budgétées (Work = 0) sont exclues de l'analyse</li>
+                    <li>Les lots avec fiabilité < 50% sont marqués comme "données non fiables"</li>
+                    <li>L'analyse prévisionnelle nécessite un avancement minimum de 20%</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <h3>✅ Bonnes Pratiques</h3>
+                <ul>
+                    <li><strong>Mise à jour régulière :</strong> Exécuter l'export chaque semaine après mise à jour des % d'avancement</li>
+                    <li><strong>Cohérence des données :</strong> Vérifier que les heures réalisées sont bien saisies</li>
+                    <li><strong>Focus TOP 3 :</strong> Concentrer les actions correctives sur les 3 lots les plus critiques</li>
+                    <li><strong>Validation des gains :</strong> Ne considérer comme acquis que les gains confirmés (tâches 100%)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📚 Documentation Complémentaire</h2>
+            <p>Cette macro fait partie du module <strong>Optimisation</strong> et s'appuie sur :</p>
+            <ul>
+                <li><strong>GUIDE_DIRIGEANT_1MINUTE.md :</strong> Guide de lecture du résumé dirigeant</li>
+                <li><strong>RESUME_DIRIGEANT_MODIFICATIONS.md :</strong> Détail des modifications apportées</li>
+            </ul>
+            
+            <div class="success-box">
+                <p><strong>💡 Conseil :</strong> Pour une utilisation optimale, consultez d'abord le guide dirigeant 1 minute pour comprendre comment interpréter efficacement les résultats.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

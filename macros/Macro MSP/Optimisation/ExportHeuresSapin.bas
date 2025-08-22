@@ -620,7 +620,7 @@ Sub ResumeDirigeant(ByRef wsResume As Object, ByVal DateEtat As Date)
     End If
     ligne = ligne + 1
     
-    wsResume.Cells(ligne, 1).Value = "CPI Global (Coûts)"
+    wsResume.Cells(ligne, 1).Value = "CPI Global (Couts)"
     wsResume.Cells(ligne, 2).Value = CPIGlobal
     If IsNumeric(CPIGlobal) Then
         If CPIGlobal < 0.8 Then
@@ -633,12 +633,12 @@ Sub ResumeDirigeant(ByRef wsResume As Object, ByVal DateEtat As Date)
     End If
     ligne = ligne + 1
     
-    wsResume.Cells(ligne, 1).Value = "Gains Confirmés"
+    wsResume.Cells(ligne, 1).Value = "Gains Confirmes"
     wsResume.Cells(ligne, 2).Value = TotalGainsConfirmes & " h"
     wsResume.Cells(ligne, 3).Value = IIf(TotalGainsConfirmes > 0, "🟢 POSITIF", "")
     ligne = ligne + 1
-    
-    wsResume.Cells(ligne, 1).Value = "Pertes Confirmées"
+
+    wsResume.Cells(ligne, 1).Value = "Pertes Confirmees"
     wsResume.Cells(ligne, 2).Value = TotalPertesConfirmees & " h"
     wsResume.Cells(ligne, 3).Value = IIf(TotalPertesConfirmees > 0, "🔴 NEGATIF", "")
     ligne = ligne + 2
@@ -688,7 +688,7 @@ Sub ResumeDirigeant(ByRef wsResume As Object, ByVal DateEtat As Date)
     If nbLotsCPI > 0 Then
         wsResume.Cells(ligne, 1).Value = "Lot"
         wsResume.Cells(ligne, 2).Value = "CPI"
-        wsResume.Cells(ligne, 3).Value = "Fiabilité"
+        wsResume.Cells(ligne, 3).Value = "Fiabilite"
         wsResume.Cells(ligne, 4).Value = "Status"
         ligne = ligne + 1
         
@@ -761,7 +761,7 @@ Sub ResumeDirigeant(ByRef wsResume As Object, ByVal DateEtat As Date)
         wsResume.Cells(ligne, 1).Value = "⚠ DONNÉES NON FIABLES"
         wsResume.Cells(ligne, 1).Font.Bold = True
         wsResume.Cells(ligne, 1).Font.Color = RGB(255, 0, 0)
-        wsResume.Cells(ligne, 2).Value = nbLotsNonFiables & " lots avec fiabilité < 50%"
+        wsResume.Cells(ligne, 2).Value = nbLotsNonFiables & " lots avec fiabilite < 50%"
         ligne = ligne + 1
     End If
 End Sub

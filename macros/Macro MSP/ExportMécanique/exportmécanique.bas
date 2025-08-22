@@ -20,7 +20,7 @@ Function PickFolder(ByVal defaultPath As String) As String
     
     userPath = InputBox(promptMsg, "Dossier d'export", defaultPath)
     
-    ' Si l'utilisateur annule (userPath = "") ou laisse vide, utiliser le dÃ©faut
+    ' Si l'utilisateur annule (userPath = "") ou laisse vide, utiliser le défaut
     If userPath = "" Then
         PickFolder = defaultPath
         Exit Function
@@ -32,7 +32,7 @@ Function PickFolder(ByVal defaultPath As String) As String
         userPath = Left$(userPath, Len(userPath) - 1)
     End If
     
-    ' VÃ©rifier que le dossier existe
+    ' Vérifier que le dossier existe
     If Dir(userPath, vbDirectory) <> "" Then
         PickFolder = userPath
     Else
@@ -71,14 +71,14 @@ Sub ExportMecaniqueComplet()
 
     On Error GoTo ErrorHandler
 
-    ' Choisir le dossier d'export avec vÃ©rification
+    ' Choisir le dossier d'export avec vérification
     currentStep = "SELECTION_DOSSIER"
     Debug.Print "Start: " & currentStep & " | " & Format(Now, "hh:nn:ss")
     
     Dim defaultDir As String
     defaultDir = Environ$("USERPROFILE") & "\Downloads"
     
-    ' VÃ©rifier que le dossier par dÃ©faut existe, sinon utiliser le Bureau
+    ' Vérifier que le dossier par défaut existe, sinon utiliser le Bureau
     If Dir(defaultDir, vbDirectory) = "" Then
         defaultDir = Environ$("USERPROFILE") & "\Desktop"
         If Dir(defaultDir, vbDirectory) = "" Then
@@ -89,9 +89,9 @@ Sub ExportMecaniqueComplet()
     exportDir = PickFolder(defaultDir)
     Debug.Print "Dossier selectionne: " & exportDir
     
-    ' VÃ©rifier le retour de PickFolder
+    ' Vérifier le retour de PickFolder
     If exportDir = "" Then
-        MsgBox "Aucun dossier valide sÃ©lectionnÃ©. Export annulÃ©.", vbInformation
+        MsgBox "Aucun dossier valide sélectionné. Export annulé.", vbInformation
         Exit Sub
     End If
 
@@ -282,10 +282,10 @@ NextResName:
                "Verifiez qu'Excel est installe et accessible.", vbCritical
         Exit Sub
     End If
-    Debug.Print "Application Excel crÃ©Ã©e"
+    Debug.Print "Application Excel créée"
     
     Set xlBook = xlApp.Workbooks.Add
-    Debug.Print "Classeur Excel crÃ©Ã©"
+    Debug.Print "Classeur Excel créé"
     On Error GoTo ErrorHandler
     
     ' Supprimer feuilles par defaut sauf une
@@ -310,7 +310,7 @@ NextResName:
     Set xlDetailSheetOuest = xlBook.Worksheets.Add
     xlDetailSheetOuest.Name = "Donnees Ouest"
     xlDetailSheetOuest.Move After:=xlDetailSheetEst
-    Debug.Print "Onglet DonnÃ©es Ouest crÃ©Ã©"
+    Debug.Print "Onglet Données Ouest créé"
     Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
     currentStep = "INSERTION_LOGOS"
@@ -325,7 +325,7 @@ NextResName:
     
     ' === ONGLET 1 : RECAPITULATIF ===
     With xlRecapSheet
-        ' DÃ©caler les donnÃ©es vers le bas pour laisser place aux logos
+        ' Décaler les données vers le bas pour laisser place aux logos
         .Cells(4, 1).Value = "Ressource"
         .Cells(4, 2).Value = "Prevu"
         .Cells(4, 3).Value = "Realise"
@@ -384,23 +384,23 @@ NextResName:
     ' === ONGLET 2 : DONNEES EST ===
     If resListEst.Count > 0 Then
         Call WriteDetailSheet(xlDetailSheetEst, datesDescEst, resListEst, totalPlannedEst, dailyActualEst, cumActualEst)
-        Debug.Print "DonnÃ©es Est Ã©crites"
+        Debug.Print "Données Est écrites"
         Call FormatDetailSheet(xlDetailSheetEst)
-        Debug.Print "Formatage Est terminÃ©"
+        Debug.Print "Formatage Est terminé"
     Else
         xlDetailSheetEst.Cells(1, 1).Value = "Aucune ressource avec Texte2='Est' trouvee"
-        Debug.Print "Aucune donnÃ©e Est Ã  Ã©crire"
+        Debug.Print "Aucune donnée Est à écrire"
     End If
     
     ' === ONGLET 3 : DONNEES OUEST ===
     If resListOuest.Count > 0 Then
         Call WriteDetailSheet(xlDetailSheetOuest, datesDescOuest, resListOuest, totalPlannedOuest, dailyActualOuest, cumActualOuest)
-        Debug.Print "DonnÃ©es Ouest Ã©crites"
+        Debug.Print "Données Ouest écrites"
         Call FormatDetailSheet(xlDetailSheetOuest)
-        Debug.Print "Formatage Ouest terminÃ©"
+        Debug.Print "Formatage Ouest terminé"
     Else
         xlDetailSheetOuest.Cells(1, 1).Value = "Aucune ressource avec Texte2='Ouest' trouvee"
-        Debug.Print "Aucune donnÃ©e Ouest Ã  Ã©crire"
+        Debug.Print "Aucune donnée Ouest à écrire"
     End If
     Debug.Print "Done: " & currentStep & " | " & Format(Now, "hh:nn:ss")
 
@@ -410,7 +410,7 @@ NextResName:
     Debug.Print "Fichier de sauvegarde: " & fileName
     
     xlBook.SaveAs fileName
-    Debug.Print "Fichier sauvegardÃ© avec succÃ¨s"
+    Debug.Print "Fichier sauvegardé avec succès"
     
     xlRecapSheet.Activate
     xlApp.Visible = True
@@ -445,27 +445,27 @@ NextResName:
     Exit Sub
 
 ErrorHandler:
-    Debug.Print "=== ERREUR DETECTEE Ã  l'Ã©tape: " & currentStep & " | " & Format(Now, "hh:nn:ss") & " ==="
+    Debug.Print "=== ERREUR DÉTECTÉE Ã  l'étape: " & currentStep & " | " & Format(Now, "hh:nn:ss") & " ==="
     Debug.Print "ERREUR: Err=" & Err.Number & " - " & Err.Description
     
-    MsgBox "Erreur lors de l'export Ã  l'Ã©tape: " & currentStep & vbCrLf & _
+    MsgBox "Erreur lors de l'export Ã  l'étape: " & currentStep & vbCrLf & _
            "Erreur: " & Err.Number & " - " & Err.Description & vbCrLf & _
-           "Consultez la fenÃªtre Immediate (Ctrl+G) pour plus de dÃ©tails.", vbCritical
+           "Consultez la fenêtre Immediate (Ctrl+G) pour plus de détails.", vbCritical
     
     On Error Resume Next
     If Not xlApp Is Nothing Then
         If Not xlBook Is Nothing Then xlBook.Close False
         xlApp.Quit
-        Debug.Print "Application Excel fermÃ©e en urgence"
+        Debug.Print "Application Excel fermée en urgence"
     End If
     On Error GoTo 0
     Exit Sub
 
 ExcelError:
-    Debug.Print "=== ERREUR EXCEL Ã  l'Ã©tape: " & currentStep & " | " & Format(Now, "hh:nn:ss") & " ==="
+    Debug.Print "=== ERREUR EXCEL Ã  l'étape: " & currentStep & " | " & Format(Now, "hh:nn:ss") & " ==="
     Debug.Print "ERREUR EXCEL: Err=" & Err.Number & " - " & Err.Description
     
-    MsgBox "Probleme d'automation Excel detecte Ã  l'Ã©tape: " & currentStep & vbCrLf & _
+    MsgBox "Probleme d'automation Excel détecté Ã  l'étape: " & currentStep & vbCrLf & _
            "- Verifiez qu'Excel est installe" & vbCrLf & _
            "- Fermez Excel s'il est ouvert" & vbCrLf & _
            "- Redemarrez MS Project" & vbCrLf & _
@@ -595,7 +595,7 @@ Private Function GetSortedMechanicalResources(proj As Project, Optional zoneFilt
                     Next assn
                 End If
                 
-                ' Redimensionner le tableau si nÃ©cessaire
+                ' Redimensionner le tableau si nécessaire
                 If resCount > UBound(resArray) Then
                     ReDim Preserve resArray(0 To UBound(resArray) + 50)
                 End If
@@ -665,17 +665,17 @@ Private Sub QuickSortResources(arr As Variant, first As Long, last As Long)
     pivot = arr((first + last) \ 2)(1) ' Pivot sur le minTaskId
 
     Do While low <= high
-        ' Chercher un ÃƒÂ©lÃƒÂ©ment ÃƒÂ  gauche qui devrait ÃƒÂªtre ÃƒÂ  droite
+        ' Chercher un élément ÃƒÂ  gauche qui devrait être ÃƒÂ  droite
         Do While arr(low)(1) < pivot
             low = low + 1
         Loop
-        ' Chercher un ÃƒÂ©lÃƒÂ©ment ÃƒÂ  droite qui devrait ÃƒÂªtre ÃƒÂ  gauche
+        ' Chercher un élément ÃƒÂ  droite qui devrait être ÃƒÂ  gauche
         Do While arr(high)(1) > pivot
             high = high - 1
         Loop
         
         If low <= high Then
-            ' Ãƒâ€°changer
+            ' Ãƒ"°changer
             temp = arr(low)
             arr(low) = arr(high)
             arr(high) = temp
@@ -958,7 +958,7 @@ Private Sub FormatDetailSheet(xlWs As Object)
     End If
     On Error GoTo 0
     
-    ' Mise en forme des en-tÃƒÂªtes
+    ' Mise en forme des en-têtes
     Dim lastCol As Integer: lastCol = xlWs.UsedRange.Columns.Count
     xlWs.Range("A1").Resize(1, lastCol).Interior.Color = RGB(68, 114, 196)
     xlWs.Range("A1").Resize(1, lastCol).Font.Color = RGB(255, 255, 255)
@@ -974,9 +974,9 @@ Private Sub FormatDetailSheet(xlWs As Object)
     ' AutoFit
     xlWs.Columns.AutoFit
     
-    ' === FORMAT D'AFFICHAGE SANS DÃƒâ€°CIMALES ===
-    ' Appliquer le format entier/pourcentage ÃƒÂ  toutes les colonnes de donnÃƒÂ©es
-    If lastRow > 2 Then ' S'il y a des donnÃƒÂ©es (au-delÃƒÂ  des en-tÃƒÂªtes)
+    ' === FORMAT D'AFFICHAGE SANS DÃƒ"°CIMALES ===
+    ' Appliquer le format entier/pourcentage ÃƒÂ  toutes les colonnes de données
+    If lastRow > 2 Then ' S'il y a des données (au-delàƒÂ  des en-têtes)
         Dim formatCol As Integer
         Dim colorIndex As Integer
         
@@ -989,7 +989,7 @@ Private Sub FormatDetailSheet(xlWs As Object)
         
         colorIndex = 0
         
-        ' Parcourir toutes les colonnes de donnÃƒÂ©es (colonnes 2 et suivantes, par groupes de 4)
+        ' Parcourir toutes les colonnes de données (colonnes 2 et suivantes, par groupes de 4)
         For formatCol = 2 To lastCol Step 4
             ' Appliquer la couleur de fond pour le groupe de 4 colonnes de la ressource
             Dim currentColor As Long
@@ -1010,23 +1010,23 @@ Private Sub FormatDetailSheet(xlWs As Object)
                 xlWs.Range(xlWs.Cells(3, formatCol), xlWs.Cells(lastRow, formatCol + 3)).Interior.Color = currentColor
             End If
             If formatCol <= lastCol Then
-                ' Colonne "QtÃƒÂ©" Ã¢â€ â€™ format entier
+                ' Colonne "Qté" â" "™ format entier
                 xlWs.Range(xlWs.Cells(3, formatCol), xlWs.Cells(lastRow, formatCol)).NumberFormat = "0"
             End If
             
             If formatCol + 1 <= lastCol Then
-                ' Colonne "RÃƒÂ©el" Ã¢â€ â€™ format entier
+                ' Colonne "Réel" â" "™ format entier
                 xlWs.Range(xlWs.Cells(3, formatCol + 1), xlWs.Cells(lastRow, formatCol + 1)).NumberFormat = "0"
             End If
             
             If formatCol + 2 <= lastCol Then
-                ' Colonne "Jour" Ã¢â€ â€™ format entier
+                ' Colonne "Jour" â" "™ format entier
                 xlWs.Range(xlWs.Cells(3, formatCol + 2), xlWs.Cells(lastRow, formatCol + 2)).NumberFormat = "0"
             End If
             
             If formatCol + 3 <= lastCol Then
-                ' Colonne "%" Ã¢â€ â€™ format pourcentage entier (mais les valeurs sont dÃƒÂ©jÃƒÂ  en % textuel)
-                ' On garde le format texte car les valeurs contiennent dÃƒÂ©jÃƒÂ  le symbole %
+                ' Colonne "%" â" "™ format pourcentage entier (mais les valeurs sont déjÃƒÂ  en % textuel)
+                ' On garde le format texte car les valeurs contiennent déjÃƒÂ  le symbole %
                 ' Si on voulait un vrai format pourcentage : xlWs.Range(...).NumberFormat = "0%"
             End If
             
@@ -1045,10 +1045,10 @@ Public Sub ExportMeca_Bouton()
     ExportMecaniqueComplet
 End Sub
 
-' CrÃƒÂ©e un bouton dans l'onglet ComplÃƒÂ©ments (Add-Ins) pour lancer l'export
+' Crée un bouton dans l'onglet Compléments (Add-Ins) pour lancer l'export
 Public Sub InstallerBoutonExportMeca()
     On Error Resume Next
-    ' Nettoyage si dÃƒÂ©jÃƒÂ  prÃƒÂ©sent
+    ' Nettoyage si déjÃƒÂ  présent
     Application.CommandBars("ExportMeca").Delete
     On Error GoTo 0
 
@@ -1080,10 +1080,10 @@ End Sub
 Sub InsererLogos(ws As Object)
     Debug.Print "Start: Insertion logos | " & Format(Now, "hh:nn:ss")
     
-    ' InsÃ©rer le logo Omexom Ã  gauche
+    ' Insérer le logo Omexom Ã  gauche
     Call InsererLogoOmexom(ws)
     
-    ' InsÃ©rer le logo du client Ã  droite
+    ' Insérer le logo du client Ã  droite
     Call InsererLogoClient(ws)
     
     Debug.Print "Done: Insertion logos | " & Format(Now, "hh:nn:ss")
@@ -1128,7 +1128,7 @@ Sub InsererLogoOmexom(ws As Object)
         LinkToFile:=False, _
         SaveWithDocument:=True, _
         Left:=10, Top:=5, Width:=120, Height:=40
-    Debug.Print "Logo Omexom: Image insÃ©rÃ©e dans Excel"
+    Debug.Print "Logo Omexom: Image insérée dans Excel"
 
     ' Suppression du fichier temporaire
     On Error Resume Next: Kill tempFile
@@ -1151,7 +1151,7 @@ Sub InsererLogoClient(ws As Object)
     
     ' === Logo Client en base64 ===
     base64Image = GetBase64Client()
-    Debug.Print "Logo Client: Base64 rÃ©cupÃ©rÃ©"
+    Debug.Print "Logo Client: Base64 récupéré"
 
     ' Conversion Base64 ? octets
     Set xml = CreateObject("MSXML2.DOMDocument.6.0")
@@ -1159,7 +1159,7 @@ Sub InsererLogoClient(ws As Object)
     node.DataType = "bin.base64"
     node.Text = base64Image
     byteData = node.nodeTypedValue
-    Debug.Print "Logo Client: Conversion Base64 rÃ©alisÃ©e"
+    Debug.Print "Logo Client: Conversion Base64 réalisée"
 
     ' Fichier temporaire
     tempFile = Environ$("TEMP") & "\client_logo.png"
@@ -1171,14 +1171,14 @@ Sub InsererLogoClient(ws As Object)
         .SaveToFile tempFile, 2
         .Close
     End With
-    Debug.Print "Logo Client: Fichier temporaire crÃ©Ã©: " & tempFile
+    Debug.Print "Logo Client: Fichier temporaire créé: " & tempFile
 
     ' Insertion du logo Client (Ã  droite)
     ws.Shapes.AddPicture tempFile, _
         LinkToFile:=False, _
         SaveWithDocument:=True, _
         Left:=140, Top:=5, Width:=120, Height:=40
-    Debug.Print "Logo Client: Image insÃ©rÃ©e dans Excel"
+    Debug.Print "Logo Client: Image insérée dans Excel"
 
     ' Suppression du fichier temporaire
     On Error Resume Next: Kill tempFile
