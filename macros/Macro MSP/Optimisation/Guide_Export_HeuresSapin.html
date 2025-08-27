@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guide Export Heures SAPIN - Analyse Hybride</title>
+    <title>Guide Export Heures PROJET - Analyse Hybride</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -149,48 +149,48 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎯 Export Heures SAPIN</h1>
+        <h1>Export Heures PROJET</h1>
         <p>Analyse Hybride Confirmé/Prévisionnel pour Dirigeants</p>
     </div>
 
     <div class="version-info">
-        <h3>📌 Version 4.0 - Analyse Hybride pour Pilotage Temps Réel Optimal</h3>
-        <p><strong>Date :</strong> 18/08/2025 | <strong>Auteur :</strong> Copilot | <strong>Fichier :</strong> ExportHeuresSapin.bas</p>
+        <h3>Version 4.0 - Analyse Hybride pour Pilotage Temps Réel Optimal</h3>
+        <p><strong>Date :</strong> 18/08/2025 | <strong>Fichier :</strong> ExportHeuresProjet.bas</p>
     </div>
 
     <div class="container">
         <div class="section">
-            <h2>🎯 Objectif</h2>
+            <h2>Objectif</h2>
             <p>Cette macro génère un export Excel spécialement conçu pour les <strong>dirigeants de Vinci Energies & Construction</strong>, permettant une lecture en <strong>1 minute maximum</strong> de la santé globale d'un projet.</p>
             
             <div class="success-box">
-                <h3>🚀 Innovation Clé : Distinction Confirmé vs Prévisionnel</h3>
+                <h3>Innovation Clé : Distinction Confirmé vs Prévisionnel</h3>
                 <p>La macro différencie les <strong>gains/pertes confirmés</strong> (tâches 100% terminées) des <strong>gains/pertes prévisionnels</strong> (tâches en cours), offrant une vision hybride pour optimiser le pilotage temps réel.</p>
             </div>
         </div>
 
         <div class="section">
-            <h2>📊 Structure de l'Export</h2>
+            <h2>Structure de l'Export</h2>
             <p>L'export génère <strong>3 feuilles Excel</strong> :</p>
             
             <div class="feature-list">
                 <div class="feature-item">
-                    <h3>📋 RESUME_DIRIGEANT</h3>
+                    <h3>RESUME_DIRIGEANT</h3>
                     <p>Vue synthétique en 1 minute avec KPI globaux, Top 3 lots critiques, gains/pertes confirmés et prévisionnels</p>
                 </div>
                 <div class="feature-item">
-                    <h3>🌲 SAPIN</h3>
+                    <h3>PROJET</h3>
                     <p>Analyse détaillée par lot avec structure arborescente et indicateurs de performance avancés</p>
                 </div>
                 <div class="feature-item">
-                    <h3>📈 RECAP_LOTS</h3>
+                    <h3>RECAP_LOTS</h3>
                     <p>Tableau de bord complet avec tous les lots, filtres et métriques de pilotage</p>
                 </div>
             </div>
         </div>
 
         <div class="section">
-            <h2>🔧 Prérequis Techniques</h2>
+            <h2>Prérequis Techniques</h2>
             <ol class="step-list">
                 <li><strong>MS Project ouvert</strong> avec un projet contenant des tâches avec heures planifiées et réalisées</li>
                 <li><strong>Date d'état définie</strong> dans MS Project (StatusDate) - sinon la date du jour sera utilisée</li>
@@ -200,20 +200,20 @@
         </div>
 
         <div class="section">
-            <h2>🏃‍♂️ Utilisation</h2>
+            <h2>Utilisation</h2>
             <ol class="step-list">
                 <li>Ouvrir votre projet MS Project</li>
                 <li>Vérifier que la date d'état est correcte (Projet > Informations sur le projet > Date d'état)</li>
-                <li>Exécuter la macro <code>ExportHeuresSapin()</code></li>
+                <li>Exécuter la macro <code>ExportHeuresProjet()</code></li>
                 <li>Choisir le répertoire de sauvegarde dans la boîte de dialogue</li>
                 <li>L'export Excel s'ouvre automatiquement avec les 3 feuilles</li>
             </ol>
         </div>
 
         <div class="section">
-            <h2>📊 KPI et Métriques Calculés</h2>
+            <h2>KPI et Métriques Calculés</h2>
             
-            <h3>🎯 KPI Globaux du Projet</h3>
+            <h3>KPI Globaux du Projet</h3>
             <table class="kpi-table">
                 <thead>
                     <tr>
@@ -228,13 +228,13 @@
                         <td><strong>SPI Global</strong></td>
                         <td>ΣEV / ΣPV</td>
                         <td>≥ 0.90</td>
-                        <td>🟢 Dans les temps / 🟠 Retard modéré / 🔴 Retard critique</td>
+                        <td>Dans les temps / Retard modéré / Retard critique</td>
                     </tr>
                     <tr>
                         <td><strong>CPI Global</strong></td>
                         <td>ΣEV / ΣAC</td>
                         <td>≥ 0.90</td>
-                        <td>🟢 Budget OK / 🟠 Surcoût modéré / 🔴 Surcoût critique</td>
+                        <td>Budget OK / Surcoût modéré / Surcoût critique</td>
                     </tr>
                     <tr>
                         <td><strong>Gains Confirmés</strong></td>
@@ -251,7 +251,7 @@
                 </tbody>
             </table>
 
-            <h3>📈 Métriques par Lot</h3>
+            <h3>Métriques par Lot</h3>
             <ul>
                 <li><strong>Gains/Pertes Prévisionnels :</strong> Estimations basées sur l'avancement des tâches en cours</li>
                 <li><strong>Fiabilité :</strong> % de tâches avec données cohérentes (AC > 0 ET %C > 0)</li>
@@ -261,9 +261,9 @@
         </div>
 
         <div class="section">
-            <h2>⚙️ Configuration Avancée</h2>
+            <h2>Configuration Avancée</h2>
             
-            <h3>🔧 Constantes Modifiables</h3>
+            <h3>Constantes Modifiables</h3>
             <div class="code-block">
 Private Const SEUIL_REL As Double = 0.03  ' 3% - Seuil relatif pour détection écarts
 Private Const SEUIL_ABS_H As Double = 2   ' 2h - Seuil absolu heures
@@ -271,43 +271,43 @@ Private Const SEUIL_MIN_AVANCEMENT As Double = 20  ' 20% minimum pour analyse pr
 Private Const PERCENT_COMPLETE As Double = 100  ' 100% pour tâches terminées
             </div>
 
-            <h3>🎨 Codes Couleur Automatiques</h3>
+            <h3>Codes Couleur Automatiques</h3>
             <ul>
-                <li><strong>🟢 Vert :</strong> Performance satisfaisante (SPI/CPI ≥ 0.90)</li>
-                <li><strong>🟠 Orange :</strong> Vigilance requise (0.80 ≤ SPI/CPI < 0.90)</li>
-                <li><strong>🔴 Rouge :</strong> Action immédiate (SPI/CPI < 0.80)</li>
-                <li><strong>⚠️ Gris :</strong> Données non fiables (fiabilité < 50%)</li>
+                <li><strong>Vert :</strong> Performance satisfaisante (SPI/CPI ≥ 0.90)</li>
+                <li><strong>Orange :</strong> Vigilance requise (0.80 ≤ SPI/CPI < 0.90)</li>
+                <li><strong>Rouge :</strong> Action immédiate (SPI/CPI < 0.80)</li>
+                <li><strong>Gris :</strong> Données non fiables (fiabilité < 50%)</li>
             </ul>
         </div>
 
         <div class="section">
-            <h2>🎯 Points Forts de la Version 4.0</h2>
+            <h2>Points Forts de la Version 4.0</h2>
             
             <div class="feature-list">
                 <div class="feature-item">
-                    <h3>🧠 Analyse Hybride</h3>
+                    <h3>Analyse Hybride</h3>
                     <p>Distinction claire entre gains/pertes confirmés (certains) et prévisionnels (estimés)</p>
                 </div>
                 <div class="feature-item">
-                    <h3>⚡ Lecture 1 Minute</h3>
+                    <h3>Lecture 1 Minute</h3>
                     <p>Résumé dirigeant optimisé pour une prise de décision rapide</p>
                 </div>
                 <div class="feature-item">
-                    <h3>🔍 Détection Anomalies</h3>
+                    <h3>Détection Anomalies</h3>
                     <p>Identification automatique des incohérences de données</p>
                 </div>
                 <div class="feature-item">
-                    <h3>📊 Top 3 Focus</h3>
+                    <h3>Top 3 Focus</h3>
                     <p>Concentration sur les 3 lots les plus critiques au lieu de disperser l'attention</p>
                 </div>
             </div>
         </div>
 
         <div class="section">
-            <h2>⚠️ Limitations et Bonnes Pratiques</h2>
+            <h2>Limitations et Bonnes Pratiques</h2>
             
             <div class="warning-box">
-                <h3>🚨 Limitations Connues</h3>
+                <h3>Limitations Connues</h3>
                 <ul>
                     <li>Les tâches sans heures budgétées (Work = 0) sont exclues de l'analyse</li>
                     <li>Les lots avec fiabilité < 50% sont marqués comme "données non fiables"</li>
@@ -316,7 +316,7 @@ Private Const PERCENT_COMPLETE As Double = 100  ' 100% pour tâches terminées
             </div>
 
             <div class="highlight-box">
-                <h3>✅ Bonnes Pratiques</h3>
+                <h3>Bonnes Pratiques</h3>
                 <ul>
                     <li><strong>Mise à jour régulière :</strong> Exécuter l'export chaque semaine après mise à jour des % d'avancement</li>
                     <li><strong>Cohérence des données :</strong> Vérifier que les heures réalisées sont bien saisies</li>
@@ -327,7 +327,7 @@ Private Const PERCENT_COMPLETE As Double = 100  ' 100% pour tâches terminées
         </div>
 
         <div class="section">
-            <h2>📚 Documentation Complémentaire</h2>
+            <h2>Documentation Complémentaire</h2>
             <p>Cette macro fait partie du module <strong>Optimisation</strong> et s'appuie sur :</p>
             <ul>
                 <li><strong>GUIDE_DIRIGEANT_1MINUTE.md :</strong> Guide de lecture du résumé dirigeant</li>
@@ -335,7 +335,7 @@ Private Const PERCENT_COMPLETE As Double = 100  ' 100% pour tâches terminées
             </ul>
             
             <div class="success-box">
-                <p><strong>💡 Conseil :</strong> Pour une utilisation optimale, consultez d'abord le guide dirigeant 1 minute pour comprendre comment interpréter efficacement les résultats.</p>
+                <p><strong>Conseil :</strong> Pour une utilisation optimale, consultez d'abord le guide dirigeant 1 minute pour comprendre comment interpréter efficacement les résultats.</p>
             </div>
         </div>
     </div>

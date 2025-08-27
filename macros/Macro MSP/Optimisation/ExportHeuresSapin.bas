@@ -1,7 +1,6 @@
 '========================================================================
-' MODULE: ExportHeuresSapin - Version Hybride Confirme/Previsionnel
+' MODULE: ExportHeuresProjet - Version Hybride Confirme/Previsionnel
 ' DESCRIPTION: Export heures avec distinction gains confirmes vs previsionnels
-' AUTHOR: Copilot
 ' DATE: 18/08/2025
 ' VERSION: 4.0 - Analyse hybride pour pilotage temps reel optimal
 '========================================================================
@@ -15,10 +14,10 @@ Private Const PERCENT_COMPLETE As Double = 100  ' 100% pour taches terminees
 '========================================================================
 ' MACRO PRINCIPALE
 '========================================================================
-Sub ExportHeuresSapin()
+Sub ExportHeuresProjet()
     ' Variables principales
     Dim xlApp As Object, xlWb As Object
-    Dim wsResume As Object, wsSapin As Object, wsLots As Object
+    Dim wsResume As Object, wsProjet As Object, wsLots As Object
     Dim DateEtat As Date
     Dim nomProjet As String, anneeSemaine As String, cheminExport As String, nomFichier As String
     
@@ -45,20 +44,20 @@ Sub ExportHeuresSapin()
     
     ' Nommage des feuilles
     xlWb.Worksheets(1).Name = "RESUME_DIRIGEANT"
-    xlWb.Worksheets(2).Name = "SAPIN"
+    xlWb.Worksheets(2).Name = "PROJET"
     xlWb.Worksheets(3).Name = "RECAP_LOTS"
     
     Set wsResume = xlWb.Worksheets("RESUME_DIRIGEANT")
-    Set wsSapin = xlWb.Worksheets("SAPIN")
+    Set wsProjet = xlWb.Worksheets("PROJET")
     Set wsLots = xlWb.Worksheets("RECAP_LOTS")
     
     ' Appel des 3 fonctions principales
-    CollecteEtExportTaches wsSapin
+    CollecteEtExportTaches wsProjet
     CalculEtExportLots wsLots
     ResumeDirigeant wsResume, DateEtat
     
     ' Application du formatage
-    FormaterSapin wsSapin
+    FormaterProjet wsProjet
     FormaterLots wsLots
     FormaterResume wsResume
     
@@ -85,19 +84,19 @@ Sub ExportHeuresSapin()
     wsResume.Activate
     wsResume.Range("A1").Select
     
-    MsgBox "Export heures sapin termine !" & vbCrLf & _
-           "Fichier: " & nomFichier, vbInformation, "Export Heures Sapin"
+    MsgBox "Export heures projet termine !" & vbCrLf & _
+           "Fichier: " & nomFichier, vbInformation, "Export Heures Projet"
 End Sub
 '========================================================================
 ' FONCTIONS PRINCIPALES
 '========================================================================
 
 '------------------------------------------------------------------------
-' Collecte toutes les taches et les exporte dans la feuille SAPIN avec analyse hybride
+' Collecte toutes les taches et les exporte dans la feuille PROJET avec analyse hybride
 '------------------------------------------------------------------------
-Sub CollecteEtExportTaches(ByRef wsSapin As Object)
+Sub CollecteEtExportTaches(ByRef wsProjet As Object)
     ' En-tetes enrichies pour analyse hybride
-    wsSapin.Range("A1:P1").Value = Array("ID", "WBS", "Niveau", "Tache", "%C", "Baseline", "Actual", "Remaining", "Ecart_h", "Gain_Confirme", "Perte_Confirmee", "Gain_Previsionnel", "Perte_Previsionnelle", "Performance", "Flag", "Taux_Conso")
+    wsProjet.Range("A1:P1").Value = Array("ID", "WBS", "Niveau", "Tache", "%C", "Baseline", "Actual", "Remaining", "Ecart_h", "Gain_Confirme", "Perte_Confirmee", "Gain_Previsionnel", "Perte_Previsionnelle", "Performance", "Flag", "Taux_Conso")
     
     Dim t As Task
     Dim ligne As Long
@@ -184,23 +183,23 @@ Sub CollecteEtExportTaches(ByRef wsSapin As Object)
             End If
             
             ' Ecriture ligne par ligne avec nouvelles colonnes
-            wsSapin.Cells(ligne, 1).Value = t.ID
-            wsSapin.Cells(ligne, 2).Value = t.WBS
-            wsSapin.Cells(ligne, 3).Value = t.OutlineLevel
-            wsSapin.Cells(ligne, 4).Value = t.Name
-            wsSapin.Cells(ligne, 4).IndentLevel = t.OutlineLevel - 1  ' Indentation hierarchique
-            wsSapin.Cells(ligne, 5).Value = t.PercentComplete / 100
-            wsSapin.Cells(ligne, 6).Value = BaselineH
-            wsSapin.Cells(ligne, 7).Value = ActualH
-            wsSapin.Cells(ligne, 8).Value = RemainingH
-            wsSapin.Cells(ligne, 9).Value = EcartH
-            wsSapin.Cells(ligne, 10).Value = GainConfirme
-            wsSapin.Cells(ligne, 11).Value = PerteConfirmee
-            wsSapin.Cells(ligne, 12).Value = GainPrevisionnel
-            wsSapin.Cells(ligne, 13).Value = PertePrevisionnelle
-            wsSapin.Cells(ligne, 14).Value = Performance
-            wsSapin.Cells(ligne, 15).Value = Flag
-            wsSapin.Cells(ligne, 16).Value = TauxConso
+            wsProjet.Cells(ligne, 1).Value = t.ID
+            wsProjet.Cells(ligne, 2).Value = t.WBS
+            wsProjet.Cells(ligne, 3).Value = t.OutlineLevel
+            wsProjet.Cells(ligne, 4).Value = t.Name
+            wsProjet.Cells(ligne, 4).IndentLevel = t.OutlineLevel - 1  ' Indentation hierarchique
+            wsProjet.Cells(ligne, 5).Value = t.PercentComplete / 100
+            wsProjet.Cells(ligne, 6).Value = BaselineH
+            wsProjet.Cells(ligne, 7).Value = ActualH
+            wsProjet.Cells(ligne, 8).Value = RemainingH
+            wsProjet.Cells(ligne, 9).Value = EcartH
+            wsProjet.Cells(ligne, 10).Value = GainConfirme
+            wsProjet.Cells(ligne, 11).Value = PerteConfirmee
+            wsProjet.Cells(ligne, 12).Value = GainPrevisionnel
+            wsProjet.Cells(ligne, 13).Value = PertePrevisionnelle
+            wsProjet.Cells(ligne, 14).Value = Performance
+            wsProjet.Cells(ligne, 15).Value = Flag
+            wsProjet.Cells(ligne, 16).Value = TauxConso
             
             ligne = ligne + 1
         End If
@@ -611,11 +610,11 @@ Sub ResumeDirigeant(ByRef wsResume As Object, ByVal DateEtat As Date)
     wsResume.Cells(ligne, 2).Value = SPIGlobal
     If IsNumeric(SPIGlobal) Then
         If SPIGlobal < 0.8 Then
-            wsResume.Cells(ligne, 3).Value = "🔴 CRITIQUE"
+            wsResume.Cells(ligne, 3).Value = "CRITIQUE"
         ElseIf SPIGlobal < 0.9 Then
-            wsResume.Cells(ligne, 3).Value = "🟠 ATTENTION"
+            wsResume.Cells(ligne, 3).Value = "ATTENTION"
         Else
-            wsResume.Cells(ligne, 3).Value = "🟢 OK"
+            wsResume.Cells(ligne, 3).Value = "OK"
         End If
     End If
     ligne = ligne + 1
@@ -624,23 +623,23 @@ Sub ResumeDirigeant(ByRef wsResume As Object, ByVal DateEtat As Date)
     wsResume.Cells(ligne, 2).Value = CPIGlobal
     If IsNumeric(CPIGlobal) Then
         If CPIGlobal < 0.8 Then
-            wsResume.Cells(ligne, 3).Value = "🔴 CRITIQUE"
+            wsResume.Cells(ligne, 3).Value = "CRITIQUE"
         ElseIf CPIGlobal < 0.9 Then
-            wsResume.Cells(ligne, 3).Value = "🟠 ATTENTION"
+            wsResume.Cells(ligne, 3).Value = "ATTENTION"
         Else
-            wsResume.Cells(ligne, 3).Value = "🟢 OK"
+            wsResume.Cells(ligne, 3).Value = "OK"
         End If
     End If
     ligne = ligne + 1
     
     wsResume.Cells(ligne, 1).Value = "Gains Confirmes"
     wsResume.Cells(ligne, 2).Value = TotalGainsConfirmes & " h"
-    wsResume.Cells(ligne, 3).Value = IIf(TotalGainsConfirmes > 0, "🟢 POSITIF", "")
+    wsResume.Cells(ligne, 3).Value = IIf(TotalGainsConfirmes > 0, "POSITIF", "")
     ligne = ligne + 1
 
     wsResume.Cells(ligne, 1).Value = "Pertes Confirmees"
     wsResume.Cells(ligne, 2).Value = TotalPertesConfirmees & " h"
-    wsResume.Cells(ligne, 3).Value = IIf(TotalPertesConfirmees > 0, "🔴 NEGATIF", "")
+    wsResume.Cells(ligne, 3).Value = IIf(TotalPertesConfirmees > 0, "NEGATIF", "")
     ligne = ligne + 2
     
     ' === TOP 3 RETARDS ===
@@ -668,14 +667,14 @@ Sub ResumeDirigeant(ByRef wsResume As Object, ByVal DateEtat As Date)
             Dim spiVal As Double
             spiVal = CDbl(arrRetard(2))
             If spiVal < 0.8 Then
-                wsResume.Cells(ligne + i, 4).Value = "🔴 CRITIQUE"
+                wsResume.Cells(ligne + i, 4).Value = "CRITIQUE"
             ElseIf spiVal < 0.9 Then
-                wsResume.Cells(ligne + i, 4).Value = "🟠 ATTENTION"
+                wsResume.Cells(ligne + i, 4).Value = "ATTENTION"
             End If
         Next i
         ligne = ligne + maxRetards + 1
     Else
-        wsResume.Cells(ligne, 1).Value = "🟢 Aucun lot en retard significatif"
+        wsResume.Cells(ligne, 1).Value = "Aucun lot en retard significatif"
         ligne = ligne + 2
     End If
     
@@ -704,14 +703,14 @@ Sub ResumeDirigeant(ByRef wsResume As Object, ByVal DateEtat As Date)
             Dim cpiVal As Double
             cpiVal = CDbl(arrSurcons(2))
             If cpiVal < 0.8 Then
-                wsResume.Cells(ligne + i, 4).Value = "🔴 CRITIQUE"
+                wsResume.Cells(ligne + i, 4).Value = "CRITIQUE"
             ElseIf cpiVal < 0.9 Then
-                wsResume.Cells(ligne + i, 4).Value = "🟠 ATTENTION"
+                wsResume.Cells(ligne + i, 4).Value = "ATTENTION"
             End If
         Next i
         ligne = ligne + maxSurcons + 1
     Else
-        wsResume.Cells(ligne, 1).Value = "🟢 Aucun lot en surconsommation significative"
+        wsResume.Cells(ligne, 1).Value = "Aucun lot en surconsommation significative"
         ligne = ligne + 2
     End If
     
@@ -735,14 +734,14 @@ Sub ResumeDirigeant(ByRef wsResume As Object, ByVal DateEtat As Date)
             wsResume.Cells(ligne + i, 1).Value = arrAnomalie(0) ' WBS
             wsResume.Cells(ligne + i, 2).Value = arrAnomalie(1) ' Nom tache
             wsResume.Cells(ligne + i, 3).Value = arrAnomalie(2) ' Ecart
-            wsResume.Cells(ligne + i, 4).Value = "🔴 À VERIFIER"
+            wsResume.Cells(ligne + i, 4).Value = "A VERIFIER"
             ' Mise en forme rouge
             wsResume.Range("A" & (ligne + i) & ":D" & (ligne + i)).Interior.Color = RGB(255, 182, 193)
             wsResume.Range("A" & (ligne + i) & ":D" & (ligne + i)).Font.Color = RGB(139, 0, 0)
         Next i
         ligne = ligne + nbAnomalies + 1
     Else
-        wsResume.Cells(ligne, 1).Value = "🟢 Aucune anomalie détectée"
+        wsResume.Cells(ligne, 1).Value = "Aucune anomalie detectee"
         ligne = ligne + 2
     End If
     
@@ -758,7 +757,7 @@ Sub ResumeDirigeant(ByRef wsResume As Object, ByVal DateEtat As Date)
     Next cle
     
     If nbLotsNonFiables > 0 Then
-        wsResume.Cells(ligne, 1).Value = "⚠ DONNÉES NON FIABLES"
+        wsResume.Cells(ligne, 1).Value = "DONNEES NON FIABLES"
         wsResume.Cells(ligne, 1).Font.Bold = True
         wsResume.Cells(ligne, 1).Font.Color = RGB(255, 0, 0)
         wsResume.Cells(ligne, 2).Value = nbLotsNonFiables & " lots avec fiabilite < 50%"
@@ -834,29 +833,29 @@ End Sub
 '========================================================================
 
 '------------------------------------------------------------------------
-' Formate la feuille SAPIN avec formatage conditionnel "sapin de Noel" hybride
+' Formate la feuille PROJET avec formatage conditionnel hybride
 '------------------------------------------------------------------------
-Sub FormaterSapin(ByRef wsSapin As Object)
+Sub FormaterProjet(ByRef wsProjet As Object)
     ' Formats numeriques
-    wsSapin.Range("E:E").NumberFormat = "0%" ' %C
-    wsSapin.Range("F:H").NumberFormat = "0" ' Heures entieres
-    wsSapin.Range("I:M").NumberFormat = "0" ' Ecart, Gains/Pertes
-    wsSapin.Range("P:P").NumberFormat = "0.00" ' Taux consommation
+    wsProjet.Range("E:E").NumberFormat = "0%" ' %C
+    wsProjet.Range("F:H").NumberFormat = "0" ' Heures entieres
+    wsProjet.Range("I:M").NumberFormat = "0" ' Ecart, Gains/Pertes
+    wsProjet.Range("P:P").NumberFormat = "0.00" ' Taux consommation
     
     ' AutoFilter et FreezePanes
-    wsSapin.Range("A1:P1").AutoFilter
-    wsSapin.Activate
-    wsSapin.Application.ActiveWindow.SplitRow = 1
-    wsSapin.Application.ActiveWindow.FreezePanes = True
+    wsProjet.Range("A1:P1").AutoFilter
+    wsProjet.Activate
+    wsProjet.Application.ActiveWindow.SplitRow = 1
+    wsProjet.Application.ActiveWindow.FreezePanes = True
     
-    ' Formatage conditionnel "sapin de Noel" sur colonne Ecart_h
+    ' Formatage conditionnel sur colonne Ecart_h
     Dim derniereColonneUsed As Long
-    derniereColonneUsed = wsSapin.Cells(wsSapin.Rows.Count, "A").End(-4162).Row ' xlUp = -4162
+    derniereColonneUsed = wsProjet.Cells(wsProjet.Rows.Count, "A").End(-4162).Row ' xlUp = -4162
     
     If derniereColonneUsed > 1 Then
         ' Formatage colonne Ecart_h (I)
         Dim rngEcart As Object
-        Set rngEcart = wsSapin.Range("I2:I" & derniereColonneUsed)
+        Set rngEcart = wsProjet.Range("I2:I" & derniereColonneUsed)
         
         rngEcart.FormatConditions.Delete
         
@@ -870,7 +869,7 @@ Sub FormaterSapin(ByRef wsSapin As Object)
         rngEcart.FormatConditions(2).Interior.Color = RGB(255, 182, 193) ' Rouge clair
         rngEcart.FormatConditions(2).Font.Color = RGB(139, 0, 0) ' Rouge fonce
         
-        ' Barres de donnees pour visualisation type "sapin"
+        ' Barres de donnees pour visualisation
         On Error Resume Next
         Dim dbCondition As Object
         Set dbCondition = rngEcart.FormatConditions.AddDatabar
@@ -878,7 +877,7 @@ Sub FormaterSapin(ByRef wsSapin As Object)
             With dbCondition
                 .MinPoint.Modify -1, , 1 ' xlConditionValueAutomaticMin
                 .MaxPoint.Modify -1, , 2 ' xlConditionValueAutomaticMax
-                .BarColor.Color = RGB(79, 129, 189) ' Bleu sapin
+                .BarColor.Color = RGB(79, 129, 189) ' Bleu
                 .ShowValue = True
             End With
         End If
@@ -886,7 +885,7 @@ Sub FormaterSapin(ByRef wsSapin As Object)
         
         ' Formatage conditionnel sur colonne Performance (N)
         Dim rngPerformance As Object
-        Set rngPerformance = wsSapin.Range("N2:N" & derniereColonneUsed)
+        Set rngPerformance = wsProjet.Range("N2:N" & derniereColonneUsed)
         
         rngPerformance.FormatConditions.Delete
         
@@ -918,15 +917,15 @@ Sub FormaterSapin(ByRef wsSapin As Object)
     End If
     
     ' Mise en forme des en-tetes
-    wsSapin.Range("A1:P1").Font.Bold = True
-    wsSapin.Range("A1:P1").Interior.Color = RGB(79, 129, 189)
-    wsSapin.Range("A1:P1").Font.Color = RGB(255, 255, 255)
+    wsProjet.Range("A1:P1").Font.Bold = True
+    wsProjet.Range("A1:P1").Interior.Color = RGB(79, 129, 189)
+    wsProjet.Range("A1:P1").Font.Color = RGB(255, 255, 255)
     
     ' Mise en evidence des colonnes hybrides
-    wsSapin.Range("J1:M1").Interior.Color = RGB(255, 215, 0) ' Or pour colonnes hybrides
-    wsSapin.Range("J1:M1").Font.Color = RGB(0, 0, 0)
+    wsProjet.Range("J1:M1").Interior.Color = RGB(255, 215, 0) ' Or pour colonnes hybrides
+    wsProjet.Range("J1:M1").Font.Color = RGB(0, 0, 0)
     
-    wsSapin.Columns.AutoFit
+    wsProjet.Columns.AutoFit
 End Sub
 
 '------------------------------------------------------------------------
@@ -978,7 +977,7 @@ Sub FormaterLots(ByRef wsLots As Object)
         
         ' Orange pour derives
         Dim fcOrange As Object
-        Set fcOrange = rngPerformance.FormatConditions.Add(2, , "=OR(LEFT(P2,2)=""⚠"",LEFT(P2,2)=""📉"")")
+        Set fcOrange = rngPerformance.FormatConditions.Add(2, , "=LEFT(P2,6)=""Derive""")
         If Not fcOrange Is Nothing Then
             fcOrange.Interior.Color = RGB(255, 165, 0)
             fcOrange.Font.Color = RGB(139, 69, 19)
@@ -1146,18 +1145,18 @@ Sub FormaterResume(ByRef wsResume As Object)
             End If
         End If
         
-        ' Formatage des messages d'état (emojis)
+        ' Formatage des messages d'etat
         Dim statusValue As String
         statusValue = CStr(wsResume.Cells(i, 4).Value)
-        If InStr(statusValue, "🔴") > 0 Then
+        If InStr(statusValue, "CRITIQUE") > 0 Then
             wsResume.Cells(i, 4).Interior.Color = RGB(255, 182, 193)
             wsResume.Cells(i, 4).Font.Color = RGB(139, 0, 0)
             wsResume.Cells(i, 4).Font.Bold = True
-        ElseIf InStr(statusValue, "🟠") > 0 Then
+        ElseIf InStr(statusValue, "ATTENTION") > 0 Then
             wsResume.Cells(i, 4).Interior.Color = RGB(255, 218, 185)
             wsResume.Cells(i, 4).Font.Color = RGB(139, 69, 19)
             wsResume.Cells(i, 4).Font.Bold = True
-        ElseIf InStr(statusValue, "🟢") > 0 Then
+        ElseIf InStr(statusValue, "OK") > 0 Or InStr(statusValue, "POSITIF") > 0 Then
             wsResume.Cells(i, 4).Interior.Color = RGB(144, 238, 144)
             wsResume.Cells(i, 4).Font.Color = RGB(0, 100, 0)
             wsResume.Cells(i, 4).Font.Bold = True
