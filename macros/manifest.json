@@ -55,9 +55,9 @@
       "name": "planning-previsionnel",
       "title": "Planning Prévisionnel",
       "description": "Export planning avec unités de pointe (pic d'effectif requis chaque jour)",
-      "basFile": "Macro MSP/Planning prévisionnel/PlanningPrevisionnel.bas",
+      "basFile": "Macro MSP/Planning prévisionnel/Planningheures.bas",
       "htmlFile": "Macro MSP/Planning prévisionnel/Processus_PlanningPrevisionnel.html",
-      "lastUpdated": "12/08/2025"
+      "lastUpdated": "27/08/2025"
     },
     {
       "name": "export-heures-sapin",
