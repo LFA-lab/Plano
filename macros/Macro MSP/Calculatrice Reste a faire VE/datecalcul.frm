@@ -1,18 +1,3 @@
-VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} datecalcul 
-   Caption         =   "UserForm1"
-   ClientHeight    =   8310
-   ClientLeft      =   105
-   ClientTop       =   450
-   ClientWidth     =   10290
-   OleObjectBlob   =   "reste_a_faire.frx":0000
-   StartUpPosition =   1  'CenterOwner
-End
-Attribute VB_Name = "reste_a_faire"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
 Private Sub Button_Calculer_Click()
     Dim qtRestante As Double
     Dim rendement As Double
@@ -126,23 +111,26 @@ Private Sub Button_Fermer_Click()
     Dim texteComplet As String
     Dim valeurNumerique As String
     
-    ' V?rifier quel label contient des donn?es et les copier
-    If Label_PersosNecessaires.Caption <> "" And InStr(Label_PersosNecessaires.Caption, "personnes") > 0 Then
-        ' Copier le nombre de personnes n?cessaires
-        texteComplet = Label_PersosNecessaires.Caption
-        Dim parties() As String
-        parties = Split(texteComplet, " ")
-        If UBound(parties) >= 1 Then
-            valeurNumerique = parties(UBound(parties) - 1)
-        End If
-        
-    ElseIf Label_Resultat.Caption <> "" And InStr(Label_Resultat.Caption, "heures") > 0 Then
-        ' Copier les heures de travail estim?
+    ' V?rifier uniquement Label_Resultat et extraire la valeur num?rique avant "heures"
+    If Label_Resultat.Caption <> "" And InStr(Label_Resultat.Caption, "heures") > 0 Then
         texteComplet = Label_Resultat.Caption
-        Dim parties2() As String
-        parties2 = Split(texteComplet, " ")
-        If UBound(parties2) >= 1 Then
-            valeurNumerique = parties2(UBound(parties2) - 1)
+        
+        ' Extraire la valeur num?rique avant le mot "heures"
+        Dim posHeures As Integer
+        posHeures = InStr(texteComplet, "heures")
+        
+        If posHeures > 0 Then
+            ' Extraire la partie avant "heures" et chercher le dernier nombre
+            Dim partieAvantHeures As String
+            partieAvantHeures = Left(texteComplet, posHeures - 1)
+            partieAvantHeures = Trim(partieAvantHeures)
+            
+            ' Diviser par espaces et prendre le dernier ?l?ment
+            Dim parties() As String
+            parties = Split(partieAvantHeures, " ")
+            If UBound(parties) >= 0 Then
+                valeurNumerique = parties(UBound(parties))
+            End If
         End If
     Else
         MsgBox "Aucun r?sultat ? copier. Veuillez d'abord calculer.", vbExclamation
@@ -162,6 +150,8 @@ Private Sub Button_Fermer_Click()
         MsgBox "Impossible de trouver la valeur num?rique.", vbExclamation
     End If
 End Sub
+
+
 
 
 

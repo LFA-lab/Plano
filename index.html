@@ -216,13 +216,9 @@
                     
                     // Ajouter les actions spécifiques pour la calculatrice reste à faire
                     if (macro.name === 'calculatrice-reste-a-faire') {
-                        const encodedExercicesHtmlFile = encodeURIComponent(macro.exercicesHtmlFile).replace(/%2F/g, '/');
                         actionsHtml = `
                             <a href="./macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
                                 📖 Documentation
-                            </a>
-                            <a href="./macros/${encodedExercicesHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
-                                🎯 Exercices
                             </a>
                             <button onclick="downloadFormFiles('${macro.name}')" class="btn btn-primary btn-small">
                                 📦 Télécharger Forms (.frm + .frx)
@@ -279,19 +275,19 @@
                 // Télécharger et ajouter le fichier .frm
                 const frmResponse = await fetch(`./macros/${encodeURIComponent(macro.frmFile).replace(/%2F/g, '/')}`);
                 const frmBlob = await frmResponse.blob();
-                zip.file('reste_a_faire.frm', frmBlob);
+                zip.file('datecalcul.frm', frmBlob);
                 
                 // Télécharger et ajouter le fichier .frx
                 const frxResponse = await fetch(`./macros/${encodeURIComponent(macro.frxFile).replace(/%2F/g, '/')}`);
                 const frxBlob = await frxResponse.blob();
-                zip.file('reste_a_faire.frx', frxBlob);
+                zip.file('datecalcul.frx', frxBlob);
                 
                 // Générer et télécharger le ZIP
                 const zipBlob = await zip.generateAsync({type: 'blob'});
                 const url = URL.createObjectURL(zipBlob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'calculatrice_reste_a_faire_forms.zip';
+                a.download = 'calculatrice_datecalcul_forms.zip';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
