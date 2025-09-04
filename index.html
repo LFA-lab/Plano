@@ -213,6 +213,14 @@
                             💾 Télécharger
                         </a>
                     `;
+                    // Ajout du bouton Excel pour la macro Import Simple
+                    if (macro.name === 'creation-ms-project') {
+                        actionsHtml += `
+                            <a href="./macros/Macro MSP/Création MS Project/ImportSimple/FichierTypearemplir.xlsm" download class="btn btn-success btn-small" style="margin-top:4px;">
+                                📥 Fichier Excel type à remplir
+                            </a>
+                        `;
+                    }
                     
                     // Ajouter les actions spécifiques pour la calculatrice reste à faire
                     if (macro.name === 'calculatrice-reste-a-faire') {
