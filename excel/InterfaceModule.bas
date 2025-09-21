@@ -1,53 +1,90 @@
+Attribute VB_Name = "Module1"
 Option Explicit
 
-' This module handles the user interface and coordinates the automated process.
-' It includes a generation button, a status area, and comprehensive logging.
-
-Sub GenerateMSProjectFile()
-    ' This is the main macro to be assigned to the "Generate MS Project" button.
-    ' It orchestrates the entire process.
-
-    ' Ensure the status area and button are properly managed throughout the process.
+'=============================================================
+' Main process : updates cell B5 on sheet "Feuil1" step by step
+'=============================================================
+Public Sub RunGenerationProcess()
     Dim ws As Worksheet
-    ' *** IMPORTANT: Change the line below to your actual sheet name ***
-    Set ws = ThisWorkbook.Sheets("Interface")
-
-    ' Set initial status and disable the button
-    ' *** IMPORTANT: Change the cell "B5" to your actual status cell ***
-    ws.Range("B5").Value = "⏳ Processing..."
-    ' *** IMPORTANT: Change "Button1" to your actual button name ***
-    ws.Shapes("Button1").ControlFormat.Enabled = False
-
-    ' Start logging the process
-    Debug.Print "=== GENERATE_MS_PROJECT_FILE START ==="
-    Debug.Print "Step 1: Initializing process variables..."
+    Dim ole As OLEObject
+    Dim shp As Shape
+    Dim buttonsDisabled As Boolean
 
     On Error GoTo ErrorHandler
 
-    ' Placeholder for future steps (Tasks 4-6)
-    ' When you create the other modules, you will call them from here.
-    Debug.Print "Step 2: Starting GitHub downloader module..."
-    ' Call ModuleGitHubDownload.DownloadFiles() ' Placeholder for later
-    Debug.Print "SUCCESS: Files downloaded from GitHub."
+    ' <<< change the sheet name here if your tab is not "Feuil1" >>>
+    Set ws = ThisWorkbook.Sheets("Feuil1")
 
-    Debug.Print "Step 3: Starting MS Project integration module..."
-    ' Call ModuleMSProjectIntegration.Integrate() ' Placeholder for later
-    Debug.Print "SUCCESS: MS Project integration complete."
+    Debug.Print "=== PROCESS START ==="
+    buttonsDisabled = False
 
-    ' Update status for the user
-    ws.Range("B5").Value = "✅ Complete!"
-    Debug.Print "=== GENERATE_MS_PROJECT_FILE END ==="
+    '---- show initial status
+    ws.Range("B5").Value = "? Processing..."
 
-    ' Re-enable the button
-    ws.Shapes("Button1").ControlFormat.Enabled = True
+    '---- disable any ActiveX CommandButtons on that sheet
+    For Each ole In ws.OLEObjects
+        On Error Resume Next
+        If Not ole.Object Is Nothing Then
+            If TypeName(ole.Object) = "CommandButton" Then
+                ole.Object.Enabled = False
+                buttonsDisabled = True
+            End If
+        End If
+        On Error GoTo ErrorHandler
+    Next ole
 
-    Exit Sub
+    '---- disable any Form-control buttons on that sheet
+    For Each shp In ws.Shapes
+        On Error Resume Next
+        If shp.Type = msoFormControl Then
+            If shp.FormControlType = xlButtonControl Then
+                shp.ControlFormat.Enabled = False
+                buttonsDisabled = True
+            End If
+        End If
+        On Error GoTo ErrorHandler
+    Next shp
+
+    '---- demo steps � replace with your real work as needed
+    ws.Range("B5").Value = "Step 1: Initializing..."
+    DoEvents
+    ws.Range("B5").Value = "Step 2: Processing..."
+    DoEvents
+    ws.Range("B5").Value = "Step 3: Finalizing..."
+    DoEvents
+
+    '---- finished
+    ws.Range("B5").Value = "Complete!"   ' <- simple text so every font shows it
+    GoTo Cleanup
 
 ErrorHandler:
-    ' Comprehensive error handling
-    Debug.Print "ERROR: An error occurred during the process."
-    Debug.Print "Error Description: " & Err.Description
-    ws.Range("B5").Value = "❌ Error: " & Err.Description
-    ws.Shapes("Button1").ControlFormat.Enabled = True
+    ws.Range("B5").Value = "? Error: " & Err.Description
+    MsgBox "An error occurred: " & Err.Description, vbExclamation, "Error"
 
+Cleanup:
+    '---- re-enable buttons even after error
+    Dim ole2 As OLEObject, shp2 As Shape
+    For Each ole2 In ws.OLEObjects
+        On Error Resume Next
+        If Not ole2.Object Is Nothing Then
+            If TypeName(ole2.Object) = "CommandButton" Then ole2.Object.Enabled = True
+        End If
+    Next ole2
+
+    For Each shp2 In ws.Shapes
+        On Error Resume Next
+        If shp2.Type = msoFormControl Then
+            If shp2.FormControlType = xlButtonControl Then shp2.ControlFormat.Enabled = True
+        End If
+    Next shp2
+
+    Debug.Print "=== PROCESS END ==="
 End Sub
+
+'-------------------------------------------------------------
+' Optional helper: opens the UserForm directly from Excel
+'-------------------------------------------------------------
+Public Sub OpenGenerator()
+    UserForm1.Show
+End Sub
+
