@@ -5,10 +5,23 @@ Option Explicit
 ' - Works on Windows and Ubuntu/Wine
 ' - ServerXMLHTTP with redirects, timeouts; curl fallback
 ' - Cross-platform paths: ~/Downloads/omexom or %USERPROFILE%\Downloads\omexom
+' - Includes: README test, full-URL test, and .MPP download button handler
 ' =======================================================================
 
-' --- Set this to a known-good location to TEST first (README on main) ---
+' ---------- Configure your URLs here ----------
+' For the README sanity test (always present on main):
 Private Const BASE_URL As String = "https://raw.githubusercontent.com/lfa-lab/Omexom/main/"
+
+' For .MPP downloads kept under templates/ on main:
+Private Const BASE_URL_TEMPLATES As String = "https://raw.githubusercontent.com/lfa-lab/Omexom/main/templates/"
+
+' If you prefer to point directly to one file, put the full Raw URL here
+' and leave RELATIVE_MPP = "" (the button handler will use FULL_URL_MPP).
+Private Const FULL_URL_MPP As String = ""   ' e.g. "https://raw.githubusercontent.com/lfa-lab/Omexom/main/templates/TemplateProject_v1.mpp"
+
+' If you want to use BASE_URL_TEMPLATES instead, set the relative name here:
+Private Const RELATIVE_MPP As String = "TemplateProject_v1.mpp"
+
 
 ' ----------------------------- OS helpers ------------------------------
 Private Function IsWindows() As Boolean
@@ -19,6 +32,7 @@ End Function
 Private Function SepChar() As String
     SepChar = IIf(IsWindows(), "\", "/")
 End Function
+
 
 ' -------------------------- Path utilities -----------------------------
 Private Function GetDownloadBase() As String
@@ -84,6 +98,7 @@ Private Sub MkDirs(ByVal path As String)
     End If
 End Sub
 
+
 ' -------------------------- HTTP + fallback ----------------------------
 Private Function HttpGetToFile(ByVal url As String, ByVal outPath As String) As Boolean
     On Error GoTo COMFail
@@ -142,7 +157,7 @@ CurlFail:
 End Function
 
 Private Function CurlDownload(ByVal url As String, ByVal outPath As String) As Boolean
-    On Error GoTo EH
+    On Error Go To EH
     EnsureParentFolder outPath
 
     Dim sh As Object: Set sh = CreateObject("WScript.Shell")
@@ -164,12 +179,15 @@ EH:
     CurlDownload = False
 End Function
 
+
 ' ------------------------------ Logging --------------------------------
 Private Sub Log(ByVal msg As String)
     Debug.Print Format$(Now, "yyyy-mm-dd hh:nn:ss"); " | "; msg
 End Sub
 
+
 ' ------------------------------ Tests ----------------------------------
+' Shows the path the module would use to save files.
 Public Sub Test_ShowPaths()
     Dim p As String
     p = BuildOutputPath("hello.txt")
@@ -177,14 +195,13 @@ Public Sub Test_ShowPaths()
     Log "Example file would save to: " & p
 End Sub
 
-Public Sub Test_Download_XmlHttp()
-    ' Start with a guaranteed file to eliminate 404s:
-    Dim relative As String: relative = "README.md"
+' Guaranteed test: downloads README.md from main.
+Public Sub Test_Download_Readme()
+    Dim url As String, outPath As String
+    url = BASE_URL & "README.md"
+    outPath = BuildOutputPath("README.md")
 
-    Dim url As String: url = BASE_URL & relative
-    Dim outPath As String: outPath = BuildOutputPath(relative)
-
-    Log "=== TEST START ==="
+    Log "=== TEST START (README) ==="
     Log "URL: " & url
     Log "OUT: " & outPath
 
@@ -194,19 +211,71 @@ Public Sub Test_Download_XmlHttp()
     Else
         Log "FAILED: could not download"
     End If
-    Log "=== TEST END ==="
+    Log "=== TEST END (README) ==="
 End Sub
 
+' One-shot: paste any full Raw/Pages URL to test directly.
 Public Sub Test_FullUrl_Once()
-    ' Paste an exact Raw URL to your specific file when ready:
     Dim fullUrl As String, outPath As String
-    fullUrl = "https://raw.githubusercontent.com/lfa-lab/Omexom/feature/github-downloader/github-pages/Importsimple.bas"
+    fullUrl = "https://raw.githubusercontent.com/lfa-lab/Omexom/feature/github-downloader/github-pages/Importsimple.bas"  ' <- replace when needed
     outPath = BuildOutputPath("Importsimple.bas")
     EnsureParentFolder outPath
     If HttpGetToFile(fullUrl, outPath) Then
-        Log "OK ? " & outPath
+        Log "OK -> " & outPath
     Else
         Log "FAIL"
     End If
 End Sub
+
+
+' ======================= .MPP DOWNLOAD BUTTON ===========================
+' Button handler: downloads a .MPP and reports status in Feuil1!B5.
+
+Public Sub DownloadProjectMpp()
+    On Error GoTo EH
+
+    Dim ws As Worksheet
+    Dim url As String, outPath As String, fileName As String
+
+    ' Choose URL & filename
+    If Len(FULL_URL_MPP) > 0 Then
+        fileName = GetFileNameFromUrl(FULL_URL_MPP)
+        url = FULL_URL_MPP
+    Else
+        fileName = RELATIVE_MPP
+        url = BASE_URL_TEMPLATES & RELATIVE_MPP
+    End If
+
+    ' Status cell – change sheet name/cell if needed
+    Set ws = ThisWorkbook.Sheets("Feuil1")       ' <--- change if your sheet name differs
+    ws.Range("B5").Value = "? downloading " & fileName & " ..."
+
+    outPath = BuildOutputPath(fileName)
+    EnsureParentFolder outPath
+
+    If HttpGetToFile(url, outPath) Then
+        ws.Range("B5").Value = "? downloaded: " & outPath
+        Log "SUCCESS: .mpp downloaded -> " & outPath
+    Else
+        ws.Range("B5").Value = "? download failed (see Immediate window)"
+        Log "FAILED: .mpp download " & url
+    End If
+    Exit Sub
+
+EH:
+    Log "ERROR DownloadProjectMpp: " & Err.Number & " - " & Err.Description
+    On Error Resume Next
+    ThisWorkbook.Sheets("Feuil1").Range("B5").Value = "? error: " & Err.Description
+End Sub
+
+Private Function GetFileNameFromUrl(ByVal u As String) As String
+    Dim p As Long
+    p = InStrRev(u, "/")
+    If p > 0 Then
+        GetFileNameFromUrl = Mid$(u, p + 1)
+    Else
+        GetFileNameFromUrl = u
+    End If
+End Function
+' ===================== end of ModuleGitHubDownload ======================
 
