@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importer un fichier .bas dans MS Project - Guide complet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            line-height: 1.5;
+            color: #333;
+        }
+        
+        .objectif {
+            background-color: #e3f2fd;
+            border: 3px solid #1976d2;
+            padding: 20px;
+            margin-bottom: 25px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .etape {
+            background-color: #f5f5f5;
+            border: 2px solid #666;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .etape h3 {
+            color: #d32f2f;
+            margin-top: 0;
+            font-size: 18px;
+        }
+        
+        .important {
+            background-color: #fff3e0;
+            border: 2px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .erreur {
+            background-color: #ffebee;
+            border: 2px solid #f44336;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .erreur h4 {
+            color: #d32f2f;
+            margin-top: 0;
+        }
+        
+        .conseil {
+            background-color: #e8f5e8;
+            border: 2px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        code {
+            background-color: #f0f0f0;
+            padding: 2px 5px;
+            font-family: Courier, monospace;
+            color: #d32f2f;
+        }
+        
+        .gras {
+            font-weight: bold;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="objectif">
+        MISSION : Tu as reçu un fichier qui se termine par .bas. Tu veux l'utiliser dans MS Project. Tu vas apprendre à l'importer, à vérifier qu'il fonctionne, et à créer un bouton pour t'en servir quand tu veux.
+    </div>
+
+    <div class="etape">
+        <h3>ÉTAPE 1 : Prépare ton fichier .bas</h3>
+        <p>D'abord, assure-toi que tu as bien téléchargé le fichier. Il doit se terminer par <code>.bas</code> et porter un nom simple comme <code>calculateur.bas</code> ou <code>macro_planning.bas</code>. Place-le dans un endroit que tu retrouves facilement, par exemple ton Bureau ou tes Téléchargements.</p>
+        
+        <div class="important">
+            ATTENTION : Si Windows a ajouté <code>.txt</code> à la fin, renomme le fichier pour enlever cette extension. Il doit vraiment finir par <code>.bas</code> uniquement.
+        </div>
+    </div>
+
+    <div class="etape">
+        <h3>ÉTAPE 2 : Ouvre MS Project</h3>
+        <p>Lance Microsoft Project. Ouvre un projet existant ou crée-en un nouveau, peu importe. L'important c'est d'avoir MS Project ouvert et fonctionnel devant toi.</p>
+    </div>
+
+    <div class="etape">
+        <h3>ÉTAPE 3 : Accède à l'éditeur VBA</h3>
+        <p>Maintenant, tu vas accéder à la partie cachée de MS Project où vivent les macros. Appuie simultanément sur les touches <span class="gras">ALT et F11</span>. Une nouvelle fenêtre va s'ouvrir. Cette fenêtre s'appelle l'éditeur VBA. Elle peut paraître intimidante mais c'est normal.</p>
+        
+        <div class="conseil">
+            Si rien ne se passe quand tu appuies sur ALT+F11, essaie de passer par le menu : Fichier, puis Options, puis Centre de gestion de la confidentialité, puis Paramètres du Centre de gestion, puis Paramètres des macros, et assure-toi que les macros ne sont pas complètement désactivées.
+        </div>
+    </div>
+
+    <div class="etape">
+        <h3>ÉTAPE 4 : Importe ton fichier .bas</h3>
+        <p>Dans l'éditeur VBA qui vient de s'ouvrir, va dans le menu <span class="gras">Fichier</span> en haut à gauche. Clique dessus, puis cherche et clique sur <span class="gras">Importer un fichier</span>. Une fenêtre de navigation va s'ouvrir.</p>
+        
+        <p>Navigue jusqu'à l'endroit où tu as mis ton fichier <code>.bas</code>. Sélectionne-le en cliquant dessus une fois, puis clique sur le bouton <span class="gras">Ouvrir</span>.</p>
+        
+        <div class="important">
+            Si tu ne vois pas ton fichier .bas dans la liste, vérifie que le filtre en bas de la fenêtre est réglé sur "Tous les fichiers" ou "Fichiers BASIC (*.bas)".
+        </div>
+    </div>
+
+    <div class="etape">
+        <h3>ÉTAPE 5 : Vérifie que l'import a fonctionné</h3>
+        <p>Après l'import, regarde dans la partie gauche de l'éditeur VBA. Tu dois voir apparaître le nom de ton fichier dans une liste qui s'appelle "Explorateur de projets". Si tu vois ton fichier listé là, double-clique dessus. Du code doit apparaître dans la partie droite de l'écran.</p>
+        
+        <div class="erreur">
+            <h4>PROBLÈME FRÉQUENT :</h4>
+            Si tu ne vois rien apparaître dans l'explorateur de projets, l'import a échoué. Recommence l'étape 4 en vérifiant bien le nom et l'emplacement de ton fichier .bas.
+        </div>
+    </div>
+
+    <div class="etape">
+        <h3>ÉTAPE 6 : Ferme l'éditeur VBA</h3>
+        <p>Une fois que tu as confirmé que ton code est bien importé, ferme l'éditeur VBA en cliquant sur la croix rouge en haut à droite de sa fenêtre. Tu retournes ainsi dans MS Project normal.</p>
+    </div>
+
+    <div class="etape">
+        <h3>ÉTAPE 7 : Crée un bouton pour exécuter ta macro</h3>
+        <p>Maintenant tu vas créer un bouton facile d'accès pour utiliser ta macro. Dans MS Project, fais un clic droit n'importe où sur le ruban (la barre d'outils en haut). Dans le menu qui apparaît, clique sur <span class="gras">Personnaliser le ruban</span>.</p>
+        
+        <p>Une fenêtre de paramètres va s'ouvrir. Dans la partie droite, tu vois une liste d'onglets. Sélectionne un onglet existant ou crée-en un nouveau en cliquant sur <span class="gras">Nouvel onglet</span>.</p>
+        
+        <p>Ensuite, dans cet onglet, clique sur <span class="gras">Nouveau groupe</span> pour créer un groupe de boutons.</p>
+        
+        <p>Maintenant, dans la partie gauche de la fenêtre, change le menu déroulant pour sélectionner <span class="gras">Macros</span>. Tu dois voir apparaître le nom de ta macro dans la liste. Sélectionne-la, puis clique sur <span class="gras">Ajouter</span> pour l'ajouter à ton groupe.</p>
+        
+        <p>Clique sur <span class="gras">OK</span> pour valider ces changements.</p>
+    </div>
+
+    <div class="etape">
+        <h3>ÉTAPE 8 : Test final</h3>
+        <p>Tu dois maintenant voir un nouveau bouton dans le ruban de MS Project. Clique dessus pour tester ta macro. Si tout fonctionne, félicitations ! Si ça ne marche pas, lis la section erreurs ci-dessous.</p>
+    </div>
+
+    <div class="erreur">
+        <h4>ERREURS COURANTES ET SOLUTIONS :</h4>
+        
+        <p><span class="gras">Le bouton n'apparaît pas :</span> Tu n'as pas correctement ajouté la macro au ruban. Recommence l'étape 7 en vérifiant chaque action.</p>
+        
+        <p><span class="gras">Le bouton ne fait rien quand je clique :</span> Soit la macro n'est pas correctement importée (revérifie l'étape 5), soit MS Project bloque l'exécution des macros. Va dans Fichier, Options, Centre de gestion de la confidentialité, et autorise les macros.</p>
+        
+        <p><span class="gras">Message "Macro introuvable" :</span> Le nom que tu as donné au bouton ne correspond pas exactement au nom de la macro dans le code. Vérifie les noms et recommence l'ajout du bouton.</p>
+        
+        <p><span class="gras">L'éditeur VBA ne s'ouvre pas :</span> Les macros sont peut-être complètement désactivées sur ton système. Demande à ton administrateur informatique ou consulte les paramètres de sécurité de MS Project.</p>
+    </div>
+
+    <div class="conseil">
+        <h4>CONSEIL FINAL :</h4>
+        Sauvegarde ton projet MS Project après avoir importé la macro. Comme ça, la prochaine fois que tu ouvriras ce projet, ta macro sera toujours disponible. Si tu veux que la macro soit disponible dans tous tes projets, il faudra l'ajouter au modèle global de MS Project, mais c'est une procédure plus avancée.
+    </div>
+
+</body>
+</html>

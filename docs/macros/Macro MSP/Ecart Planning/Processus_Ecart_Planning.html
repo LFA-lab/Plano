@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Processus de Suivi Avance/Retard - Macro Excel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 32px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.17);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.2em;
+        }
+        .header p {
+            font-size: 1.15em;
+            margin: 10px 0 0 0;
+            opacity: 0.92;
+        }
+        .nav {
+            background: white;
+            padding: 18px 25px;
+            border-radius: 10px;
+            margin-bottom: 28px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+        }
+        .nav h2 {
+            margin-top: 0;
+            color: #2a5298;
+            font-size: 1.22em;
+        }
+        .nav ul {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav a {
+            display: block;
+            padding: 9px 14px;
+            background: #f0f7ff;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #2a5298;
+            transition: all 0.3s;
+            border: 1px solid #e0e0e0;
+        }
+        .nav a:hover {
+            background: #2a5298;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.13);
+        }
+        .section {
+            background: white;
+            padding: 28px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .section h2 {
+            color: #2a5298;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 10px;
+            margin-bottom: 17px;
+        }
+        .alert-box {
+            padding: 14px 20px;
+            margin: 16px 0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+        }
+        .alert-red {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .alert-yellow {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+        .alert-green {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .icon {
+            display: inline-block;
+            width: 30px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        .process-box {
+            background: linear-gradient(to right, #f0f7ff, #ffffff);
+            border-left: 5px solid #2a5298;
+            padding: 22px 24px;
+            margin: 22px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .comparison-table th {
+            background: #2a5298;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        .comparison-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .comparison-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .data-box {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 18px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .result-box {
+            background: #e8f4f8;
+            border: 2px solid #2a5298;
+            padding: 18px;
+            border-radius: 8px;
+            margin: 20px 0 0 0;
+            text-align: center;
+            font-size: 1.08em;
+        }
+        .formula-box {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            padding: 13px 10px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.07em;
+            font-weight: bold;
+        }
+        /* --- FLOW DIAGRAM HORIZONTAL --- */
+        .horizontal-flow {
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        .flow-row {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            min-width: 700px;
+            gap: 0;
+        }
+        .step-block {
+            background: #f4faff;
+            border: 2px solid #2a5298;
+            border-radius: 10px;
+            padding: 14px 14px;
+            margin: 0;
+            min-width: 150px;
+            max-width: 200px;
+            box-shadow: 0 2px 6px rgba(50,80,180,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            font-size: 1em;
+            position: relative;
+        }
+        .step-num {
+            display: inline-block;
+            background: #2a5298;
+            color: white;
+            border-radius: 50%;
+            width: 1.8em;
+            height: 1.8em;
+            line-height: 1.8em;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 7px;
+            margin-top: -7px;
+        }
+        .step-desc {
+            color: #444;
+            font-size: 0.93em;
+            margin-top: 4px;
+        }
+        .arrow {
+            display: flex;
+            align-items: center;
+            font-size: 2.2em;
+            margin: 0 10px;
+            color: #2a5298;
+            user-select: none;
+        }
+        @media (max-width: 900px) {
+            .flow-row {
+                min-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📈 Processus Utilisateur : Suivi Avance/Retard - Macro Excel</h1>
+        <p>Comment piloter visuellement vos tâches pour agir sur les retards et prioriser l'action</p>
+    </div>
+
+    <div class="nav">
+        <h2>📚 Sommaire</h2>
+        <ul>
+            <li><a href="#objectif">🎯 Objectif de l'outil</a></li>
+            <li><a href="#consequences">⚡ Conséquences et bénéfices</a></li>
+            <li><a href="#utilisation">🔁 Mode d'emploi</a></li>
+            <li><a href="#regles">✅ Règles de pilotage</a></li>
+            <li><a href="#astuces">💡 Astuces et filtres</a></li>
+            <li><a href="#tableau">📊 Exemple de tableau</a></li>
+        </ul>
+    </div>
+
+    <div class="section" id="objectif">
+        <h2>🎯 Objectif de la macro</h2>
+        <p>
+            Cette macro Excel extrait automatiquement un <strong>tableau de suivi des tâches</strong> (dates prévues/réelles, écarts, statut), pour offrir une <strong>lecture visuelle immédiate de l'avance ou du retard</strong> de chaque tâche du projet. 
+            <br><br>
+            <span style="color:#2a5298; font-weight:500;">But :</span> Permettre à tous, même débutant, d'identifier d’un coup d’œil les points critiques pour agir avant que la situation ne s'aggrave.
+        </p>
+        <div class="alert-box alert-green">
+            <span class="icon">🟢</span>
+            <div>
+                <strong>Gagnez du temps :</strong> repérez instantanément les urgences sans analyser le planning complet.
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="consequences">
+        <h2>⚡ Conséquences & Bénéfices</h2>
+        <div class="alert-box alert-yellow">
+            <span class="icon">🟡</span>
+            <div>
+                <strong>Risques sans suivi :</strong><br>
+                • Découverte trop tardive des retards<br>
+                • Aucune priorisation<br>
+                • Mauvaise communication au client ou à l’équipe<br>
+                • Surcoûts (interventions, pénalités, etc.)
+            </div>
+        </div>
+        <div class="alert-box alert-green">
+            <span class="icon">🟢</span>
+            <div>
+                <strong>Ce que la macro apporte :</strong><br>
+                • Priorité automatique sur les tâches urgentes<br>
+                • Aide à la prise de décision rapide (“quoi faire maintenant ?”)<br>
+                • Outil de pilotage accessible à tous (pas besoin d’être expert Excel ou MS Project)
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="utilisation">
+        <h2>🔁 Mode d'emploi (étapes clés)</h2>
+        <div class="horizontal-flow">
+            <div class="flow-row">
+                <div class="step-block">
+                    <span class="step-num">1</span>
+                    <strong>Ouvrez MS Project</strong><br>
+                    <span class="step-desc">Vérifiez que votre planning est bien à jour.</span>
+                </div>
+                <span class="arrow">→</span>
+                <div class="step-block">
+                    <span class="step-num">2</span>
+                    <strong>Lancez la macro</strong><br>
+                    <span class="step-desc">(depuis MS Project ou Excel)</span>
+                </div>
+                <span class="arrow">→</span>
+                <div class="step-block">
+                    <span class="step-num">3</span>
+                    <strong>Consultez le tableau exporté</strong><br>
+                    <span class="step-desc">Les statuts et actions sont générés automatiquement.</span>
+                </div>
+                <span class="arrow">→</span>
+                <div class="step-block">
+                    <span class="step-num">4</span>
+                    <strong>Filtrez les urgences</strong><br>
+                    <span class="step-desc">Agissez immédiatement sur les points rouges.</span>
+                </div>
+            </div>
+        </div>
+        <div class="process-box">
+            <strong>Ce que vous allez obtenir :</strong>
+            <ul>
+                <li>Un tableau Excel séparant tâches “Macro” (synthèse) et “Micro” (détail)</li>
+                <li>Pour chaque tâche : 
+                    <ul>
+                        <li>Écart en jours (avance/retard)</li>
+                        <li>Statut visuel <span style="color:#2a5298">🟢🟡🔴</span></li>
+                        <li>Action recommandée</li>
+                    </ul>
+                </li>
+                <li>Des filtres automatiques pour isoler les tâches en retard</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section" id="regles">
+        <h2>✅ Règles de pilotage (interprétation automatique)</h2>
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Statut</th>
+                    <th>Situation</th>
+                    <th>Action à faire</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="icon" style="color:#0ba23a;">🟢</span> À l’heure</td>
+                    <td>Écart = 0</td>
+                    <td>Ne rien faire, surveiller</td>
+                </tr>
+                <tr>
+                    <td><span class="icon" style="color:#efb000;">🟡</span> En avance</td>
+                    <td>Écart &lt; 0</td>
+                    <td>Voir si on peut avancer la suite</td>
+                </tr>
+                <tr>
+                    <td><span class="icon" style="color:#db222a;">🔴</span> En retard</td>
+                    <td>Écart &gt; 0</td>
+                    <td>Agir immédiatement (voir colonne action)</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="formula-box">
+            <strong>Rappel :</strong> <br>
+            <span style="color:#2a5298;">Écart = Date fin prévue/actuelle - Date fin référence</span>
+        </div>
+    </div>
+
+    <div class="section" id="astuces">
+        <h2>💡 Astuces et filtres</h2>
+        <ul>
+            <li>
+                <span class="icon" style="color:#db222a;">🔴</span>
+                <strong>Urgence :</strong> Pour afficher uniquement les tâches en retard, appliquez le filtre sur la colonne “Écart fin (jours)” &gt; 0.
+            </li>
+            <li>
+                <span class="icon" style="color:#efb000;">🟡</span>
+                <strong>Anticipez :</strong> Pour lister les tâches en avance, filtrez sur “Écart fin (jours)” &lt; 0.
+            </li>
+            <li>
+                <span class="icon" style="color:#0ba23a;">🟢</span>
+                <strong>Sous contrôle :</strong> “Écart fin (jours)” = 0 → planning respecté.
+            </li>
+            <li>
+                <strong>💾 Conseil :</strong> Personnalisez la colonne “Action” selon le contexte réel du chantier.
+            </li>
+        </ul>
+    </div>
+
+    <div class="section" id="tableau">
+        <h2>📊 Exemple de tableau généré</h2>
+        <div class="data-box">
+<pre style="margin:0; font-size:1em;">| Tâche                  | Début réf | Fin réf   | Début actuel | Fin actuel | Écart fin | Statut | Action                                 |
+|------------------------|-----------|-----------|--------------|------------|-----------|--------|----------------------------------------|
+| LIVRAISON ONDULEUR SOL | 05/12/25  | 27/02/26  | 05/12/25     | 03/06/26   |     7     |  🔴    | Vérifier l'impact et agir immédiatement|
+| BASE VIE               | 13/02/25  | 15/05/25  | 13/02/25     | 15/05/25   |     0     |  🟢    | Ne rien faire, surveiller              |
+| CDC BT                 | 29/09/25  | 14/10/25  | 29/09/25     | 22/10/25   |     8     |  🔴    | Vérifier la cause + action corrective  |
+| CÂBLAGE BT             | 29/09/25  | 17/10/25  | 29/09/25     | 11/07/25   |   -98     |  🟡    | Voir si on peut avancer la suite       |
+| ...                    |   ...     |   ...     |    ...       |    ...     |   ...     |  ...  | ...                                    |</pre>
+        </div>
+        <div class="result-box">
+            <strong>Statuts et couleurs générés automatiquement.<br>
+            Filtrez pour agir en priorité sur les tâches 🔴 !</strong>
+        </div>
+    </div>
+
+</body>
+</html>

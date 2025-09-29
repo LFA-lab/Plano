@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Export Mécanique - OMEXOM</title>
+    <style>
+        /* CSS inline pour un fichier autonome */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0066cc, #004d99);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.2em;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .client-logo {
+            background: white;
+            color: #0066cc;
+            font-weight: bold;
+            font-size: 1.3em;
+            padding: 8px 16px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .summary {
+            background: #e8f4fd;
+            border-left: 4px solid #0066cc;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .summary h2 {
+            margin-top: 0;
+            color: #004d99;
+        }
+
+        .toc {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .toc h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+
+        .toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin: 8px 0;
+        }
+
+        .toc a {
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 5px 0;
+            display: block;
+        }
+
+        .toc a:hover {
+            color: #004d99;
+            text-decoration: underline;
+        }
+
+        .step {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .step-header {
+            background: #0066cc;
+            color: white;
+            padding: 15px 25px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .step-content {
+            padding: 25px;
+        }
+
+        .click-action {
+            background: #f0f8ff;
+            border-left: 3px solid #0066cc;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .click-action strong {
+            color: #004d99;
+        }
+
+        .attention {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .attention::before {
+            content: "⚠️ Attention : ";
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .tip {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .tip::before {
+            content: "💡 Astuce : ";
+            font-weight: bold;
+            color: #155724;
+        }
+
+        .capture-placeholder {
+            display: none;
+        }
+
+        .troubleshoot {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .troubleshoot-header {
+            background: #dc3545;
+            color: white;
+            padding: 15px 25px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .troubleshoot-content {
+            padding: 25px;
+        }
+
+        .problem {
+            background: white;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .problem-title {
+            font-weight: bold;
+            color: #721c24;
+            margin-bottom: 8px;
+        }
+
+        .solution {
+            color: #155724;
+            margin-top: 8px;
+        }
+
+        .solution::before {
+            content: "→ Solution : ";
+            font-weight: bold;
+        }
+
+        .faq {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .faq-header {
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .faq-content {
+            padding: 25px;
+        }
+
+        .faq-item {
+            margin: 20px 0;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 8px;
+        }
+
+        .back-to-top {
+            text-align: right;
+            margin: 20px 0;
+        }
+
+        .back-to-top a {
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .back-to-top a:hover {
+            text-decoration: underline;
+        }
+
+        .output-example {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+
+        .excel-tabs {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .excel-tab {
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 4px 4px 0 0;
+            padding: 8px 15px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .excel-tab.active {
+            background: white;
+            border-bottom: 1px solid white;
+            color: #0066cc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        ol {
+            counter-reset: step-counter;
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        ol > li {
+            counter-increment: step-counter;
+            margin: 10px 0;
+        }
+
+        ol > li::before {
+            content: counter(step-counter) ". ";
+            font-weight: bold;
+            color: #0066cc;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="client-logo">OMEXOM</div>
+        <h1>Exporter le suivi mécanique vers Excel</h1>
+        <div class="subtitle">Guide clic par clic</div>
+    </div>
+
+    <div class="summary">
+        <h2>🎯 Objectif</h2>
+        <p><strong>À la fin de ce guide, vous aurez :</strong></p>
+        <ul>
+            <li>Un fichier Excel automatiquement généré dans vos Téléchargements</li>
+            <li><strong>Onglet 1 "Récapitulatif" :</strong> totaux Prévu / Réalisé / % par ressource mécanique</li>
+            <li><strong>Onglet 2 "Données détaillées" :</strong> évolution jour par jour (Qté, Réel, Jour, %)</li>
+        </ul>
+        <p><em>Durée : 5 minutes pour l'installation, puis 30 secondes par export.</em></p>
+    </div>
+
+    <div class="toc">
+        <h2>📋 Sommaire</h2>
+        <ul>
+            <li><a href="#etape1">Étape 1 — Importer la macro dans MS Project</a></li>
+            <li><a href="#etape2">Étape 2 — Activer les macros (Trust Center)</a></li>
+            <li><a href="#etape3">Étape 3 — Ajouter le bouton dans le Ruban</a></li>
+            <li><a href="#etape4">Étape 4 — Lancer l'export et récupérer l'Excel</a></li>
+            <li><a href="#depannage">🔧 Dépannage (problèmes fréquents)</a></li>
+            <li><a href="#faq">❓ FAQ rapide</a></li>
+        </ul>
+    </div>
+
+    <div class="step" id="etape1">
+        <div class="step-header">Étape 1 — Importer la macro dans MS Project</div>
+        <div class="step-content">
+            <p>Cette étape installe le code de la macro dans votre fichier MS Project.</p>
+            
+            <ol>
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Ouvrez Microsoft Project et votre planning (.MPP)
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Appuyez sur <code>Alt+F11</code> pour ouvrir l'éditeur VBA
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Fichier > Importer un fichier...
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Sélectionnez le fichier <code>exportmécanique.bas</code>
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Fichier > Enregistrer le projet (ou <code>Ctrl+S</code>)
+                    </div>
+                </li>
+            </ol>
+
+            <div class="attention">
+                Si un message "Déclaration existante dans la portée en cours" apparaît, consultez la section <a href="#depannage">Dépannage</a>.
+            </div>
+        </div>
+        <div class="back-to-top"><a href="#top">↥ Haut de page</a></div>
+    </div>
+
+    <div class="step" id="etape2">
+        <div class="step-header">Étape 2 — Activer les macros (Trust Center)</div>
+        <div class="step-content">
+            <p>Autorisez MS Project à exécuter des macros.</p>
+            
+            <ol>
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Fichier > Options
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Centre de gestion de la confidentialité > Paramètres du Centre de gestion de la confidentialité...
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Paramètres des macros (menu de gauche)
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> "Activer toutes les macros"
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Cochez "Faire confiance à l'accès au modèle d'objet du projet VBA"
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> OK puis OK pour fermer
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Redémarrez MS Project si demandé
+                    </div>
+                </li>
+            </ol>
+
+            <div class="tip">
+                Vous pourrez revenir à un niveau de sécurité plus strict après vos exports.
+            </div>
+        </div>
+        <div class="back-to-top"><a href="#top">↥ Haut de page</a></div>
+    </div>
+
+    <div class="step" id="etape3">
+        <div class="step-header">Étape 3 — Ajouter le bouton dans le Ruban</div>
+        <div class="step-content">
+            <p>Créez un bouton facilement accessible pour lancer l'export.</p>
+            
+            <ol>
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Fichier > Options > Personnaliser le ruban
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> "Choisir les commandes dans" > "Macros"
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Sélectionnez <code>ExportMeca_Bouton</code> dans la liste
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Partie droite : sélectionnez l'onglet "Affichage"
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Clic droit sur "Affichage" > Nouveau groupe... > nommez "Exports"
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Sélectionnez "Exports" > cliquez "Ajouter >>"
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Renommez le bouton : "Export Mécanique" > OK
+                    </div>
+                </li>
+            </ol>
+
+            <div class="tip">
+                Le bouton apparaît maintenant dans Affichage > Exports > "Export Mécanique".
+            </div>
+        </div>
+        <div class="back-to-top"><a href="#top">↥ Haut de page</a></div>
+    </div>
+
+    <div class="step" id="etape4">
+        <div class="step-header">Étape 4 — Lancer l'export et récupérer l'Excel</div>
+        <div class="step-content">
+            <p>L'export se fait maintenant en un clic !</p>
+            
+            <ol>
+                <li>
+                    <div class="click-action">
+                        <strong>clic →</strong> Ruban : Affichage > Exports > "Export Mécanique"
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>Attendez...</strong> Traitement des données (quelques secondes)
+                    </div>
+                </li>
+                
+                <li>
+                    <div class="click-action">
+                        <strong>Confirmation →</strong> Une fenêtre confirme la création du fichier
+                    </div>
+                </li>
+            </ol>
+
+            <h3>📁 Le fichier Excel</h3>
+            <div class="output-example">
+                <strong>Emplacement :</strong> Dossier Téléchargements<br>
+                <strong>Nom :</strong> Export_Mecanique_Complet_YYYYMMDD_HHMMSS.xlsx
+            </div>
+
+            <h3>📊 Contenu : 2 onglets</h3>
+            
+            <h4>Onglet 1 : Récapitulatif</h4>
+            <p>Tableau simple : Ressource | Prévu | Réalisé | % + Total général</p>
+            
+            <h4>Onglet 2 : Données détaillées</h4>
+            <p><strong>Structure :</strong> Date + pour chaque ressource : Qté | Réel | Jour | %</p>
+            <ul>
+                <li><strong>Qté :</strong> Travail total prévu</li>
+                <li><strong>Réel :</strong> Cumul réalisé à cette date</li>
+                <li><strong>Jour :</strong> Travail fait ce jour-là</li>
+                <li><strong>% :</strong> Avancement (Réel/Qté × 100)</li>
+            </ul>
+
+            <div class="tip">
+                Excel s'ouvre automatiquement avec le fichier. L'explorateur se positionne sur le fichier.
+            </div>
+        </div>
+        <div class="back-to-top"><a href="#top">↥ Haut de page</a></div>
+    </div>
+
+    <div class="troubleshoot" id="depannage">
+        <div class="troubleshoot-header">🔧 Dépannage (problèmes fréquents)</div>
+        <div class="troubleshoot-content">
+            
+            <div class="problem">
+                <div class="problem-title">"Sub ou Function non définie"</div>
+                <div class="solution">Recompilez : Débogage > Compiler le projet VBA. Si l'erreur persiste, toutes les déclarations API sont dans le fichier .bas principal.</div>
+            </div>
+
+            <div class="problem">
+                <div class="problem-title">"Déclaration existante"</div>
+                <div class="solution">Supprimez les doublons dans l'éditeur VBA. Gardez une seule copie de chaque fonction/déclaration.</div>
+            </div>
+
+            <div class="problem">
+                <div class="problem-title">Export vide / pas de dates</div>
+                <div class="solution">Aucune donnée réelle trouvée. Saisissez des heures réelles dans vos tâches, puis relancez.</div>
+            </div>
+
+            <div class="problem">
+                <div class="problem-title">Fichier Excel introuvable</div>
+                <div class="solution">Ouvrez l'Explorateur > "Téléchargements" dans le panneau gauche. Le fichier y sera visible.</div>
+            </div>
+
+            <div class="problem">
+                <div class="problem-title">Bouton n'apparaît pas</div>
+                <div class="solution">Refaites l'Étape 3. Vérifiez que vous trouvez bien "ExportMeca_Bouton" dans la liste des macros.</div>
+            </div>
+
+            <div class="problem">
+                <div class="problem-title">Aucune ressource trouvée</div>
+                <div class="solution">Vérifiez que vos ressources ont "Mécanique" dans le champ "Groupe" (attention à l'orthographe).</div>
+            </div>
+
+        </div>
+        <div class="back-to-top"><a href="#top">↥ Haut de page</a></div>
+    </div>
+
+    <div class="faq" id="faq">
+        <div class="faq-header">❓ FAQ rapide</div>
+        <div class="faq-content">
+            
+            <div class="faq-item">
+                <div class="faq-question">Puis-je changer l'onglet du bouton ?</div>
+                <p>Oui : Fichier > Options > Personnaliser le ruban > déplacez le groupe "Exports" où vous voulez.</p>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Format des nombres ?</div>
+                <p>La macro applique automatiquement le format entier (pas de décimales) pour Qté, Réel, Jour.</p>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Ordre des ressources ?</div>
+                <p>Tri par plus petit numéro de tâche assignée. Les ressources sans assignation sont en fin.</p>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Excel s'ouvre automatiquement ?</div>
+                <p>Oui, avec le fichier créé. L'explorateur se positionne aussi sur le fichier.</p>
+            </div>
+
+        </div>
+        <div class="back-to-top"><a href="#top">↥ Haut de page</a></div>
+    </div>
+
+    <footer style="text-align: center; margin-top: 50px; padding: 20px; border-top: 1px solid #ddd; color: #666;">
+        <p><strong>OMEXOM</strong> - Guide Export Mécanique</p>
+        <p><em>Version 1.0 - Août 2025</em></p>
+    </footer>
+
+</body>
+</html>
