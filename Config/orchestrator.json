@@ -1,0 +1,20 @@
+{
+  "ui": { "sheet": "Feuil1", "status_cell": "B5" },
+
+  "downloads": [
+    {
+      "url": "https://raw.githubusercontent.com/lfa-lab/Omexom/main/TemplateProject_v1.mpt",
+      "save_as": "TemplateProject_v1.mpt"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/lfa-lab/Omexom/main/macros/Macro%20MSP/FichierBaseArriv%C3%A9e.mpp",
+      "save_as": "FichierBaseArrivée.mpp"
+    }
+  ],
+
+  "msproject": {
+    "open_template": "TemplateProject_v1.mpt",
+    "run_macro": false,
+    "macro_name": "TemplateProject_v1!Module1.SampleMacro"
+  }
+}
