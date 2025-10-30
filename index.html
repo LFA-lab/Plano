@@ -196,8 +196,13 @@
                 // Vider le message de chargement
                 macrosContainer.innerHTML = '';
                 
-                // Générer les cartes de macros
-                data.macros.forEach(macro => {
+                // Générer uniquement les cartes demandées
+                const allowedNames = new Set([
+                    'avancement-physique-vs-heures',
+                    'calculatrice-reste-a-faire',
+                    'creation-ms-project'
+                ]);
+                data.macros.filter(m => allowedNames.has(m.name)).forEach(macro => {
                     const macroCard = document.createElement('div');
                     macroCard.className = 'macro-card';
                     
