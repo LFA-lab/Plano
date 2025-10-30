@@ -1,0 +1,18 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Open Structurizr Preview (folderOpen)",
+      "type": "process",
+      "command": "${execPath}",
+      "args": [
+        "--reuse-window",
+        "--command",
+        "structurizr.preview",
+        "${workspaceFolder}/stepwize.dsl"
+      ],
+      "problemMatcher": [],
+      "runOptions": { "runOn": "folderOpen" }
+    }
+  ]
+}

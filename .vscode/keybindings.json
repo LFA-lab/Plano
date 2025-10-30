@@ -1,0 +1,7 @@
+[
+  {
+    "key": "ctrl+alt+p",
+    "command": "structurizr.preview",
+    "when": "editorLangId == structurizr"
+  }
+]
