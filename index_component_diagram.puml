@@ -1,0 +1,67 @@
+@startuml IndexComponentDiagram
+
+title Diagramme de composants - Page Web index.html
+
+package "Page Web index.html" {
+    
+    ' Header Component
+    component Header {
+        component LogoStepwize
+        component MenuNavigation
+        component Home
+        component Upload
+        component Guides
+        component Billing
+    }
+    
+    ' Main Section Component  
+    component SectionPrincipale {
+        component BoutonUploadVideo
+    }
+    
+    ' Guide List Section
+    component SectionGuideList {
+        component ListeDesGuides
+        component Guide1
+        component Guide2
+        component GuideAutres
+        component AffichageGuides
+    }
+    
+    ' Footer Component
+    component Footer {
+        component LiensFooter
+        component Contact
+        component Terms
+        component Privacy
+    }
+}
+
+' Relations entre composants
+Header --> SectionPrincipale
+SectionPrincipale --> SectionGuideList
+MenuNavigation --> SectionGuideList
+BoutonUploadVideo --> SectionGuideList
+
+' Conteneurs
+Header ..> LogoStepwize
+Header ..> MenuNavigation
+MenuNavigation ..> Home
+MenuNavigation ..> Upload
+MenuNavigation ..> Guides
+MenuNavigation ..> Billing
+
+SectionPrincipale ..> BoutonUploadVideo
+
+SectionGuideList ..> ListeDesGuides
+SectionGuideList ..> AffichageGuides
+ListeDesGuides ..> Guide1
+ListeDesGuides ..> Guide2
+ListeDesGuides ..> GuideAutres
+
+Footer ..> LiensFooter
+LiensFooter ..> Contact
+LiensFooter ..> Terms
+LiensFooter ..> Privacy
+
+@enduml

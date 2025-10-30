@@ -1,0 +1,26 @@
+@startuml stepwize
+' Diagramme Stepwize converti depuis DSL
+
+actor User as user
+
+package "Rails Frontend" {
+    component "Rails App" as railsApp
+}
+
+package "FastAPI Backend" {
+    component "FastAPI Service" as fastapiService
+}
+
+package "Infrastructure" {
+    database "Postgres Database" as db
+    cloud "Cloudinary" as cloud
+}
+
+' Relations
+user --> railsApp : "Uploads video"
+railsApp --> fastapiService : "POST /upload"
+fastapiService --> cloud : "Stores video"
+fastapiService --> db : "Writes guide data"
+railsApp --> db : "Reads guide data"
+
+@enduml

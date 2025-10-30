@@ -1,2 +1,13 @@
 {
+  "workbench.editor.enablePreview": true,
+  "workbench.startupEditor": "none",
+  "files.associations": { "*.dsl": "structurizr" },
+
+  // Auto-run: ouvre la preview dès que VS Code est prêt
+  "auto-run-command.rules": [
+    {
+      "command": "structurizr.preview",
+      "when": "workspaceFolderCount > 0"   // au démarrage du workspace
+    }
+  ]
 }
