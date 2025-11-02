@@ -25,6 +25,13 @@
             <p>नए कर्मचारियों के लिए एकीकरण गाइड</p>
         </header>
 
+        <div class="role-switch" role="group" aria-label="भूमिका चयन">
+            <span class="role-label">मैं हूं:</span>
+            <button type="button" class="role-btn" data-role-select="both" aria-pressed="true">सभी</button>
+            <button type="button" class="role-btn" data-role-select="manager" aria-pressed="false">प्रबंधक</button>
+            <button type="button" class="role-btn" data-role-select="apprenant" aria-pressed="false">शिक्षार्थी</button>
+        </div>
+
         <main class="main-content">
             <section class="week-section">
                 <h2>सप्ताह 1 – कॉन्फ़िगरेशन और प्री-प्रोजेक्ट प्रशिक्षण</h2>
@@ -32,7 +39,7 @@
                 <div class="subsection">
                     <h3>कॉन्फ़िगरेशन</h3>
                     <div class="task-list">
-                        <div class="task-item">
+                        <div class="task-item" data-role="both" data-duration="5–10 min" data-outcome="अनुरोध भेजा गया">
                             <h4>Sitemark खाता निर्माण</h4>
                             <p>Antoine LE FRAPPER से खाता निर्माण का अनुरोध करें</p>
                             <a href="mailto:antoine.lefrapper@omexom.com?subject=Sitemark खाता निर्माण अनुरोध" class="btn btn-primary">
@@ -40,23 +47,23 @@
                             </a>
                         </div>
                         
-                        <div class="task-item">
+                        <div class="task-item" data-role="apprenant" data-duration="10–15 min" data-outcome="ऐप इंस्टॉल और साइन-इन">
                             <h4>Sitemark मोबाइल ऐप इंस्टॉलेशन</h4>
                             <p>फील्ड डेटा संग्रह के लिए अपने स्मार्टफोन पर एप्लिकेशन इंस्टॉल करें</p>
                             <div class="app-links">
-                                <a href="https://play.google.com/store/apps/details?id=com.sitemark.fieldlink&pcampaignid=web_share" target="_blank" class="btn btn-secondary">
+                                <a href="https://play.google.com/store/apps/details?id=com.sitemark.fieldlink&pcampaignid=web_share" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                                     Android
                                 </a>
-                                <a href="https://apps.apple.com/fr/app/sitemark-field-link/id6451259304" target="_blank" class="btn btn-secondary">
+                                <a href="https://apps.apple.com/fr/app/sitemark-field-link/id6451259304" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                                     iOS
                                 </a>
-                                <a href="https://app.sitemark.com/sites" target="_blank" class="btn btn-secondary">
+                                <a href="https://app.sitemark.com/sites" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                                     वेबसाइट
                                 </a>
                             </div>
                         </div>
                         
-                        <div class="task-item">
+                        <div class="task-item" data-role="manager" data-duration="5–10 min" data-outcome="इंस्टॉलेशन अनुरोध किया गया">
                             <h4>आपके PC पर MS Project इंस्टॉलेशन</h4>
                             <p>योजना चरणों और निर्माण प्रगति के लिए आवश्यक प्रोजेक्ट प्रबंधन सॉफ़्टवेयर</p>
                             <span class="info-badge"> IT सहायता से संपर्क करें</span>
@@ -67,20 +74,32 @@
                 <div class="subsection">
                     <h3>नए आने वालों का प्रशिक्षण</h3>
                     <div class="task-list">                        
-                        <div class="task-item">
+                        <div class="task-item" data-role="apprenant" data-duration="20–30 min" data-outcome="मॉड्यूल पूर्ण">
                             <h4>Teams Planner प्रशिक्षण</h4>
                             <p>प्रोजेक्ट शुरुआत में उपयोग किया जाने वाला सहयोगी योजना उपकरण</p>
-                            <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" class="btn btn-secondary">
+                            <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                                 प्रशिक्षण शुरू करें
                             </a>
+                            <div class="planb" data-planb="thinkific">
+                                <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                                <div class="planb-content">
+                                    यदि रीडायरेक्ट विफल हो: Thinkific में साइन-इन करें → "मेरे कोर्स" खोलें → Teams Planner / Sitemark खोजें → Resume पर क्लिक करें।
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="task-item">
+                        <div class="task-item" data-role="apprenant" data-duration="20–30 min" data-outcome="Sitemark खाता सक्रिय">
                             <h4>Sitemark प्रशिक्षण</h4>
                             <p>फील्ड डेटा संग्रह उपकरण पर प्रशिक्षण</p>
-                            <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" class="btn btn-secondary">
+                            <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                                 कोर्स एक्सेस करें
                             </a>
+                            <div class="planb" data-planb="thinkific">
+                                <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                                <div class="planb-content">
+                                    यदि रीडायरेक्ट विफल हो: Thinkific में साइन-इन करें → "मेरे कोर्स" खोलें → Teams Planner / Sitemark खोजें → Resume पर क्लिक करें।
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="task-item">
@@ -97,27 +116,45 @@
             <section class="project-section">
                 <h2>वास्तविक प्रोजेक्ट हाथ में – उस समय क्या करना है</h2>
                 
-                <div class="task-list">
-                    <div class="task-item">
+                    <div class="task-list">
+                    <div class="task-item" data-role="apprenant" data-duration="10–15 min" data-outcome="रीफ्रेश पूरा">
                         <h4>Teams Planner प्रशिक्षण की समीक्षा करें</h4>
                         <p>अपने वास्तविक प्रोजेक्ट के दौरान अपने ज्ञान को ताज़ा करें</p>
-                        <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" class="btn btn-secondary">
+                        <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                             प्रशिक्षण की समीक्षा करें
                         </a>
+                        <div class="planb" data-planb="thinkific">
+                            <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                            <div class="planb-content">
+                                यदि रीडायरेक्ट विफल हो: Thinkific में साइन-इन करें → "मेरे कोर्स" खोलें → Teams Planner / Sitemark खोजें → Resume पर क्लिक करें।
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="task-item">
+                    <div class="task-item" data-role="apprenant" data-duration="20–30 min" data-outcome="मॉड्यूल पूर्ण">
                         <h4>Sitemark प्रशिक्षण पूरा करें</h4>
                         <p>अपने प्रोजेक्ट के साथ-साथ प्रशिक्षण पूरा करें</p>
-                        <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" class="btn btn-secondary">
+                        <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                             प्रशिक्षण की समीक्षा करें
                         </a>
+                        <div class="planb" data-planb="thinkific">
+                            <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                            <div class="planb-content">
+                                यदि रीडायरेक्ट विफल हो: Thinkific में साइन-इन करें → "मेरे कोर्स" खोलें → Teams Planner / Sitemark खोजें → Resume पर क्लिक करें।
+                            </div>
+                        </div>
                     </div>
-                    <div class="task-item">
+                    <div class="task-item" data-role="apprenant" data-duration="30–45 min" data-outcome="प्रोजेक्ट पर अभ्यास किया">
                         <h4>आपके वास्तविक प्रोजेक्ट पर MS Project प्रशिक्षण</h4>
-                        <a href="https://pontiva.thinkific.com/courses/processusmsparriv%C3%A9e" target="_blank" class="btn btn-secondary">
+                        <a href="https://pontiva.thinkific.com/courses/processusmsparriv%C3%A9e" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                             अपने प्रोजेक्ट पर काम करें
                         </a>
+                        <div class="planb" data-planb="thinkific">
+                            <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                            <div class="planb-content">
+                                यदि रीडायरेक्ट विफल हो: Thinkific में साइन-इन करें → "मेरे कोर्स" खोलें → Teams Planner / Sitemark खोजें → Resume पर क्लिक करें।
+                            </div>
+                        </div>
                     </div>
                     
                     
@@ -165,16 +202,22 @@
                     <div class="resource-grid">
                         <div class="resource-item">
                             <h4>MS Project मैक्रोज़ (SharePoint)</h4>
-                            <a href="https://vincienergies.sharepoint.com/:f:/r/sites/GO-PlanificationPMO/Documents%20partages/General/Macro%20MSP?csf=1&web=1&e=jBa7Dm" target="_blank" class="btn btn-primary">
+                            <a href="https://vincienergies.sharepoint.com/:f:/r/sites/GO-PlanificationPMO/Documents%20partages/General/Macro%20MSP?csf=1&web=1&e=jBa7Dm" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
                                 प्लेटफॉर्म खोलें
                             </a>
                         </div>
                         
                         <div class="resource-item">
                             <h4>Teams Planner: आपकी GO-निर्माण साइट में डालने के लिए बेस EPC योजना</h4>
-                            <a href="https://teams.microsoft.com/l/entity/com.microsoft.teamspace.tab.planner/mytasks?tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a&webUrl=https%3A%2F%2Ftasks.teams.microsoft.com%2Fteamsui%2FpersonalApp%2Falltasklists&context=%7B%22subEntityId%22%3A%22%2Fv1%2Fpremiumplan%2Ff19fc843-87b0-4cc2-96bd-c0cde78f7f79%2Forg%2F59675cc6-bab9-416e-b01c-04b99ae59f69%22%7D" target="_blank" class="btn btn-primary">
+                            <a href="https://teams.microsoft.com/l/entity/com.microsoft.teamspace.tab.planner/mytasks?tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a&webUrl=https%3A%2F%2Ftasks.teams.microsoft.com%2Fteamsui%2FpersonalApp%2Falltasklists&context=%7B%22subEntityId%22%3A%22%2Fv1%2Fpremiumplan%2Ff19fc843-87b0-4cc2-96bd-c0cde78f7f79%2Forg%2F59675cc6-bab9-416e-b01c-04b99ae59f69%22%7D" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
                                 Teams खोलें
                             </a>
+                            <div class="planb" data-planb="teams">
+                                <button class="planb-toggle" aria-expanded="true">Plan B · Teams</button>
+                                <div class="planb-content">
+                                    यदि लिंक नहीं खुलता: Teams खोलें → Tasks/Planner टैब → Omexom टीम में EPC Plan [योजना नाम] खोजें → List दृश्य खोलें।
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -187,9 +230,7 @@
                     <a href="index.html">🇫🇷</a>
                     <a href="index_en.html">🇬🇧</a>
                 </div>
-                <div class="update-info">
-                    अंतिम अपडेट: अगस्त 2025
-                </div>
+                <div class="update-info" id="last-updated" aria-live="polite"></div>
             </div>
         </footer>
     </div>
@@ -211,14 +252,19 @@
                 // Clear loading message
                 macrosContainer.innerHTML = '';
                 
-                // Generate macro cards
-                data.macros.forEach(macro => {
+                // Generate only supported cards (avoid 404 until all paths are normalized)
+                const allowedNames = new Set([
+                    'avancement-physique-vs-heures',
+                    'calculatrice-reste-a-faire',
+                    'creation-ms-project'
+                ]);
+                data.macros.filter(m => allowedNames.has(m.name)).forEach(macro => {
                     const macroCard = document.createElement('div');
                     macroCard.className = 'macro-card';
                     
                     // Encode URLs to handle spaces and special characters
-                    const encodedHtmlFile = encodeURIComponent(macro.htmlFile).replace(/%2F/g, '/');
-                    const encodedBasFile = encodeURIComponent(macro.basFile).replace(/%2F/g, '/');
+                    const encodedHtmlFile = macro.htmlFile ? encodeURIComponent(macro.htmlFile).replace(/%2F/g, '/') : '';
+                    const encodedBasFile = macro.basFile ? encodeURIComponent(macro.basFile).replace(/%2F/g, '/') : '';
                     
                     macroCard.innerHTML = `
                         <div class="macro-header">
@@ -257,5 +303,6 @@
         // Load macros when page loads
         document.addEventListener('DOMContentLoaded', loadMacros);
     </script>
+    <script src="assets/onboarding.js"></script>
 </body>
 </html>

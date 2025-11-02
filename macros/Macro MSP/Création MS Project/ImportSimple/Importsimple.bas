@@ -6,26 +6,25 @@ Sub Import_Taches_Simples_AvecTitre()
     Dim t As Task, a As Assignment
     Dim fichierExcel As String
 
-    ' ==== S�LECTION DU FICHIER VIA S�LECTEUR NATIF ====
+    ' ==== S�LECTION DU FICHIER VIA INSTANCE EXCEL TEMPORAIRE ====
     Dim xlTempApp As Object
     Set xlTempApp = CreateObject("Excel.Application")
-    xlTempApp.Visible = False
-    
+
     With xlTempApp.FileDialog(msoFileDialogFilePicker)
         .Title = "S�lectionnez le fichier Excel � importer"
         .Filters.Clear
-        .Filters.Add "Fichiers Excel", "*.xlsx;*.xls"
+        .Filters.Add "Fichiers Excel", "*.xlsx; *.xls"
         .AllowMultiSelect = False
         If .Show = -1 Then
             fichierExcel = .SelectedItems(1)
         Else
-            MsgBox "Aucun fichier s�lectionn�. Import annul�.", vbExclamation
+            MsgBox "Aucun fichier s�lectionn�. L'importation est annul�e.", vbExclamation
             xlTempApp.Quit
             Set xlTempApp = Nothing
             Exit Sub
         End If
     End With
-    
+
     xlTempApp.Quit
     Set xlTempApp = Nothing
 

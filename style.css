@@ -340,6 +340,86 @@ header p {
     font-style: italic;
 }
 
+/* Switch de rôle */
+.role-switch {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+    margin: 0 auto var(--spacing-lg);
+    max-width: var(--max-width);
+}
+.role-label { color: var(--text-gray); font-weight: 600; }
+.role-btn {
+    padding: 6px 12px;
+    border-radius: 16px;
+    border: 1px solid var(--border-gray);
+    background: var(--background-white);
+    cursor: pointer;
+}
+.role-btn[aria-pressed="true"] {
+    background: var(--primary-blue);
+    color: #fff;
+    border-color: var(--primary-blue);
+}
+
+/* Badges Durée & Résultat */
+.task-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: var(--spacing-sm);
+}
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    border: 1px solid var(--border-gray);
+    background: #fff;
+    color: var(--text-dark);
+}
+.badge-duration { background: #eef7ff; border-color: #cfe6ff; }
+.badge-outcome { background: #eff9f0; border-color: #d1efda; }
+
+/* Checklist */
+.task-item .task-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+.task-checkbox { margin-top: 3px; }
+.task-completed { opacity: 0.65; text-decoration: none; }
+.task-completed h4 { text-decoration: line-through; text-decoration-thickness: 1px; }
+
+.progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 var(--spacing-md);
+}
+.progress-track {
+    flex: 1;
+    height: 8px;
+    background: var(--border-light);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--secondary-blue);
+    transition: width 0.2s ease;
+}
+.progress-meta { font-size: 0.9rem; color: var(--text-gray); }
+.btn-reset { padding: 6px 10px; font-size: 0.85rem; border: 1px solid var(--border-gray); background: #fff; border-radius: 8px; cursor: pointer; }
+
+/* Plan B */
+.planb { margin-top: 8px; border-left: 3px solid var(--light-blue); padding-left: 8px; }
+.planb-toggle { background: transparent; border: none; color: var(--secondary-blue); cursor: pointer; font-weight: 600; }
+.planb-content { margin-top: 6px; font-size: 0.9rem; color: var(--text-gray); }
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .container {

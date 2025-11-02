@@ -23,6 +23,13 @@
             <h1>Onboarding Journey</h1>
             <p>Integration guide for new employees</p>
         </header>
+
+        <div class="role-switch" role="group" aria-label="Role selector">
+            <span class="role-label">I am:</span>
+            <button type="button" class="role-btn" data-role-select="both" aria-pressed="true">All</button>
+            <button type="button" class="role-btn" data-role-select="manager" aria-pressed="false">Manager</button>
+            <button type="button" class="role-btn" data-role-select="apprenant" aria-pressed="false">Learner</button>
+        </div>
         <main class="main-content">
             <section class="week-section">
                 <h2>Week 1 – Configuration and pre-project training</h2>
@@ -30,7 +37,7 @@
                 <div class="subsection">
                     <h3>Configuration</h3>
                     <div class="task-list">
-                        <div class="task-item">
+                        <div class="task-item" data-role="both" data-duration="5–10 min" data-outcome="Request sent">
                             <h4>Sitemark account creation</h4>
                             <p>Request account creation from Antoine LE FRAPPER</p>
                             <a href="mailto:antoine.lefrapper@omexom.com?subject=Sitemark account creation request" class="btn btn-primary">
@@ -38,23 +45,23 @@
                             </a>
                         </div>
                         
-                        <div class="task-item">
+                        <div class="task-item" data-role="apprenant" data-duration="10–15 min" data-outcome="App installed and signed in">
                             <h4>Sitemark mobile app installation</h4>
                             <p>Install the application on your smartphone for field data collection</p>
                             <div class="app-links">
-                                <a href="https://play.google.com/store/apps/details?id=com.sitemark.fieldlink&pcampaignid=web_share" target="_blank" class="btn btn-secondary">
+                                <a href="https://play.google.com/store/apps/details?id=com.sitemark.fieldlink&pcampaignid=web_share" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                                     Android
                                 </a>
-                                <a href="https://apps.apple.com/fr/app/sitemark-field-link/id6451259304" target="_blank" class="btn btn-secondary">
+                                <a href="https://apps.apple.com/fr/app/sitemark-field-link/id6451259304" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                                     iOS
                                 </a>
-                                <a href="https://app.sitemark.com/sites" target="_blank" class="btn btn-secondary">
+                                <a href="https://app.sitemark.com/sites" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                                     Website
                                 </a>
                             </div>
                         </div>
                         
-                        <div class="task-item">
+                        <div class="task-item" data-role="manager" data-duration="5–10 min" data-outcome="Install request submitted">
                             <h4>MS Project installation on your PC</h4>
                             <p>Project management software required for planning phases and construction progress</p>
                             <span class="info-badge">Contact Omexom IT support</span>
@@ -65,20 +72,32 @@
                 <div class="subsection">
                     <h3>New Arrivals Training</h3>
                     <div class="task-list">                        
-                        <div class="task-item">
+                        <div class="task-item" data-role="apprenant" data-duration="20–30 min" data-outcome="Module completed">
                             <h4>Teams Planner Training</h4>
                             <p>Collaborative planning tool used at project start</p>
-                            <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" class="btn btn-secondary">
+                            <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                                 Start training
                             </a>
+                            <div class="planb" data-planb="thinkific">
+                                <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                                <div class="planb-content">
+                                    If the redirect fails: sign in to Thinkific → open “My Courses” → search for Teams Planner / Sitemark → Resume.
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="task-item">
+                        <div class="task-item" data-role="apprenant" data-duration="20–30 min" data-outcome="Sitemark account active">
                             <h4>Sitemark Training</h4>
                             <p>Training on the field data collection tool</p>
-                            <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" class="btn btn-secondary">
+                            <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                                 Access course
                             </a>
+                            <div class="planb" data-planb="thinkific">
+                                <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                                <div class="planb-content">
+                                    If the redirect fails: sign in to Thinkific → open “My Courses” → search for Teams Planner / Sitemark → Resume.
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="task-item">
@@ -95,27 +114,45 @@
             <section class="project-section">
                 <h2>Real project in hand – What to do at that time</h2>
                 
-                <div class="task-list">
-                    <div class="task-item">
+                    <div class="task-list">
+                    <div class="task-item" data-role="apprenant" data-duration="10–15 min" data-outcome="Refresher done">
                         <h4>Review Teams Planner training</h4>
                         <p>Refresh your knowledge during your real project</p>
-                        <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" class="btn btn-secondary">
+                        <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                             Review training
                         </a>
+                        <div class="planb" data-planb="thinkific">
+                            <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                            <div class="planb-content">
+                                If the redirect fails: sign in to Thinkific → open “My Courses” → search for Teams Planner / Sitemark → Resume.
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="task-item">
+                    <div class="task-item" data-role="apprenant" data-duration="20–30 min" data-outcome="Module completed">
                         <h4>Complete Sitemark training</h4>
                         <p>Complete the training alongside your project</p>
-                        <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" class="btn btn-secondary">
+                        <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                             Review training
                         </a>
+                        <div class="planb" data-planb="thinkific">
+                            <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                            <div class="planb-content">
+                                If the redirect fails: sign in to Thinkific → open “My Courses” → search for Teams Planner / Sitemark → Resume.
+                            </div>
+                        </div>
                     </div>
-                    <div class="task-item">
+                    <div class="task-item" data-role="apprenant" data-duration="30–45 min" data-outcome="Practice done on project">
                         <h4>MS Project training on your real project</h4>
-                        <a href="https://pontiva.thinkific.com/courses/processusmsparriv%C3%A9e" target="_blank" class="btn btn-secondary">
+                        <a href="https://pontiva.thinkific.com/courses/processusmsparriv%C3%A9e" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
                             Work on your project
                         </a>
+                        <div class="planb" data-planb="thinkific">
+                            <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                            <div class="planb-content">
+                                If the redirect fails: sign in to Thinkific → open “My Courses” → search for Teams Planner / Sitemark → Resume.
+                            </div>
+                        </div>
                     </div>
                     
                     
@@ -163,16 +200,22 @@
                     <div class="resource-grid">
                         <div class="resource-item">
                             <h4>MS Project Macros (SharePoint)</h4>
-                            <a href="https://vincienergies.sharepoint.com/:f:/r/sites/GO-PlanificationPMO/Documents%20partages/General/Macro%20MSP?csf=1&web=1&e=jBa7Dm" target="_blank" class="btn btn-primary">
+                                <a href="https://vincienergies.sharepoint.com/:f:/r/sites/GO-PlanificationPMO/Documents%20partages/General/Macro%20MSP?csf=1&web=1&e=jBa7Dm" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
                                 Open platform
                             </a>
                         </div>
                         
                         <div class="resource-item">
                             <h4>Teams Planner: Base EPC plan to put in your GO-Construction site</h4>
-                            <a href="https://teams.microsoft.com/l/entity/com.microsoft.teamspace.tab.planner/mytasks?tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a&webUrl=https%3A%2F%2Ftasks.teams.microsoft.com%2Fteamsui%2FpersonalApp%2Falltasklists&context=%7B%22subEntityId%22%3A%22%2Fv1%2Fpremiumplan%2Ff19fc843-87b0-4cc2-96bd-c0cde78f7f79%2Forg%2F59675cc6-bab9-416e-b01c-04b99ae59f69%22%7D" target="_blank" class="btn btn-primary">
+                            <a href="https://teams.microsoft.com/l/entity/com.microsoft.teamspace.tab.planner/mytasks?tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a&webUrl=https%3A%2F%2Ftasks.teams.microsoft.com%2Fteamsui%2FpersonalApp%2Falltasklists&context=%7B%22subEntityId%22%3A%22%2Fv1%2Fpremiumplan%2Ff19fc843-87b0-4cc2-96bd-c0cde78f7f79%2Forg%2F59675cc6-bab9-416e-b01c-04b99ae59f69%22%7D" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
                                 Open Teams
                             </a>
+                            <div class="planb" data-planb="teams">
+                                <button class="planb-toggle" aria-expanded="true">Plan B · Teams</button>
+                                <div class="planb-content">
+                                    If the link does not open: Open Teams → Tasks/Planner tab → search for EPC Plan [plan name] in the Omexom team → open List view.
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -185,9 +228,7 @@
                     <a href="index.html">🇫🇷</a>
                     <a href="index_inde.html">🇮🇳</a>
                 </div>
-                <div class="update-info">
-                    Last updated: August 2025
-                </div>
+                <div class="update-info" id="last-updated" aria-live="polite"></div>
             </div>
         </footer>
     </div>
@@ -209,14 +250,19 @@
                 // Clear loading message
                 macrosContainer.innerHTML = '';
                 
-                // Generate macro cards
-                data.macros.forEach(macro => {
+                // Generate only supported cards (avoid 404 until all paths are normalized)
+                const allowedNames = new Set([
+                    'avancement-physique-vs-heures',
+                    'calculatrice-reste-a-faire',
+                    'creation-ms-project'
+                ]);
+                data.macros.filter(m => allowedNames.has(m.name)).forEach(macro => {
                     const macroCard = document.createElement('div');
                     macroCard.className = 'macro-card';
                     
                     // Encode URLs to handle spaces and special characters
-                    const encodedHtmlFile = encodeURIComponent(macro.htmlFile).replace(/%2F/g, '/');
-                    const encodedBasFile = encodeURIComponent(macro.basFile).replace(/%2F/g, '/');
+                    const encodedHtmlFile = macro.htmlFile ? encodeURIComponent(macro.htmlFile).replace(/%2F/g, '/') : '';
+                    const encodedBasFile = macro.basFile ? encodeURIComponent(macro.basFile).replace(/%2F/g, '/') : '';
                     
                     macroCard.innerHTML = `
                         <div class="macro-header">
@@ -255,5 +301,6 @@
         // Load macros when page loads
         document.addEventListener('DOMContentLoaded', loadMacros);
     </script>
+    <script src="assets/onboarding.js"></script>
 </body>
 </html>
