@@ -82,8 +82,31 @@ Conception (Github Pages, sans dépendances):
     const tasks = Array.from(document.querySelectorAll('.task-item'));
     tasks.forEach((item, idx) => {
       const titleEl = item.querySelector('h4');
+      const existingCheckbox = item.querySelector('.task-checkbox-label .task-checkbox');
       
-      // Ignorer les tâches qui n'ont pas de h4 (comme celles avec des labels/checkboxes)
+      // Si la tâche a déjà une checkbox avec un label (vue Nouveau Projet)
+      if (existingCheckbox && !titleEl) {
+        const spanEl = item.querySelector('.task-checkbox-label span');
+        const title = (spanEl?.textContent || `task-${idx}`).trim();
+        const key = stableKey(title, idx);
+        
+        // Restaurer l'état sauvegardé
+        existingCheckbox.checked = state[key] === true;
+        applyCompleted(item, state[key] === true);
+        
+        // Ajouter un listener pour sauvegarder
+        existingCheckbox.addEventListener('change', function() {
+          const newState = loadChecklistState();
+          newState[key] = this.checked;
+          saveChecklistState(newState);
+          applyCompleted(item, this.checked);
+          renderProgress(getAllTrackedTasks(), loadChecklistState());
+        });
+        
+        return;
+      }
+      
+      // Sinon, traiter les tâches avec h4 (vue Arrivée)
       if (!titleEl) {
         return;
       }
@@ -105,9 +128,15 @@ Conception (Github Pages, sans dépendances):
       applyCompleted(item, state[key] === true);
     });
 
-    // Filtrer les tâches qui ont un h4 pour le rendu de la progression
-    const tasksWithH4 = tasks.filter(item => item.querySelector('h4'));
-    renderProgress(tasksWithH4, state);
+    renderProgress(getAllTrackedTasks(), state);
+  }
+
+  function getAllTrackedTasks() {
+    const tasks = Array.from(document.querySelectorAll('.task-item'));
+    return tasks.filter(item => {
+      // Inclure les tâches avec h4 ou avec une checkbox existante
+      return item.querySelector('h4') || item.querySelector('.task-checkbox-label .task-checkbox');
+    });
   }
 
   function createCheckbox(key, title, checked) {
@@ -122,7 +151,7 @@ Conception (Github Pages, sans dépendances):
       saveChecklistState(state);
       const item = cb.closest('.task-item');
       applyCompleted(item, cb.checked);
-      renderProgress(Array.from(document.querySelectorAll('.task-item')), state);
+      renderProgress(getAllTrackedTasks(), state);
     });
     return cb;
   }
@@ -136,8 +165,11 @@ Conception (Github Pages, sans dépendances):
     let wrap = document.getElementById(containerId);
     const total = tasks.length;
     const done = tasks.reduce((acc, item, idx) => {
-      const title = (item.querySelector('h4')?.textContent || `task-${idx}`).trim();
-      return acc + (loadChecklistState()[stableKey(title, idx)] ? 1 : 0);
+      const titleEl = item.querySelector('h4');
+      const spanEl = item.querySelector('.task-checkbox-label span');
+      const title = titleEl ? titleEl.textContent.trim() : (spanEl ? spanEl.textContent.trim() : `task-${idx}`);
+      const key = stableKey(title, idx);
+      return acc + (loadChecklistState()[key] ? 1 : 0);
     }, 0);
     if (!wrap) {
       wrap = document.createElement('div');
@@ -169,7 +201,7 @@ Conception (Github Pages, sans dépendances):
     localStorage.removeItem(LS_CHECKLIST_KEY);
     document.querySelectorAll('.task-checkbox').forEach(cb => { cb.checked = false; });
     document.querySelectorAll('.task-item').forEach(item => item.classList.remove('task-completed'));
-    renderProgress(Array.from(document.querySelectorAll('.task-item')), loadChecklistState());
+    renderProgress(getAllTrackedTasks(), loadChecklistState());
   }
 
   function loadChecklistState() {

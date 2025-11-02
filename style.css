@@ -152,6 +152,52 @@ header p {
     border-left: 4px solid var(--secondary-blue);
 }
 
+/* Styles pour les blocs logiciels dans la section Nouveau Projet */
+.project-section > .subsection {
+    background: var(--background-white);
+    border: 1px solid var(--border-gray);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-subtle);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.project-section > .subsection:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(-2px);
+}
+
+.project-section > .subsection:last-child {
+    margin-bottom: 0;
+}
+
+.project-section > .subsection h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    margin-bottom: var(--spacing-lg);
+    margin-top: 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--light-blue);
+    border-left: 4px solid var(--primary-blue);
+    border-radius: 4px;
+}
+
+/* Espacement pour les sous-sections à l'intérieur des blocs logiciels */
+.project-section > .subsection > .subsection {
+    margin-bottom: var(--spacing-md);
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.project-section > .subsection > .subsection:hover {
+    transform: none;
+    box-shadow: none;
+}
+
 /* Liste des tâches */
 .task-list {
     display: flex;
@@ -165,6 +211,9 @@ header p {
     border-radius: var(--border-radius);
     padding: var(--spacing-md);
     transition: box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .task-item:hover {
@@ -390,9 +439,102 @@ header p {
     align-items: flex-start;
     gap: 10px;
 }
-.task-checkbox { margin-top: 3px; }
+/* Styles modernes pour les checkboxes */
+.task-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    user-select: none;
+}
+
+.task-checkbox-label:hover {
+    background-color: var(--light-blue);
+}
+
+.task-checkbox-label .task-checkbox {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+    margin: 0;
+}
+
+.task-checkbox-label .task-checkbox + span {
+    position: relative;
+    padding-left: 32px;
+    line-height: 1.5;
+    color: var(--text-dark);
+}
+
+.task-checkbox-label .task-checkbox + span::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-gray);
+    border-radius: 4px;
+    background-color: var(--background-white);
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.task-checkbox-label .task-checkbox + span::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    width: 8px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transition: transform 0.2s ease;
+    opacity: 0;
+}
+
+.task-checkbox-label .task-checkbox:checked + span::before {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+    box-shadow: 0 2px 6px rgba(0, 63, 127, 0.3);
+}
+
+.task-checkbox-label .task-checkbox:checked + span::after {
+    transform: translateY(-50%) rotate(45deg) scale(1);
+    opacity: 1;
+}
+
+.task-checkbox-label .task-checkbox:focus + span::before {
+    outline: 2px solid var(--secondary-blue);
+    outline-offset: 2px;
+}
+
+.task-checkbox-label .task-checkbox:checked + span {
+    color: var(--text-dark);
+}
+
 .task-completed { opacity: 0.65; text-decoration: none; }
 .task-completed h4 { text-decoration: line-through; text-decoration-thickness: 1px; }
+
+/* Style pour les liens dans les tâches */
+.task-link {
+    color: var(--secondary-blue);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    display: inline-block;
+}
+
+.task-link:hover {
+    color: var(--primary-blue);
+    text-decoration: underline;
+}
 
 .progress-bar {
     display: flex;
