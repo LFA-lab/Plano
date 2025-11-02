@@ -26,143 +26,230 @@
             <p>Guide d'intégration pour les nouveaux collaborateurs</p>
         </header>
 
+        <!-- Accessibilité/UX: Sélecteur de rôle sans dépendance, persistant par langue.
+             Conception: Pas de framework. Les éléments restent présents dans le DOM pour éviter des reflows coûteux.
+             Politique: Les éléments non ciblés sont repliés plutôt que supprimés pour une UX indulgente. -->
+        <div class="role-switch" role="group" aria-label="Sélecteur de rôle">
+            <span class="role-label">Je suis :</span>
+            <button type="button" class="role-btn" data-role-select="arrivee" aria-pressed="true">Arrivée</button>
+            <button type="button" class="role-btn" data-role-select="nouveau-projet" aria-pressed="false">Nouveau Projet</button>
+        </div>
+
         <main class="main-content">
-            <section class="week-section">
-                <h2>Semaine 1 – Configuration et formations avant projet</h2>
-                
-                <div class="subsection">
-                    <h3>Configuration</h3>
-                    <div class="task-list">
-                        <div class="task-item">
-                            <h4>Création compte Sitemark</h4>
-                            <p>Demander la création de votre compte auprès de Antoine LE FRAPPER</p>
-                            <a href="mailto:antoine.lefrapper@omexom.com?subject=Demande création compte Sitemark" class="btn btn-primary">
-                                Envoyer un mail
-                            </a>
+            <!-- Vue Arrivée -->
+            <div data-view="arrivee" class="view-container">
+                <section class="week-section">
+                    <h2>Arrivée — Installation & Formation initiale</h2>
+                    
+                    <div class="subsection">
+                        <h3>Configuration</h3>
+                        <div class="task-list">
+                            <div class="task-item" data-role="both" data-duration="5–10 min" data-outcome="Demande envoyée">
+                                <h4>Création compte Sitemark</h4>
+                                <p>Demander la création de votre compte auprès de Antoine LE FRAPPER</p>
+                                <a href="mailto:antoine.lefrapper@omexom.com?subject=Demande création compte Sitemark&body=Bonjour,%0D%0A%0D%0AJe souhaite demander la création de mon compte Sitemark.%0D%0A%0D%0ACordialement" class="btn btn-primary">
+                                    Envoyer un mail
+                                </a>
+                            </div>
+                            
+                            <div class="task-item" data-role="apprenant" data-duration="10–15 min" data-outcome="Application installée et connectée">
+                                <h4>Installation application mobile Sitemark</h4>
+                                <p>Installer l'application sur votre smartphone pour la collecte de données terrain</p>
+                                <div class="app-links">
+                                    <a href="https://play.google.com/store/apps/details?id=com.sitemark.fieldlink&pcampaignid=web_share" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                                        Android
+                                    </a>
+                                    <a href="https://apps.apple.com/fr/app/sitemark-field-link/id6451259304" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                                        iOS
+                                    </a>
+                                    <a href="https://app.sitemark.com/sites" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                                        Site Web
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="task-item" data-role="manager" data-duration="5–10 min" data-outcome="Demande d'installation effectuée">
+                                <h4>Installation MS Project sur votre PC</h4>
+                                <p>Logiciel de gestion de projet nécessaire pour les phases de planification et d'avancement de chantier</p>
+                                <span class="info-badge">Contactez le support informatique d'Omexom</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>Formations Nouveaux Arrivants</h3>
+                        <div class="task-list">                        
+                            <div class="task-item" data-role="apprenant" data-duration="20–30 min" data-outcome="Module terminé">
+                                <h4>Formation Planificateur Teams</h4>
+                                <p>Outil de planification collaborative utilisé en début de projet</p>
+                                <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                                    Commencer la formation
+                                </a>
+                                <div class="planb" data-planb="thinkific">
+                                    <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                                    <div class="planb-content">
+                                        Si la redirection échoue : connectez-vous à votre compte Thinkific → ouvrez « Mes cours » → cherchez Planificateur Teams / Sitemark → Reprendre.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="task-item" data-role="apprenant" data-duration="20–30 min" data-outcome="Compte Sitemark actif">
+                                <h4>Formation Sitemark</h4>
+                                <p>Formation sur l'outil de collecte de données terrain</p>
+                                <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                                    Accéder au cours
+                                </a>
+                                <div class="planb" data-planb="thinkific">
+                                    <button class="planb-toggle" aria-expanded="true">Plan B · Thinkific</button>
+                                    <div class="planb-content">
+                                        Si la redirection échoue : connectez-vous à votre compte Thinkific → ouvrez « Mes cours » → cherchez Planificateur Teams / Sitemark → Reprendre.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Vue Nouveau Projet -->
+            <div data-view="nouveau-projet" class="view-container">
+                <section class="project-section">
+                    <h2>Nouveau projet — Démarrage chantier / Manager</h2>
+                    
+                    <!-- Bloc Sitemark -->
+                    <div class="subsection">
+                        <h3>Sitemark</h3>
+                        
+                        <div class="subsection">
+                            <h4>Configuration du projet</h4>
+                            <div class="task-list">
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Création du site</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Création du devis</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Système géographique a demander au BE</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Faire son choix des composants du PDF RANG2ES numéro tables et voiries</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Faire son choix des composants du DXF possible en rangées (Quinssaines via Martin)</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Création des formulaires pour les tickets</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Création des formulaires pour les composants</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="task-item">
-                            <h4>Installation application mobile Sitemark</h4>
-                            <p>Installer l'application sur votre smartphone pour la collecte de données terrain</p>
-                            <div class="app-links">
-                                <a href="https://play.google.com/store/apps/details?id=com.sitemark.fieldlink&pcampaignid=web_share" target="_blank" class="btn btn-secondary">
-                                    Android
-                                </a>
-                                <a href="https://apps.apple.com/fr/app/sitemark-field-link/id6451259304" target="_blank" class="btn btn-secondary">
-                                    iOS
-                                </a>
-                                <a href="https://app.sitemark.com/sites" target="_blank" class="btn btn-secondary">
-                                    Site Web
-                                </a>
+                        <div class="subsection">
+                            <h4>Utilisation quotidienne</h4>
+                            <div class="task-list">
+                                <!-- Conteneur vide pour futures tâches -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bloc MS Project -->
+                    <div class="subsection">
+                        <h3>MS Project</h3>
+                        
+                        <div class="subsection">
+                            <h4>A. Configuration du projet</h4>
+                            <div class="task-list">
+                                <div class="task-item">
+                                    <span>Excel fichier</span>
+                                </div>
+                                <div class="task-item">
+                                    <span>MS Project</span>
+                                </div>
+                                <div class="task-item">
+                                    <span>CONFIGURATION liaison et dates et planning de référence</span>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="task-item">
-                            <h4>Installation MS Project sur votre PC</h4>
-                            <p>Logiciel de gestion de projet nécessaire pour les phases de planification et d'avancement de chantier</p>
-                            <span class="info-badge">Contactez le support informatique d'Omexom</span>
+                        <div class="subsection">
+                            <h4>B. Utilisation quotidienne</h4>
+                            <div class="task-list">
+                                <!-- Conteneur vide pour futures tâches -->
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="subsection">
-                    <h3>Formations Nouveaux Arrivants</h3>
-                    <div class="task-list">                        
-                        <div class="task-item">
-                            <h4>Formation Planificateur Teams</h4>
-                            <p>Outil de planification collaborative utilisé en début de projet</p>
-                            <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" class="btn btn-secondary">
-                                Commencer la formation
-                            </a>
+                    
+                    <!-- Bloc Planificateur Teams -->
+                    <div class="subsection">
+                        <h3>Planificateur Teams</h3>
+                        
+                        <div class="subsection">
+                            <h4>a. Configuration du projet</h4>
+                            <div class="task-list">
+                                <div class="task-item">
+                                    <span>copie du plan</span>
+                                </div>
+                                <div class="task-item">
+                                    <span>tags</span>
+                                </div>
+                                <div class="task-item">
+                                    <span>ajout des personnes</span>
+                                </div>
+                                <div class="task-item">
+                                    <span>connexion avec le GO</span>
+                                </div>
+                                <div class="task-item">
+                                    <span>mise en place en réunion hebdomadaire</span>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="task-item">
-                            <h4>Formation Sitemark</h4>
-                            <p>Formation sur l'outil de collecte de données terrain</p>
-                            <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" class="btn btn-secondary">
-                                Accéder au cours
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="project-section">
-                <h2>Projet réel en main – Ce qu'il faut faire à ce moment-là</h2>
-                
-                <div class="task-list">
-                    <div class="task-item">
-                        <h4>Revoir la formation Planificateur Teams</h4>
-                        <p>Rafraîchir ses connaissances pendant votre projet réel</p>
-                        <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" class="btn btn-secondary">
-                            Réviser la formation
-                        </a>
-                    </div>
-                    
-                    <div class="task-item">
-                        <h4> Faire la formation Sitemark</h4>
-                        <p>Faire la formation en même temps que votre projet</p>
-                        <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" class="btn btn-secondary">
-                            Réviser la formation
-                        </a>
-                    </div>
-                    <div class="task-item">
-                        <h4>Formation MS Projet sur votre projet réel </h4>
-                        <a href="https://pontiva.thinkific.com/courses/processusmsparriv%C3%A9e" target="_blank" class="btn btn-secondary">
-                            Aller faire votre projet
-                        </a>
-                    </div>
-                    
-                    
-                    <div class="task-item">
-                        <h4>Contacter les interlocuteurs Sitemark</h4>
-                        <p>Prendre contact avec l'équipe support pour accompagnement projet</p>
-                        <div class="contact-grid">
-                            <div class="contact-item">
-                                <strong>Support technique :</strong>
-                                <a href="mailto:idris.abidi@sitemark.com" class="btn btn-contact">
-                                    idris.abidi@sitemark.com
-                                </a>
-                            </div>
-                            <div class="contact-item">
-                                <strong>Commercial :</strong>
-                                <a href="mailto:charles.andredumont@sitemark.com" class="btn btn-contact">
-                                    charles.andredumont@sitemark.com
-                                </a>
-                            </div>
-                            <div class="contact-item">
-                                <strong>Opérations :</strong>
-                                <a href="mailto:operations1@sitemark.com" class="btn btn-contact">
-                                    operations1@sitemark.com
-                                </a>
+                        <div class="subsection">
+                            <h4>b. Utilisation quotidienne</h4>
+                            <div class="task-list">
+                                <!-- Conteneur vide pour futures tâches -->
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <section class="resources-section">
-                <h3>📚 Ressources complémentaires</h3>
-                
-                <!-- Section Macros VBA dynamique -->
-                <div class="macros-section">
-                    <h4>🔧 Macros VBA</h4>
-                    <div id="macros-list" class="macros-grid">
-                        <div class="loading-message">Chargement des macros...</div>
+                <!-- Section Ressources complémentaires -->
+                <section class="resources-section">
+                    <h3>📚 Ressources complémentaires</h3>
+                    
+                    <!-- Section Macros VBA dynamique -->
+                    <div class="macros-section">
+                        <h4>🔧 Macros VBA</h4>
+                        <div id="macros-list" class="macros-grid">
+                            <div class="loading-message">Chargement des macros...</div>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Autres ressources -->
-                <div class="other-resources">
-                    <h4>🔗 Autres ressources</h4>
-                    <div class="resource-item">
-                        <h5>Planificateur Teams: Plan EPC de base à mettre dans votre GO-Chantier</h5>
-                        <a href="https://teams.microsoft.com/l/entity/com.microsoft.teamspace.tab.planner/mytasks?tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a&webUrl=https%3A%2F%2Ftasks.teams.microsoft.com%2Fteamsui%2FpersonalApp%2Falltasklists&context=%7B%22subEntityId%22%3A%22%2Fv1%2Fpremiumplan%2Ff19fc843-87b0-4cc2-96bd-c0cde78f7f79%2Forg%2F59675cc6-bab9-416e-b01c-04b99ae59f69%22%7D" target="_blank" class="btn btn-primary">
-                            Ouvrir Teams
-                        </a>
-                    </div>
-                </div>
-            </section>
+                </section>
+            </div>
         </main>
 
         <footer class="footer">
@@ -171,9 +258,7 @@
                     <a href="index_en.html">🇬🇧</a>
                     <a href="index_inde.html">🇮🇳</a>
                 </div>
-                <div class="update-info">
-                    Dernière mise à jour : août 2025
-                </div>
+                <div class="update-info" id="last-updated" aria-live="polite"></div>
             </div>
         </footer>
     </div>
@@ -195,7 +280,7 @@
                 // Vider le message de chargement
                 macrosContainer.innerHTML = '';
                 
-                // Générer uniquement les cartes demandées
+                // Générer uniquement les cartes demandées (évite 404 tant que tous les chemins ne sont pas normalisés)
                 const allowedNames = new Set([
                     'avancement-physique-vs-heures',
                     'calculatrice-reste-a-faire',
@@ -206,8 +291,8 @@
                     macroCard.className = 'macro-card';
                     
                     // Encoder les URLs pour gérer les espaces et caractères spéciaux
-                    const encodedHtmlFile = encodeURIComponent(macro.htmlFile).replace(/%2F/g, '/');
-                    const encodedBasFile = encodeURIComponent(macro.basFile).replace(/%2F/g, '/');
+                    const encodedHtmlFile = macro.htmlFile ? encodeURIComponent(macro.htmlFile).replace(/%2F/g, '/') : '';
+                    const encodedBasFile = macro.basFile ? encodeURIComponent(macro.basFile).replace(/%2F/g, '/') : '';
                     
                     let actionsHtml = `
                         <a href="./macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
@@ -217,12 +302,16 @@
                             💾 Télécharger
                         </a>
                     `;
-                    // Ajout du bouton Excel pour la macro Import Simple
+                    // Ajout des boutons Excel/MPT pour la macro Import Simple (chemins manifest, compatibles avec encodage)
                     if (macro.name === 'creation-ms-project') {
-                        actionsHtml += `
-                            <a href="./macros/Macro MSP/Création MS Project/ImportSimple/FichierTypearemplir.xlsm" download class="btn btn-success btn-small" style="margin-top:4px;">
-                                📥 Fichier Excel type à remplir
+                        const excel = macro.excelFile ? encodeURIComponent(macro.excelFile).replace(/%2F/g, '/') : '';
+                        const mpt = macro.mptFile ? encodeURIComponent(macro.mptFile).replace(/%2F/g, '/') : '';
+                        actionsHtml = `
+                            <a href="./macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
+                                📖 Documentation
                             </a>
+                            ${excel ? `<a href="./macros/${excel}" download class="btn btn-success btn-small" style="margin-top:4px;">📥 Fichier Excel type à remplir</a>` : ''}
+                            ${mpt ? `<a href="./macros/${mpt}" download class="btn btn-secondary btn-small" style="margin-top:4px;">📦 Modèle MS Project</a>` : ''}
                         `;
                     }
                     
@@ -314,5 +403,6 @@
         // Charger les macros au chargement de la page
         document.addEventListener('DOMContentLoaded', loadMacros);
     </script>
+    <script src="assets/onboarding.js"></script>
 </body>
 </html>

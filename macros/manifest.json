@@ -12,7 +12,6 @@
       "name": "calculatrice-reste-a-faire",
       "title": "Calculatrice Reste à Faire VE",
       "description": "Processus de pilotage pour responsables d'affaires BTP/Énergie - 4 chemins de calcul",
-      "basFile": "Macro MSP/Calculatrice Reste a faire VE/V6userform.vb",
       "htmlFile": "Macro MSP/Calculatrice Reste a faire VE/Recalage.html",
       "frmFile": "Macro MSP/Calculatrice Reste a faire VE/datecalcul.frm",
       "frxFile": "Macro MSP/Calculatrice Reste a faire VE/datecalcul.frx",
@@ -25,6 +24,8 @@
       "description": "Import de tâches simples avec titre depuis Excel vers MS Project",
       "basFile": "Macro MSP/Création MS Project/ImportSimple/Importsimple.bas",
       "htmlFile": "Macro MSP/Création MS Project/ImportSimple/ExplicationCreationGuide.html",
+      "excelFile": "Macro MSP/Création MS Project/ImportSimple/FichierTypearemplir.xlsm",
+      "mptFile": "Macro MSP/Création MS Project/ImportSimple/ModèleImport.mpt",
       "lastUpdated": "07/08/2025"
     },
     {
