@@ -356,7 +356,8 @@ header p {
     background: var(--background-white);
     cursor: pointer;
 }
-.role-btn[aria-pressed="true"] {
+.role-btn[aria-pressed="true"],
+.role-btn.is-active {
     background: var(--primary-blue);
     color: #fff;
     border-color: var(--primary-blue);

@@ -82,6 +82,12 @@ Conception (Github Pages, sans dépendances):
     const tasks = Array.from(document.querySelectorAll('.task-item'));
     tasks.forEach((item, idx) => {
       const titleEl = item.querySelector('h4');
+      
+      // Ignorer les tâches qui n'ont pas de h4 (comme celles avec des labels/checkboxes)
+      if (!titleEl) {
+        return;
+      }
+      
       const title = (titleEl?.textContent || `task-${idx}`).trim();
       const key = stableKey(title, idx);
 
@@ -99,7 +105,9 @@ Conception (Github Pages, sans dépendances):
       applyCompleted(item, state[key] === true);
     });
 
-    renderProgress(tasks, state);
+    // Filtrer les tâches qui ont un h4 pour le rendu de la progression
+    const tasksWithH4 = tasks.filter(item => item.querySelector('h4'));
+    renderProgress(tasksWithH4, state);
   }
 
   function createCheckbox(key, title, checked) {
@@ -173,33 +181,71 @@ Conception (Github Pages, sans dépendances):
   }
 
   function initRoleSwitch() {
-    const current = loadRole();
-    const buttons = document.querySelectorAll('.role-btn');
-    buttons.forEach(btn => {
-      const v = btn.getAttribute('data-role-select');
-      btn.setAttribute('aria-pressed', String(v === current));
-      btn.addEventListener('click', () => {
-        buttons.forEach(b => b.setAttribute('aria-pressed', 'false'));
-        btn.setAttribute('aria-pressed', 'true');
-        saveRole(v);
-        applyRoleFilter(v);
+    const roleButtons = document.querySelectorAll('.role-btn');
+    const views = document.querySelectorAll('[data-view]');
+
+    console.log('initRoleSwitch - boutons trouvés:', roleButtons.length);
+    console.log('initRoleSwitch - vues trouvées:', views.length);
+
+    if (roleButtons.length === 0 || views.length === 0) {
+      console.error('Éléments manquants pour le switch de rôle');
+      return;
+    }
+
+    function setActiveRole(roleName) {
+      console.log('setActiveRole appelé avec:', roleName);
+      
+      views.forEach(view => {
+        const viewName = view.getAttribute('data-view');
+        const shouldShow = viewName === roleName;
+        view.style.display = shouldShow ? 'block' : 'none';
+        console.log(`Vue ${viewName}: ${shouldShow ? 'visible' : 'cachée'}`);
+      });
+
+      roleButtons.forEach(btn => {
+        const isActive = btn.getAttribute('data-role-select') === roleName;
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        btn.classList.toggle('is-active', isActive);
+      });
+
+      // Sauvegarder dans localStorage
+      saveRole(roleName);
+    }
+
+    roleButtons.forEach((btn, index) => {
+      const roleValue = btn.getAttribute('data-role-select');
+      console.log(`Ajout listener sur bouton ${index}: ${roleValue}`);
+      btn.addEventListener('click', (e) => {
+        console.log('Clic détecté sur bouton:', roleValue);
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveRole(roleValue);
       });
     });
-    // Par défaut: montrer tout (Tous)
-    applyRoleFilter(current);
-  }
 
-  function applyRoleFilter(role) {
-    const items = document.querySelectorAll('.task-item');
-    items.forEach(item => {
-      const r = item.getAttribute('data-role') || 'both';
-      const show = role === 'both' || r === 'both' || r === role;
-      item.style.display = show ? '' : 'none';
-    });
+    // Initialiser avec la valeur sauvegardée ou le bouton actif par défaut
+    const saved = loadRole();
+    if (saved === 'arrivee' || saved === 'nouveau-projet') {
+      console.log('Utilisation de la valeur sauvegardée:', saved);
+      setActiveRole(saved);
+    } else {
+      const active = document.querySelector('.role-btn[aria-pressed="true"]') || roleButtons[0];
+      if (active) {
+        const defaultRole = active.getAttribute('data-role-select');
+        console.log('Utilisation de la valeur par défaut:', defaultRole);
+        setActiveRole(defaultRole);
+      }
+    }
   }
 
   function loadRole() {
-    return localStorage.getItem(LS_ROLE_KEY) || 'both';
+    const saved = localStorage.getItem(LS_ROLE_KEY);
+    // Si la valeur sauvegardée est une des nouvelles valeurs, l'utiliser
+    if (saved === 'arrivee' || saved === 'nouveau-projet') {
+      return saved;
+    }
+    // Sinon, retourner null pour utiliser le défaut HTML
+    return null;
   }
   function saveRole(role) {
     localStorage.setItem(LS_ROLE_KEY, role);
