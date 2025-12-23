@@ -1,4 +1,4 @@
-workspace "Stepwize" {
+ françaisworkspace "Stepwize" {
   
   model {
     user = person "User"

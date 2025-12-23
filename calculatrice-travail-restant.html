@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculatrice Travail Restant MS Project</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .mode-selector {
+            margin-bottom: 30px;
+        }
+
+        .mode-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .mode-option {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .mode-option input[type="radio"] {
+            display: none;
+        }
+
+        .mode-option label {
+            display: block;
+            padding: 15px 20px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .mode-option input[type="radio"]:checked + label {
+            background: #2a5298;
+            color: white;
+            border-color: #2a5298;
+        }
+
+        .mode-option label:hover {
+            background: #e0e0e0;
+        }
+
+        .mode-option input[type="radio"]:checked + label:hover {
+            background: #1e3c72;
+        }
+
+        .calc-block {
+            display: none;
+        }
+
+        .calc-block.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1a1a1a;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+
+        .form-help {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #2a5298;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #1e3c72;
+        }
+
+        .btn:active {
+            background: #153a5e;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-secondary:active {
+            background: #484f54;
+        }
+
+        .error-message {
+            display: none;
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #fcc;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .result-block {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background: #f0f7ff;
+            border: 2px solid #2a5298;
+            border-radius: 6px;
+        }
+
+        .result-block.show {
+            display: block;
+        }
+
+        .result-block h3 {
+            color: #2a5298;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .result-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 10px 0;
+        }
+
+        .result-instruction {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #b8d4f0;
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .mode-options {
+                flex-direction: column;
+            }
+
+            .mode-option {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Calculatrice Travail Restant MS Project</h1>
+            <p class="subtitle">Calcule ce que tu dois mettre dans la colonne Travail restant</p>
+        </header>
+
+        <div class="mode-selector">
+            <p style="margin-bottom: 15px; font-weight: 600;">Que veux-tu faire ?</p>
+            <div class="mode-options">
+                <div class="mode-option">
+                    <input type="radio" id="mode-travail" name="mode" value="travail" checked>
+                    <label for="mode-travail">Calculer le travail restant (en heures)</label>
+                </div>
+                <div class="mode-option">
+                    <input type="radio" id="mode-personnes" name="mode" value="personnes">
+                    <label for="mode-personnes">Calculer le nombre de personnes nécessaires pour respecter une date de fin</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bloc Option 1: Travail restant -->
+        <div id="block-travail" class="calc-block active">
+            <div class="form-group">
+                <label for="input-quantite-restante">Quantité restante à réaliser (mètres)</label>
+                <input type="text" id="input-quantite-restante" placeholder="128 519">
+            </div>
+
+            <div class="form-group">
+                <label for="input-rendement-reel">Rendement réel (mètres par jour et par équipe)</label>
+                <input type="text" id="input-rendement-reel" placeholder="2 005">
+                <p class="form-help">Rendement constaté sur le chantier, pas celui du budget.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="input-nb-personnes">Nombre de personnes dans l'équipe</label>
+                <input type="text" id="input-nb-personnes" placeholder="3">
+            </div>
+
+            <div class="form-group">
+                <label for="input-heures-par-jour">Durée de travail par jour (heures par personne)</label>
+                <input type="text" id="input-heures-par-jour" placeholder="9">
+            </div>
+
+            <div id="error-travail" class="error-message"></div>
+
+            <button id="btn-calcul-travail-restant" class="btn">Calculer le travail restant</button>
+            <button id="btn-reset-travail" class="btn btn-secondary">Réinitialiser</button>
+
+            <div id="resultat-travail-restant" class="result-block">
+                <h3>Résultat</h3>
+                <div class="result-value" id="result-travail-heures"></div>
+                <div id="result-travail-jours"></div>
+                <p class="result-instruction">Dans MS Project, colle cette valeur dans la colonne Travail restant de la tâche concernée.</p>
+            </div>
+        </div>
+
+        <!-- Bloc Option 2: Nombre de personnes -->
+        <div id="block-personnes" class="calc-block">
+            <div class="form-group">
+                <label for="input-travail-restant-heures">Travail restant (heures)</label>
+                <input type="text" id="input-travail-restant-heures" placeholder="1 730,4">
+                <p class="form-help">Tu peux reprendre le résultat de l'option 1 ou un calcul existant.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="input-date-debut">Date de début des travaux</label>
+                <input type="date" id="input-date-debut">
+            </div>
+
+            <div class="form-group">
+                <label for="input-date-fin-cible">Date de fin cible</label>
+                <input type="date" id="input-date-fin-cible">
+                <p class="form-help">Date impérative demandée par le client.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="input-heures-par-jour-option2">Durée de travail par jour (heures par personne)</label>
+                <input type="text" id="input-heures-par-jour-option2" placeholder="9">
+            </div>
+
+            <div id="error-personnes" class="error-message"></div>
+
+            <button id="btn-calcul-personnes" class="btn">Calculer le nombre de personnes nécessaires</button>
+            <button id="btn-reset-personnes" class="btn btn-secondary">Réinitialiser</button>
+
+            <div id="resultat-personnes" class="result-block">
+                <h3>Résultat</h3>
+                <div class="result-value" id="result-personnes-nb"></div>
+                <div id="result-personnes-hypotheses"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Gestion du changement de mode
+        document.querySelectorAll('input[name="mode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('block-travail').classList.toggle('active', this.value === 'travail');
+                document.getElementById('block-personnes').classList.toggle('active', this.value === 'personnes');
+                
+                // Réinitialiser les résultats et erreurs
+                effacerErreurs();
+                document.getElementById('resultat-travail-restant').classList.remove('show');
+                document.getElementById('resultat-personnes').classList.remove('show');
+            });
+        });
+
+        // Fonction pour effacer les erreurs
+        function effacerErreurs() {
+            document.getElementById('error-travail').classList.remove('show');
+            document.getElementById('error-personnes').classList.remove('show');
+        }
+
+        // Fonction pour afficher une erreur
+        function afficherErreur(idElement, message) {
+            const errorEl = document.getElementById(idElement);
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+
+        // Fonction pour valider un nombre
+        function validerNombre(valeur, nom) {
+            const num = parseFloat(valeur.replace(/\s/g, '').replace(',', '.'));
+            if (isNaN(num) || num <= 0) {
+                return { valide: false, valeur: null };
+            }
+            return { valide: true, valeur: num };
+        }
+
+        // Calcul du travail restant
+        function calculerTravailRestant() {
+            effacerErreurs();
+
+            const quantiteRestante = validerNombre(
+                document.getElementById('input-quantite-restante').value,
+                'Quantité restante'
+            );
+            const rendementReel = validerNombre(
+                document.getElementById('input-rendement-reel').value,
+                'Rendement réel'
+            );
+            const nbPersonnes = validerNombre(
+                document.getElementById('input-nb-personnes').value,
+                'Nombre de personnes'
+            );
+            const heuresParJour = validerNombre(
+                document.getElementById('input-heures-par-jour').value,
+                'Heures par jour'
+            );
+
+            if (!quantiteRestante.valide) {
+                afficherErreur('error-travail', 'La quantité restante doit être un nombre positif.');
+                return;
+            }
+            if (!rendementReel.valide) {
+                afficherErreur('error-travail', 'Le rendement réel doit être un nombre positif.');
+                return;
+            }
+            if (!nbPersonnes.valide) {
+                afficherErreur('error-travail', 'Le nombre de personnes doit être un nombre positif.');
+                return;
+            }
+            if (!heuresParJour.valide) {
+                afficherErreur('error-travail', 'Les heures par jour doivent être un nombre positif.');
+                return;
+            }
+
+            // Calcul
+            const heuresEquipeParJour = nbPersonnes.valeur * heuresParJour.valeur;
+            const travailRestant = (quantiteRestante.valeur / rendementReel.valeur) * heuresEquipeParJour;
+            const joursNecessaires = travailRestant / heuresEquipeParJour;
+
+            // Affichage
+            document.getElementById('result-travail-heures').textContent = 
+                'Travail restant à coller dans MS Project (colonne Travail restant) : ' + 
+                travailRestant.toFixed(1) + ' heures';
+            
+            document.getElementById('result-travail-jours').textContent = 
+                'Nombre de jours d\'équipe nécessaires : ' + joursNecessaires.toFixed(1) + ' jours';
+
+            document.getElementById('resultat-travail-restant').classList.add('show');
+            
+            // Scroll automatique vers le résultat
+            setTimeout(() => {
+                document.getElementById('resultat-travail-restant').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'nearest' 
+                });
+            }, 100);
+        }
+
+        // Calcul du nombre de personnes nécessaires
+        function calculerNombrePersonnes() {
+            effacerErreurs();
+
+            const travailRestant = validerNombre(
+                document.getElementById('input-travail-restant-heures').value,
+                'Travail restant'
+            );
+            const dateDebut = document.getElementById('input-date-debut').value;
+            const dateFin = document.getElementById('input-date-fin-cible').value;
+            const heuresParJour = validerNombre(
+                document.getElementById('input-heures-par-jour-option2').value,
+                'Heures par jour'
+            );
+
+            if (!travailRestant.valide) {
+                afficherErreur('error-personnes', 'Le travail restant doit être un nombre positif.');
+                return;
+            }
+            if (!dateDebut) {
+                afficherErreur('error-personnes', 'La date de début est requise.');
+                return;
+            }
+            if (!dateFin) {
+                afficherErreur('error-personnes', 'La date de fin cible est requise.');
+                return;
+            }
+            if (!heuresParJour.valide) {
+                afficherErreur('error-personnes', 'Les heures par jour doivent être un nombre positif.');
+                return;
+            }
+
+            // Calcul du nombre de jours
+            const debut = new Date(dateDebut);
+            const fin = new Date(dateFin);
+            
+            if (fin < debut) {
+                afficherErreur('error-personnes', 'La date de fin doit être après la date de début.');
+                return;
+            }
+
+            const diffTime = fin - debut;
+            const joursDisponibles = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+            if (joursDisponibles <= 0) {
+                afficherErreur('error-personnes', 'Le nombre de jours entre les dates doit être positif.');
+                return;
+            }
+
+            // Calcul
+            const heuresDisponiblesParPersonne = joursDisponibles * heuresParJour.valeur;
+            const personnesNecessaires = Math.ceil(travailRestant.valeur / heuresDisponiblesParPersonne);
+
+            // Affichage
+            document.getElementById('result-personnes-nb').textContent = 
+                'Nombre de personnes nécessaires pour tenir la date : ' + personnesNecessaires + ' personnes';
+            
+            document.getElementById('result-personnes-hypotheses').textContent = 
+                'Hypothèses utilisées : ' + joursDisponibles + ' jours entre les deux dates, ' + 
+                heuresParJour.valeur + ' heures par jour.';
+
+            document.getElementById('resultat-personnes').classList.add('show');
+            
+            // Scroll automatique vers le résultat
+            setTimeout(() => {
+                document.getElementById('resultat-personnes').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'nearest' 
+                });
+            }, 100);
+        }
+
+        // Fonction pour réinitialiser le formulaire travail restant
+        function reinitialiserTravail() {
+            document.getElementById('input-quantite-restante').value = '';
+            document.getElementById('input-rendement-reel').value = '';
+            document.getElementById('input-nb-personnes').value = '';
+            document.getElementById('input-heures-par-jour').value = '';
+            effacerErreurs();
+            document.getElementById('resultat-travail-restant').classList.remove('show');
+        }
+
+        // Fonction pour réinitialiser le formulaire nombre de personnes
+        function reinitialiserPersonnes() {
+            document.getElementById('input-travail-restant-heures').value = '';
+            document.getElementById('input-date-debut').value = '';
+            document.getElementById('input-date-fin-cible').value = '';
+            document.getElementById('input-heures-par-jour-option2').value = '';
+            effacerErreurs();
+            document.getElementById('resultat-personnes').classList.remove('show');
+        }
+
+        // Event listeners
+        document.getElementById('btn-calcul-travail-restant').addEventListener('click', calculerTravailRestant);
+        document.getElementById('btn-calcul-personnes').addEventListener('click', calculerNombrePersonnes);
+        document.getElementById('btn-reset-travail').addEventListener('click', reinitialiserTravail);
+        document.getElementById('btn-reset-personnes').addEventListener('click', reinitialiserPersonnes);
+
+        // Permettre le calcul avec la touche Entrée
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const mode = document.querySelector('input[name="mode"]:checked').value;
+                    if (mode === 'travail') {
+                        calculerTravailRestant();
+                    } else {
+                        calculerNombrePersonnes();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -9,40 +9,31 @@
 <body>
     <div class="container">
         <header>
-            <div class="language-selector">
-                <span class="language-current">
-                    🇫🇷 Français
-                </span>
-                <a href="index_en.html" class="language-btn">
-                    🇬🇧 English
-                </a>
-                <a href="index_inde.html" class="language-btn">
-                    🇮🇳 हिंदी
-                </a>
+            <div class="language-selector" role="group" aria-label="Sélecteur de langue">
+                <button type="button" class="language-btn language-current" data-lang="fr" aria-pressed="true">FR</button>
+                <button type="button" class="language-btn" data-lang="en" aria-pressed="false">EN</button>
             </div>
-            
-
-            <h1>Parcours Onboarding</h1>
-            <p>Guide d'intégration pour les nouveaux collaborateurs</p>
+            <h1 data-i18n="title">Parcours Onboarding</h1>
+            <p data-i18n="subtitle">Guide d'intégration pour les nouveaux collaborateurs</p>
         </header>
 
         <!-- Accessibilité/UX: Sélecteur de rôle sans dépendance, persistant par langue.
              Conception: Pas de framework. Les éléments restent présents dans le DOM pour éviter des reflows coûteux.
              Politique: Les éléments non ciblés sont repliés plutôt que supprimés pour une UX indulgente. -->
         <div class="role-switch" role="group" aria-label="Sélecteur de rôle">
-            <span class="role-label">Choisissez votre parcours :</span>
-            <button type="button" class="role-btn" data-role-select="arrivee" aria-pressed="true">Premiers jours dans l'entreprise</button>
-            <button type="button" class="role-btn" data-role-select="nouveau-projet" aria-pressed="false">Lancement d'un nouveau projet</button>
+            <span class="role-label" data-i18n="roleLabel">Choisissez votre parcours :</span>
+            <button type="button" class="role-btn" data-role-select="arrivee" aria-pressed="true" data-i18n="roleArrivee">Premiers jours dans l'entreprise</button>
+            <button type="button" class="role-btn" data-role-select="nouveau-projet" aria-pressed="false" data-i18n="roleNouveauProjet">Lancement d'un nouveau projet</button>
         </div>
 
         <main class="main-content">
             <!-- Vue Arrivée -->
             <div data-view="arrivee" class="view-container">
                 <section class="week-section">
-                    <h2>Arrivée — Installation & Formation initiale</h2>
+                    <h2 data-i18n="arriveeTitle">Arrivée — Installation & Formation initiale</h2>
                     
                     <div class="subsection">
-                        <h3>Configuration</h3>
+                        <h3 data-i18n="configuration">Configuration</h3>
                         <div class="task-list">
                             <div class="task-item" data-role="both" data-duration="5–10 min" data-outcome="Demande envoyée">
                                 <h4>Création compte Sitemark</h4>
@@ -139,19 +130,19 @@
                                 <div class="task-item">
                                     <label class="task-checkbox-label">
                                         <input type="checkbox" class="task-checkbox">
-                                        <span>Système géographique a demander au BE - <a href="https://teams.microsoft.com/l/entity/2a527703-1f6f-4559-a332-d8a7d288cd88/_djb2_msteams_prefix_1576997933?context=%7B%22channelId%22%3A%2219%3AAv5DrplOomS6vndryAkPaW-XJ6Nhqlda2IAdbarNpmk1%40thread.tacv2%22%7D&tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a" target="_blank" rel="noopener noreferrer" class="task-link">Accéder</a></span>
+                                        <span>Système géographique a demander au BE - <a href="https://teams.microsoft.com/l/entity/2a527703-1f6f-4559-a332-d8a7d288cd88/_djb2_msteams_prefix_1487707578?context=%7B%22channelId%22%3A%2219%3Az28Ri3-tK0r8RgOV1u7tSU0HYQhONG3NlVO3U2vY8EE1%40thread.tacv2%22%7D&tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a" target="_blank" rel="noopener noreferrer" class="task-link">Accéder</a></span>
                                     </label>
                                 </div>
                                 <div class="task-item">
                                     <label class="task-checkbox-label">
                                         <input type="checkbox" class="task-checkbox">
-                                        <span>Faire son choix des composants du PDF - <a href="https://teams.microsoft.com/l/entity/2a527703-1f6f-4559-a332-d8a7d288cd88/_djb2_msteams_prefix_1576997933?context=%7B%22channelId%22%3A%2219%3AAv5DrplOomS6vndryAkPaW-XJ6Nhqlda2IAdbarNpmk1%40thread.tacv2%22%7D&tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a" target="_blank" rel="noopener noreferrer" class="task-link">Accéder</a></span>
+                                        <span>Faire son choix des composants du PDF - <a href="https://teams.microsoft.com/l/entity/2a527703-1f6f-4559-a332-d8a7d288cd88/_djb2_msteams_prefix_1487707578?context=%7B%22channelId%22%3A%2219%3Az28Ri3-tK0r8RgOV1u7tSU0HYQhONG3NlVO3U2vY8EE1%40thread.tacv2%22%7D&tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a" target="_blank" rel="noopener noreferrer" class="task-link">Accéder</a></span>
                                     </label>
-                                </div>
+                                </div> 
                                 <div class="task-item">
                                     <label class="task-checkbox-label">
                                         <input type="checkbox" class="task-checkbox">
-                                        <span>Faire son choix des composants du DXF - <a href="https://teams.microsoft.com/l/entity/2a527703-1f6f-4559-a332-d8a7d288cd88/_djb2_msteams_prefix_1576997933?context=%7B%22channelId%22%3A%2219%3AAv5DrplOomS6vndryAkPaW-XJ6Nhqlda2IAdbarNpmk1%40thread.tacv2%22%7D&tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a" target="_blank" rel="noopener noreferrer" class="task-link">Accéder</a></span>
+                                        <span>Faire son choix des composants du DXF - <a href="https://teams.microsoft.com/l/entity/2a527703-1f6f-4559-a332-d8a7d288cd88/_djb2_msteams_prefix_1487707578?context=%7B%22channelId%22%3A%2219%3Az28Ri3-tK0r8RgOV1u7tSU0HYQhONG3NlVO3U2vY8EE1%40thread.tacv2%22%7D&tenantId=cae7d061-08f3-40dd-80c3-3c0b8889224a" target="_blank" rel="noopener noreferrer" class="task-link">Accéder</a></span>
                                     </label>
                                 </div>
                                 <div class="task-item">
@@ -170,9 +161,20 @@
                         </div>
                         
                         <div class="subsection">
-                            <h4>Utilisation quotidienne</h4>
+                            <h4>Utilisation hebdomadaire</h4>
                             <div class="task-list">
-                                <!-- Conteneur vide pour futures tâches -->
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Pour chaque tâche assignée, mettre un tag et assigner une personne et une date d'échéance</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Faire un suivi chaque semaine pour fermer les tickets</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -201,16 +203,74 @@
                                 <div class="task-item">
                                     <label class="task-checkbox-label">
                                         <input type="checkbox" class="task-checkbox">
-                                        <span>CONFIGURATION liaison et dates et planning de référence</span>
+                                        <span>CONFIGURATION WBS</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>liaison des tâches</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>dates</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>planning de référence</span>
                                     </label>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="subsection">
-                            <h4>Utilisation quotidienne</h4>
+                            <h4>Utilisation hebdomadaire</h4>
                             <div class="task-list">
-                                <!-- Conteneur vide pour futures tâches -->
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Remplissage de l'avancement physique et heures</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Utilisation du bouton d'export du dashboard</span>
+                                    </label>
+                                </div>
+                                <div class="task-item">
+                                    <label class="task-checkbox-label">
+                                        <input type="checkbox" class="task-checkbox">
+                                        <span>Utiliser la calculatrice Pontiva pour recalculer le travail restant</span>
+                                    </label>
+                                    <a href="./calculatrice-travail-restant.html" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-small" style="margin-left: 12px;">
+                                        Ouvrir la calculatrice Pontiva
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bloc Analyse & Pilotage -->
+                    <div class="subsection">
+                        <h3>Pontiva — Analyse & Pilotage du chantier</h3>
+                        <div class="task-list">
+                            <div class="task-item">
+                                <label class="task-checkbox-label">
+                                    <input type="checkbox" class="task-checkbox">
+                                    <span>Importer le JSON Pontiva (fichier exporté depuis MS Project)</span>
+                                </label>
+                                <a href="dashboard.html"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="btn btn-primary btn-small"
+                                   style="margin-left: 12px;">
+                                    Ouvrir le Dashboard Pontiva
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -252,7 +312,7 @@
                         </div>
                         
                         <div class="subsection">
-                            <h4>Utilisation quotidienne</h4>
+                            <h4>Utilisation hebdomadaire</h4>
                             <div class="task-list">
                                 <div class="task-item">
                                     <label class="task-checkbox-label">
@@ -269,16 +329,25 @@
 
         <footer class="footer">
             <div class="footer-content">
-                <div class="language-footer">
-                    <a href="index_en.html">🇬🇧</a>
-                    <a href="index_inde.html">🇮🇳</a>
-                </div>
                 <div class="update-info" id="last-updated" aria-live="polite"></div>
             </div>
         </footer>
     </div>
 
     <script>
+        /**
+         * Encode correctement un chemin de fichier en préservant les séparateurs de dossiers.
+         * Cette fonction encode chaque segment du chemin séparément pour éviter les bugs d'encodage
+         * avec les espaces et caractères spéciaux.
+         * @param {string} path - Le chemin à encoder
+         * @returns {string} Le chemin encodé correctement
+         */
+        function encodePath(path) {
+            if (!path) return '';
+            // Séparer le chemin en segments et encoder chaque segment individuellement
+            return path.split('/').map(segment => encodeURIComponent(segment)).join('/');
+        }
+
         // Chargement dynamique des macros depuis manifest.json
         async function loadMacros() {
             const macrosContainer = document.getElementById('macros-list');
@@ -305,8 +374,8 @@
                     macroCard.className = 'macro-card';
                     
                     // Encoder les URLs pour gérer les espaces et caractères spéciaux
-                    const encodedHtmlFile = macro.htmlFile ? encodeURIComponent(macro.htmlFile).replace(/%2F/g, '/') : '';
-                    const encodedBasFile = macro.basFile ? encodeURIComponent(macro.basFile).replace(/%2F/g, '/') : '';
+                    const encodedHtmlFile = encodePath(macro.htmlFile);
+                    const encodedBasFile = encodePath(macro.basFile);
                     
                     let actionsHtml = `
                         <a href="./macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
@@ -318,8 +387,8 @@
                     `;
                     // Ajout des boutons Excel/MPT pour la macro Import Simple (chemins manifest, compatibles avec encodage)
                     if (macro.name === 'creation-ms-project') {
-                        const excel = macro.excelFile ? encodeURIComponent(macro.excelFile).replace(/%2F/g, '/') : '';
-                        const mpt = macro.mptFile ? encodeURIComponent(macro.mptFile).replace(/%2F/g, '/') : '';
+                        const excel = encodePath(macro.excelFile);
+                        const mpt = encodePath(macro.mptFile);
                         actionsHtml = `
                             <a href="./macros/${encodedHtmlFile}" target="_blank" class="btn btn-secondary btn-small">
                                 📖 Documentation
@@ -388,12 +457,12 @@
                 const zip = new JSZip();
                 
                 // Télécharger et ajouter le fichier .frm
-                const frmResponse = await fetch(`./macros/${encodeURIComponent(macro.frmFile).replace(/%2F/g, '/')}`);
+                const frmResponse = await fetch(`./macros/${encodePath(macro.frmFile)}`);
                 const frmBlob = await frmResponse.blob();
                 zip.file('datecalcul.frm', frmBlob);
                 
                 // Télécharger et ajouter le fichier .frx
-                const frxResponse = await fetch(`./macros/${encodeURIComponent(macro.frxFile).replace(/%2F/g, '/')}`);
+                const frxResponse = await fetch(`./macros/${encodePath(macro.frxFile)}`);
                 const frxBlob = await frxResponse.blob();
                 zip.file('datecalcul.frx', frxBlob);
                 
@@ -414,8 +483,32 @@
             }
         }
         
+        /**
+         * Corrige automatiquement tous les liens avec des chemins non encodés.
+         * Cette fonction s'exécute au chargement pour éviter les bugs d'encodage.
+         */
+        function fixUnencodedLinks() {
+            document.querySelectorAll('a[href*="./macros/"]').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && !href.includes('%')) {
+                    // Si le lien contient des espaces ou caractères spéciaux non encodés
+                    const pathMatch = href.match(/\.\/macros\/(.+)$/);
+                    if (pathMatch) {
+                        const path = pathMatch[1];
+                        // Vérifier si le chemin contient des caractères non encodés (espaces, accents, etc.)
+                        if (path.includes(' ') || /[àáâãäåèéêëìíîïòóôõöùúûüýÿç]/.test(path)) {
+                            link.setAttribute('href', `./macros/${encodePath(path)}`);
+                        }
+                    }
+                }
+            });
+        }
+
         // Charger les macros au chargement de la page
-        document.addEventListener('DOMContentLoaded', loadMacros);
+        document.addEventListener('DOMContentLoaded', () => {
+            fixUnencodedLinks();
+            loadMacros();
+        });
     </script>
     <script src="assets/onboarding.js"></script>
 </body>

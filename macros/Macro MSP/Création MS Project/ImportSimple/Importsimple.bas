@@ -45,6 +45,10 @@ Sub Import_Taches_Simples_AvecTitre()
     Set tRoot = pjProj.Tasks.Add(name:=xlSheet.Cells(2, 1).Value, Before:=1)
     tRoot.Manual = False
     tRoot.Calendar = ActiveProject.BaseCalendars("Standard")
+    
+    ' ==== VARIABLE DE SUIVI POUR LA TÂCHE RÉCAPITULATIVE COURANTE ====
+    Dim tCurrentSummary As Task
+    Set tCurrentSummary = Nothing
 
     ' ==== CONFIGURATION PROJET ====
     pjProj.DefaultTaskType = pjFixedWork
@@ -77,16 +81,56 @@ Sub Import_Taches_Simples_AvecTitre()
     ' ==== BOUCLE T�CHES ====
     For i = 3 To lastRow
         Dim nom As String, qte As Variant, pers As Variant, h As Variant
+        Dim strQte As String, strPers As String, strH As String
         nom = xlSheet.Cells(i, 1).Value
         qte = xlSheet.Cells(i, 2).Value
         pers = xlSheet.Cells(i, 3).Value
         h = xlSheet.Cells(i, 4).Value
-
-        If nom <> "" Then
+        
+        ' Conversion en string pour test de vide (gère les cas où la cellule contient 0 vs vide)
+        strQte = Trim(CStr(qte))
+        strPers = Trim(CStr(pers))
+        strH = Trim(CStr(h))
+        Dim strNom As String
+        strNom = Trim(CStr(nom))
+        
+        ' ==== ÉTAPE 1: TEST LIGNE VIDE ====
+        ' Si A, B, C, D sont vides → remise à zéro de la récap courante
+        If strNom = "" And strQte = "" And strPers = "" And strH = "" Then
+            Set tCurrentSummary = Nothing
+            GoTo ContinueLoop
+        End If
+        
+        ' ==== ÉTAPE 2: TEST TÂCHE RÉCAPITULATIVE ====
+        ' Colonne A non vide ET colonnes B, C, D vides
+        If strNom <> "" And strQte = "" And strPers = "" And strH = "" Then
+            ' Créer la tâche récapitulative
             Set t = pjProj.Tasks.Add(nom)
             t.Manual = False
             t.Calendar = ActiveProject.BaseCalendars("Standard")
-
+            
+            ' Rattacher à tRoot (toutes les récaps sont au même niveau, enfants de tRoot)
+            t.OutlineParent = tRoot
+            
+            ' Ne PAS assigner de ressource à une tâche récapitulative
+            ' Stocker dans la variable de suivi
+            Set tCurrentSummary = t
+            GoTo ContinueLoop
+        End If
+        
+        ' ==== ÉTAPE 3: TÂCHE DÉTAILLÉE ====
+        ' Colonne A non vide ET au moins une de B, C ou D non vide
+        If strNom <> "" And (strQte <> "" Or strPers <> "" Or strH <> "") Then
+            Set t = pjProj.Tasks.Add(nom)
+            t.Manual = False
+            t.Calendar = ActiveProject.BaseCalendars("Standard")
+            
+            ' Si une récap courante existe, la tâche détaillée devient son enfant
+            If Not tCurrentSummary Is Nothing Then
+                t.OutlineParent = tCurrentSummary
+            End If
+            
+            ' Assigner les ressources comme dans le code actuel
             If IsNumeric(h) And h > 0 Then
                 Dim nbPers As Double: nbPers = IIf(IsNumeric(pers) And pers > 0, pers, 1)
                 Set a = t.Assignments.Add(ResourceID:=rMonteurs.ID)
@@ -101,6 +145,8 @@ Sub Import_Taches_Simples_AvecTitre()
                 a.Units = qte
             End If
         End If
+        
+ContinueLoop:
     Next i
 
     ' ==== FERMETURE ====
