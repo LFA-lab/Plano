@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pontiva - Import JSON</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .upload-section {
+            background: var(--background-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-card);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .upload-section.hidden {
+            display: none;
+        }
+        
+        .upload-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .upload-section p {
+            color: var(--text-gray);
+            margin-bottom: var(--spacing-md);
+            line-height: 1.6;
+        }
+        
+        .file-input-wrapper {
+            margin: var(--spacing-md) 0;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--primary-blue);
+            color: white;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .file-input-label:hover {
+            background: var(--secondary-blue);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-subtle);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .dashboard-section {
+            background: var(--background-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-card);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            display: none;
+        }
+        
+        .dashboard-section.active {
+            display: block;
+        }
+        
+        /* Navigation par onglets */
+        .view-tabs {
+            display: flex;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-lg);
+            border-bottom: 2px solid var(--border-gray);
+        }
+        
+        .view-tab {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-gray);
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+        
+        .view-tab:hover {
+            color: var(--primary-blue);
+            background: var(--light-blue);
+        }
+        
+        .view-tab.active {
+            color: var(--primary-blue);
+            border-bottom-color: var(--primary-blue);
+        }
+        
+        .view-content {
+            display: none;
+        }
+        
+        .view-content.active {
+            display: block;
+        }
+        
+        /* Boutons de filtre */
+        .filter-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background: var(--background-white);
+            border: 2px solid var(--secondary-blue);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--secondary-blue);
+            transition: all 0.2s ease;
+        }
+        
+        .filter-btn:hover {
+            background: var(--light-blue);
+        }
+        
+        .filter-btn.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+        
+        /* Tableaux */
+        .tasks-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: var(--spacing-md);
+        }
+        
+        .tasks-table th {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            font-weight: 600;
+            padding: var(--spacing-sm);
+            text-align: left;
+            border-bottom: 2px solid var(--primary-blue);
+        }
+        
+        .tasks-table td {
+            padding: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .tasks-table tr:hover {
+            background: var(--background-gray);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-on_time { background: #d4edda; color: #155724; }
+        .status-late { background: #f8d7da; color: #721c24; }
+        .status-not_started { background: #fff3cd; color: #856404; }
+        .status-completed { background: #d1ecf1; color: #0c5460; }
+        
+        /* Cartes de statistiques */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .stat-card {
+            background: var(--light-blue);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: var(--spacing-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+        
+        /* Histogramme */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: var(--spacing-lg) 0;
+        }
+        
+        /* Groupes de ressources */
+        .resource-group-card {
+            background: var(--background-gray);
+            border: 1px solid var(--border-gray);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .resource-group-card h3 {
+            color: var(--primary-blue);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #d32f2f;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            border: 1px solid #ffcdd2;
+            margin: var(--spacing-md) 0;
+            font-weight: 500;
+        }
+        
+        .file-name {
+            margin-top: var(--spacing-xs);
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            font-style: italic;
+        }
+        
+        .info-box {
+            background: var(--light-blue);
+            border-left: 4px solid var(--primary-blue);
+            padding: var(--spacing-sm);
+            margin: var(--spacing-md) 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dashboard Pontiva</h1>
+            <p>Import et analyse du fichier JSON généré depuis MS Project</p>
+        </header>
+
+        <!-- Section Upload -->
+        <div class="upload-section">
+            <h2>Import JSON Pontiva</h2>
+            <p>Importez le fichier JSON généré depuis MS Project pour afficher le dashboard.</p>
+            
+            <div class="file-input-wrapper">
+                <label for="json-file-input" class="file-input-label">
+                    📥 Importer le JSON Pontiva
+                </label>
+                <input 
+                    type="file" 
+                    id="json-file-input" 
+                    class="file-input" 
+                    accept="application/json,.json"
+                >
+                <div id="file-name" class="file-name"></div>
+            </div>
+            
+            <div id="error-container"></div>
+        </div>
+
+        <!-- Section Dashboard -->
+        <div id="dashboard-section" class="dashboard-section">
+            <h2>Dashboard du projet : <span id="project-name-header"></span></h2>
+            
+            <!-- Navigation par onglets -->
+            <div class="view-tabs">
+                <button class="view-tab active" data-view="ra">Responsable d'affaires</button>
+                <button class="view-tab" data-view="activites">Responsable d'activités</button>
+                <button class="view-tab" data-view="client">Vue Client</button>
+            </div>
+            
+            <!-- Vue Responsable d'affaires -->
+            <div id="view-ra" class="view-content active">
+                <h3>Suivi par activité</h3>
+                <!-- Boutons pour suivi mécanique/électrique (si données disponibles) -->
+                <div id="ra-suivi-buttons" class="filter-buttons" style="display: none;">
+                    <button class="filter-btn" data-suivi="mecanique">Suivi Avancement Mécanique</button>
+                    <button class="filter-btn" data-suivi="electrique">Suivi Avancement Électrique</button>
+                </div>
+                <!-- Filtres pour tâches (si données disponibles) -->
+                <div id="ra-filter-buttons" class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Toutes</button>
+                    <button class="filter-btn" data-filter="mecanique">Mécanique</button>
+                    <button class="filter-btn" data-filter="electrique">Électrique</button>
+                    <button class="filter-btn" data-filter="qualite">Qualité</button>
+                </div>
+                <div id="ra-tasks-container"></div>
+                <div id="ra-suivi-container"></div>
+            </div>
+            
+            <!-- Vue Responsable d'activités -->
+            <div id="view-activites" class="view-content">
+                <h3>Vue par groupe de ressources</h3>
+                <div id="activites-container"></div>
+            </div>
+            
+            <!-- Vue Client -->
+            <div id="view-client" class="view-content">
+                <h3>Vue synthétique</h3>
+                <div class="chart-container">
+                    <canvas id="progress-chart"></canvas>
+                </div>
+                <div id="client-next-tasks"></div>
+                <div id="client-starting-tasks"></div>
+                <div id="client-week-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // MODULE DE GESTION DES DONNÉES
+        // ============================================
+        
+        let projectData = null;
+        let chartInstance = null;
+        
+        /**
+         * Valide la structure du JSON Pontiva (tâches ou suivi)
+         */
+        function validatePontivaJSON(data) {
+            if (!data || typeof data !== 'object') {
+                return false;
+            }
+            if (!data.hasOwnProperty('version')) return false;
+            if (!data.hasOwnProperty('project_name')) return false;
+            
+            // Vérifier si c'est un JSON de suivi (mechanical/electrical)
+            if (data.hasOwnProperty('mechanical') || data.hasOwnProperty('electrical')) {
+                return true;
+            }
+            
+            // Sinon vérifier si c'est un JSON de tâches
+            if (data.hasOwnProperty('tasks')) {
+                if (!Array.isArray(data.tasks)) return false;
+                return true;
+            }
+            
+            return false;
+        }
+        
+        /**
+         * Détermine le type de JSON (suivi ou tâches)
+         */
+        function getJSONType(data) {
+            if (data.hasOwnProperty('mechanical') || data.hasOwnProperty('electrical')) {
+                return 'suivi';
+            }
+            if (data.hasOwnProperty('tasks')) {
+                return 'tasks';
+            }
+            return 'unknown';
+        }
+        
+        /**
+         * Détermine la catégorie d'une tâche (mecanique, electrique, qualite)
+         * Utilise les champs personnalisés ou le nom de la tâche
+         */
+        function getTaskCategory(task) {
+            // Chercher dans les champs personnalisés
+            if (task.custom_fields) {
+                // Chercher Text1, Text2, etc. pour une catégorie
+                for (let key in task.custom_fields) {
+                    const value = String(task.custom_fields[key]).toLowerCase();
+                    if (value.includes('mecanique') || value.includes('mécanique')) return 'mecanique';
+                    if (value.includes('electrique') || value.includes('électrique')) return 'electrique';
+                    if (value.includes('qualite') || value.includes('qualité')) return 'qualite';
+                }
+            }
+            
+            // Sinon, chercher dans le nom
+            const name = String(task.name || '').toLowerCase();
+            if (name.includes('mecanique') || name.includes('mécanique')) return 'mecanique';
+            if (name.includes('electrique') || name.includes('électrique')) return 'electrique';
+            if (name.includes('qualite') || name.includes('qualité')) return 'qualite';
+            
+            return 'other';
+        }
+        
+        /**
+         * Formate une date pour l'affichage
+         */
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('fr-FR');
+        }
+        
+        /**
+         * Affiche un message d'erreur
+         */
+        function showError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            document.getElementById('dashboard-section').classList.remove('active');
+        }
+        
+        function clearError() {
+            document.getElementById('error-container').innerHTML = '';
+        }
+        
+        // ============================================
+        // VUE RESPONSABLE D'AFFAIRES
+        // ============================================
+        
+        function renderRAView(filter = 'all', suiviType = null) {
+            const jsonType = getJSONType(projectData);
+            
+            // Si c'est un JSON de suivi, afficher les boutons de suivi
+            if (jsonType === 'suivi') {
+                document.getElementById('ra-suivi-buttons').style.display = 'flex';
+                document.getElementById('ra-filter-buttons').style.display = 'none';
+                
+                if (suiviType) {
+                    renderSuiviView(suiviType);
+                } else {
+                    // Afficher un message par défaut
+                    document.getElementById('ra-suivi-container').innerHTML = 
+                        '<div class="info-box">Sélectionnez un suivi : Mécanique ou Électrique</div>';
+                    document.getElementById('ra-tasks-container').innerHTML = '';
+                }
+                return;
+            }
+            
+            // Sinon, afficher les filtres de tâches
+            document.getElementById('ra-suivi-buttons').style.display = 'none';
+            document.getElementById('ra-filter-buttons').style.display = 'flex';
+            document.getElementById('ra-suivi-container').innerHTML = '';
+            
+            if (!projectData.tasks) {
+                document.getElementById('ra-tasks-container').innerHTML = 
+                    '<div class="info-box">Aucune donnée de tâches disponible.</div>';
+                return;
+            }
+            
+            const container = document.getElementById('ra-tasks-container');
+            const tasks = projectData.tasks;
+            
+            // Filtrer les tâches
+            let filteredTasks = tasks;
+            if (filter !== 'all') {
+                filteredTasks = tasks.filter(task => getTaskCategory(task) === filter);
+            }
+            
+            if (filteredTasks.length === 0) {
+                container.innerHTML = '<div class="info-box">Aucune tâche trouvée pour ce filtre.</div>';
+                return;
+            }
+            
+            // Créer le tableau
+            let html = '<table class="tasks-table">';
+            html += '<thead><tr>';
+            html += '<th>Nom de la tâche</th>';
+            html += '<th>% Achevé</th>';
+            html += '<th>Début</th>';
+            html += '<th>Fin prévue</th>';
+            html += '<th>Fin réelle</th>';
+            html += '<th>État</th>';
+            html += '</tr></thead><tbody>';
+            
+            filteredTasks.forEach(task => {
+                html += '<tr>';
+                html += `<td>${task.name || '-'}</td>`;
+                html += `<td>${task.percent_complete || 0}%</td>`;
+                html += `<td>${formatDate(task.start)}</td>`;
+                html += `<td>${formatDate(task.scheduled_finish)}</td>`;
+                html += `<td>${formatDate(task.actual_finish) || '-'}</td>`;
+                html += `<td><span class="status-badge status-${task.status || 'not_started'}">${getStatusLabel(task.status)}</span></td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        /**
+         * Affiche le suivi mécanique ou électrique
+         */
+        function renderSuiviView(type) {
+            const container = document.getElementById('ra-suivi-container');
+            const data = projectData[type === 'mecanique' ? 'mechanical' : 'electrical'];
+            
+            if (!data || !data.resources || data.resources.length === 0) {
+                container.innerHTML = `<div class="info-box">Aucune donnée disponible pour le suivi ${type === 'mecanique' ? 'Mécanique' : 'Électrique'}.</div>`;
+                return;
+            }
+            
+            // Récap global
+            let html = '<div class="info-box" style="margin-bottom: var(--spacing-lg);">';
+            html += `<h3>Récap global - ${type === 'mecanique' ? 'Mécanique' : 'Électrique'}</h3>`;
+            if (data.global) {
+                html += `<p><strong>Total prévu :</strong> ${data.global.total_planned_work_hours.toFixed(1)} h</p>`;
+                html += `<p><strong>Total réalisé :</strong> ${data.global.total_actual_work_hours.toFixed(1)} h</p>`;
+                html += `<p><strong>% d'avancement :</strong> ${data.global.progress_percent.toFixed(1)}%</p>`;
+            }
+            html += '</div>';
+            
+            // Tableau par ressource
+            html += '<h3 style="margin-top: var(--spacing-lg);">Détail par ressource</h3>';
+            html += '<table class="tasks-table">';
+            html += '<thead><tr>';
+            html += '<th>Ressource</th>';
+            html += '<th>Total prévu</th>';
+            html += '<th>Total réalisé</th>';
+            html += '<th>%</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.resources.forEach(resource => {
+                html += '<tr>';
+                html += `<td>${resource.name || '-'}</td>`;
+                html += `<td>${resource.total_planned_work_hours.toFixed(1)} h</td>`;
+                html += `<td>${resource.total_actual_work_hours.toFixed(1)} h</td>`;
+                html += `<td>${resource.progress_percent.toFixed(1)}%</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function getStatusLabel(status) {
+            const labels = {
+                'on_time': 'À l\'heure',
+                'late': 'En retard',
+                'not_started': 'À venir',
+                'completed': 'Terminé'
+            };
+            return labels[status] || status;
+        }
+        
+        // ============================================
+        // VUE RESPONSABLE D'ACTIVITÉS
+        // ============================================
+        
+        function renderActivitesView() {
+            const container = document.getElementById('activites-container');
+            const tasks = projectData.tasks;
+            
+            // Grouper par groupe de ressources
+            const groups = {};
+            
+            tasks.forEach(task => {
+                if (task.resources && task.resources.length > 0) {
+                    task.resources.forEach(resource => {
+                        const group = resource.group || 'Sans groupe';
+                        if (!groups[group]) {
+                            groups[group] = {
+                                name: group,
+                                tasks: [],
+                                totalActualHours: 0,
+                                totalRemainingHours: 0,
+                                totalPercentComplete: 0
+                            };
+                        }
+                        groups[group].tasks.push(task);
+                        groups[group].totalActualHours += resource.actual_work_hours || 0;
+                        groups[group].totalRemainingHours += resource.remaining_work_hours || 0;
+                    });
+                }
+            });
+            
+            if (Object.keys(groups).length === 0) {
+                container.innerHTML = '<div class="info-box">Aucune ressource avec groupe trouvée.</div>';
+                return;
+            }
+            
+            let html = '';
+            for (let groupName in groups) {
+                const group = groups[groupName];
+                const uniqueTasks = [...new Set(group.tasks.map(t => t.uid))];
+                const avgPercent = group.tasks.length > 0 
+                    ? group.tasks.reduce((sum, t) => sum + (t.percent_complete || 0), 0) / group.tasks.length 
+                    : 0;
+                
+                html += '<div class="resource-group-card">';
+                html += `<h3>${groupName}</h3>`;
+                html += `<p><strong>Nombre de tâches :</strong> ${uniqueTasks.length}</p>`;
+                html += `<p><strong>Heures réelles :</strong> ${group.totalActualHours.toFixed(1)} h</p>`;
+                html += `<p><strong>Heures restantes :</strong> ${group.totalRemainingHours.toFixed(1)} h</p>`;
+                html += `<p><strong>% moyen d'avancement :</strong> ${avgPercent.toFixed(1)}%</p>`;
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // ============================================
+        // VUE CLIENT
+        // ============================================
+        
+        function renderClientView() {
+            const jsonType = getJSONType(projectData);
+            
+            // Si c'est un JSON de suivi, utiliser les données mécanique/électrique
+            if (jsonType === 'suivi') {
+                const progressData = {
+                    mecanique: projectData.mechanical && projectData.mechanical.global 
+                        ? projectData.mechanical.global.progress_percent : 0,
+                    electrique: projectData.electrical && projectData.electrical.global 
+                        ? projectData.electrical.global.progress_percent : 0,
+                    qualite: 0 // Pas de données qualité dans le suivi
+                };
+                
+                renderProgressChart(progressData);
+                
+                // Afficher les récaps
+                let html = '<div class="info-box" style="margin-top: var(--spacing-lg);">';
+                html += '<h3>Récapitulatif global</h3>';
+                if (projectData.mechanical && projectData.mechanical.global) {
+                    html += `<p><strong>Mécanique :</strong> ${projectData.mechanical.global.progress_percent.toFixed(1)}% `;
+                    html += `(${projectData.mechanical.global.total_actual_work_hours.toFixed(1)} h / ${projectData.mechanical.global.total_planned_work_hours.toFixed(1)} h)</p>`;
+                }
+                if (projectData.electrical && projectData.electrical.global) {
+                    html += `<p><strong>Électrique :</strong> ${projectData.electrical.global.progress_percent.toFixed(1)}% `;
+                    html += `(${projectData.electrical.global.total_actual_work_hours.toFixed(1)} h / ${projectData.electrical.global.total_planned_work_hours.toFixed(1)} h)</p>`;
+                }
+                html += '</div>';
+                document.getElementById('client-next-tasks').innerHTML = html;
+                document.getElementById('client-starting-tasks').innerHTML = '';
+                document.getElementById('client-week-progress').innerHTML = '';
+                return;
+            }
+            
+            // Sinon, utiliser les données de tâches
+            if (!projectData.tasks) {
+                document.getElementById('client-next-tasks').innerHTML = 
+                    '<div class="info-box">Aucune donnée disponible.</div>';
+                return;
+            }
+            
+            const tasks = projectData.tasks;
+            
+            // Calculer les pourcentages par catégorie
+            const categories = {
+                mecanique: { total: 0, complete: 0 },
+                electrique: { total: 0, complete: 0 },
+                qualite: { total: 0, complete: 0 }
+            };
+            
+            tasks.forEach(task => {
+                const category = getTaskCategory(task);
+                if (categories[category]) {
+                    categories[category].total++;
+                    if (task.percent_complete === 100) {
+                        categories[category].complete++;
+                    }
+                }
+            });
+            
+            // Calculer les pourcentages
+            const progressData = {
+                mecanique: categories.mecanique.total > 0 
+                    ? (categories.mecanique.complete / categories.mecanique.total * 100) : 0,
+                electrique: categories.electrique.total > 0 
+                    ? (categories.electrique.complete / categories.electrique.total * 100) : 0,
+                qualite: categories.qualite.total > 0 
+                    ? (categories.qualite.complete / categories.qualite.total * 100) : 0
+            };
+            
+            // Afficher l'histogramme
+            renderProgressChart(progressData);
+            
+            // 3 prochaines tâches qui seront finies
+            const nextFinishing = tasks
+                .filter(t => t.status !== 'completed' && t.scheduled_finish)
+                .sort((a, b) => new Date(a.scheduled_finish) - new Date(b.scheduled_finish))
+                .slice(0, 3);
+            
+            let html = '<h3>3 prochaines tâches qui seront finies</h3>';
+            html += '<table class="tasks-table"><thead><tr><th>Nom</th><th>% Avancement</th><th>Date de fin prévue</th></tr></thead><tbody>';
+            nextFinishing.forEach(task => {
+                html += '<tr>';
+                html += `<td>${task.name}</td>`;
+                html += `<td>${task.percent_complete || 0}%</td>`;
+                html += `<td>${formatDate(task.scheduled_finish)}</td>`;
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('client-next-tasks').innerHTML = html;
+            
+            // 3 prochaines tâches qui vont démarrer
+            const nextStarting = tasks
+                .filter(t => t.status === 'not_started' && t.start)
+                .sort((a, b) => new Date(a.start) - new Date(b.start))
+                .slice(0, 3);
+            
+            html = '<h3 style="margin-top: var(--spacing-lg);">3 prochaines tâches qui vont démarrer</h3>';
+            html += '<table class="tasks-table"><thead><tr><th>Nom</th><th>Date de démarrage</th></tr></thead><tbody>';
+            nextStarting.forEach(task => {
+                html += '<tr>';
+                html += `<td>${task.name}</td>`;
+                html += `<td>${formatDate(task.start)}</td>`;
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('client-starting-tasks').innerHTML = html;
+            
+            // % d'avancement de la semaine
+            const thisWeek = getWeekTasks(tasks);
+            const weekProgress = thisWeek.length > 0 
+                ? (thisWeek.filter(t => t.percent_complete === 100).length / thisWeek.length * 100) 
+                : 0;
+            
+            html = '<div class="info-box" style="margin-top: var(--spacing-lg);">';
+            html += `<h3>Avancement de la semaine</h3>`;
+            html += `<p><strong>${weekProgress.toFixed(1)}%</strong> des tâches de la semaine sont terminées</p>`;
+            html += `<p>${thisWeek.filter(t => t.percent_complete === 100).length} tâche(s) terminée(s) sur ${thisWeek.length} tâche(s) de la semaine</p>`;
+            html += '</div>';
+            document.getElementById('client-week-progress').innerHTML = html;
+        }
+        
+        function renderProgressChart(data) {
+            const ctx = document.getElementById('progress-chart');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mécanique', 'Électrique', 'Qualité'],
+                    datasets: [{
+                        label: '% d\'avancement',
+                        data: [data.mecanique, data.electrique, data.qualite],
+                        backgroundColor: [
+                            'rgba(0, 63, 127, 0.7)',
+                            'rgba(0, 102, 204, 0.7)',
+                            'rgba(0, 150, 255, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(0, 63, 127, 1)',
+                            'rgba(0, 102, 204, 1)',
+                            'rgba(0, 150, 255, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        function getWeekTasks(tasks) {
+            const now = new Date();
+            const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+            const weekEnd = new Date(now.setDate(now.getDate() + 6));
+            
+            return tasks.filter(task => {
+                if (!task.actual_finish) return false;
+                const finishDate = new Date(task.actual_finish);
+                return finishDate >= weekStart && finishDate <= weekEnd;
+            });
+        }
+        
+        // ============================================
+        // GESTION DES ÉVÉNEMENTS
+        // ============================================
+        
+        function displayDashboard(data) {
+            clearError();
+            projectData = data;
+            
+            document.getElementById('project-name-header').textContent = data.project_name || 'Non défini';
+            document.getElementById('dashboard-section').classList.add('active');
+            
+            // Masquer la section d'upload une fois le fichier importé
+            document.querySelector('.upload-section').classList.add('hidden');
+            
+            // Masquer le header (titre et description) après l'upload
+            document.querySelector('header').style.display = 'none';
+            
+            // Afficher la vue par défaut selon le type de JSON
+            const jsonType = getJSONType(data);
+            if (jsonType === 'suivi') {
+                renderRAView('all', null);
+            } else {
+                renderRAView('all');
+            }
+        }
+        
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            
+            if (!file) return;
+            
+            document.getElementById('file-name').textContent = `Fichier sélectionné : ${file.name}`;
+            
+            if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
+                showError('Le fichier sélectionné n\'est pas un fichier JSON valide.');
+                return;
+            }
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    
+                    if (!validatePontivaJSON(jsonData)) {
+                        showError('Le fichier ne semble pas être un JSON Pontiva valide. Vérifiez qu\'il contient les champs : version, project_name, et tasks (tableau).');
+                        return;
+                    }
+                    
+                    displayDashboard(jsonData);
+                    
+                } catch (error) {
+                    console.error('Erreur lors du parsing JSON:', error);
+                    showError('Erreur lors de la lecture du fichier JSON. Vérifiez que le fichier est bien formaté et valide.');
+                }
+            };
+            
+            reader.onerror = function() {
+                showError('Erreur lors de la lecture du fichier. Veuillez réessayer.');
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // Gestion des onglets
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('json-file-input');
+            fileInput.addEventListener('change', handleFileUpload);
+            
+            // Navigation par onglets
+            document.querySelectorAll('.view-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const viewId = this.getAttribute('data-view');
+                    
+                    // Mettre à jour les onglets
+                    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Mettre à jour les vues
+                    document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+                    document.getElementById('view-' + viewId).classList.add('active');
+                    
+                    // Afficher la vue correspondante
+                    if (viewId === 'ra') {
+                        const jsonType = getJSONType(projectData);
+                        if (jsonType === 'suivi') {
+                            renderRAView('all', null);
+                        } else {
+                            renderRAView('all');
+                        }
+                    } else if (viewId === 'activites') {
+                        renderActivitesView();
+                    } else if (viewId === 'client') {
+                        renderClientView();
+                    }
+                });
+            });
+            
+            // Filtres pour la vue RA (tâches)
+            document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const filter = this.getAttribute('data-filter');
+                    renderRAView(filter);
+                });
+            });
+            
+            // Boutons de suivi mécanique/électrique
+            document.querySelectorAll('.filter-btn[data-suivi]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn[data-suivi]').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const suiviType = this.getAttribute('data-suivi');
+                    renderRAView('all', suiviType);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
