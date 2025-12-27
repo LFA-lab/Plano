@@ -45,11 +45,16 @@ Sub Import_Taches_Simples_AvecTitre()
     Set pjProj = pjApp.ActiveProject
 
     ' ==== LIBELLES DES CHAMPS TEXTE POUR L'IHM ====
+    ' Champs des tâches
     pjApp.CustomFieldRename pjCustomTaskText1, "Tranche"
     pjApp.CustomFieldRename pjCustomTaskText2, "Zone"
     pjApp.CustomFieldRename pjCustomTaskText3, "Sous-Zone"
     pjApp.CustomFieldRename pjCustomTaskText4, "Metier"
     pjApp.CustomFieldRename pjCustomTaskText5, "Entreprise"
+    
+    ' NOTE: Les champs d'assignments (Text1-Text5) ne peuvent pas être renommés via CustomFieldRename
+    ' Ils utiliseront les noms par défaut "Text1", "Text2", etc. dans l'interface
+    ' Mais les DONNÉES seront bien stockées dans Assignment.Text1 à Assignment.Text5
 
     ' ==== AJOUT DU TITRE DE PROJET (CELLULE A2) ====
     Dim tRoot As Task
@@ -169,7 +174,16 @@ Sub Import_Taches_Simples_AvecTitre()
                 Set a = t.Assignments.Add(ResourceID:=rMat.ID)
                 a.Units = CDbl(qte)
                 
+                ' Copie DIRECTE des tags (sans passer par fonction)
+                a.Text1 = tranche
+                a.Text2 = zone
+                a.Text3 = sousZone
+                a.Text4 = typ
+                a.Text5 = entreprise
+                
                 logStream.WriteLine "  -> QUANTITE: " & qte & " unités de matériau '" & nom & "'"
+                logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
+                logStream.WriteLine "     Vérif lecture: a.Text1=" & a.Text1 & " | a.Text2=" & a.Text2
             End If
 
             ' Qualité (J) : 3 cas
@@ -181,7 +195,15 @@ Sub Import_Taches_Simples_AvecTitre()
                 Set a = t.Assignments.Add(ResourceID:=rCQ.ID)
                 a.Units = 1 ' V0: 1 lot CQ par tâche, tu pourras raffiner
                 
+                ' Copie DIRECTE des tags
+                a.Text1 = tranche
+                a.Text2 = zone
+                a.Text3 = sousZone
+                a.Text4 = typ
+                a.Text5 = entreprise
+                
                 logStream.WriteLine "  -> QUALITE CQ ajoutée sur la tâche"
+                logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
 
             ElseIf qualite = "TACHE" Or qualite = "TÂCHE" Then
 
@@ -202,7 +224,15 @@ Sub Import_Taches_Simples_AvecTitre()
                 Set a = tCQ.Assignments.Add(ResourceID:=rCQ.ID)
                 a.Units = 1
                 
+                ' Copie DIRECTE des tags (depuis tCQ)
+                a.Text1 = tCQ.Text1  ' = tranche
+                a.Text2 = tCQ.Text2  ' = zone
+                a.Text3 = tCQ.Text3  ' = sousZone
+                a.Text4 = tCQ.Text4  ' = "CQ"
+                a.Text5 = tCQ.Text5  ' = entreprise
+                
                 logStream.WriteLine "  -> TACHE CQ créée: " & tCQ.Name
+                logStream.WriteLine "     Tags copiés: Tranche=" & tCQ.Text1 & " | Zone=" & tCQ.Text2 & " | Type=" & tCQ.Text4
             End If
             
             ' Travail (Monteurs) - EN DERNIER avec méthode qui fonctionne
@@ -228,8 +258,16 @@ Sub Import_Taches_Simples_AvecTitre()
                 ' ÉTAPE 3: FORCER le Work à nouveau après Units
                 a.Work = workMinutes
                 
+                ' ÉTAPE 4: Copie DIRECTE des tags
+                a.Text1 = tranche
+                a.Text2 = zone
+                a.Text3 = sousZone
+                a.Text4 = typ
+                a.Text5 = entreprise
+                
                 logStream.WriteLine "     Assignment.Units = " & a.Units
                 logStream.WriteLine "     Assignment.Work FINAL = " & a.Work & " minutes"
+                logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
                 logStream.WriteLine "     >> Vérification Task.Work = " & t.Work & " minutes"
             Else
                 logStream.WriteLine "  -> HEURES IGNORÉES: h = " & h & " | IsNumeric = " & IsNumeric(h) & " | h > 0 = " & (h > 0)
@@ -410,6 +448,32 @@ ContinueCheck:
 
 End Sub
 
+
+' ==== FONCTION HELPER: COPIE DES TAGS DE LA TACHE VERS L'ASSIGNMENT ====
+' Cette fonction copie automatiquement les champs Text1 à Text5 (tags métier)
+' de la tâche source vers l'assignment, permettant de filtrer les ressources
+' par Tranche/Zone/Sous-Zone/Type/Entreprise au niveau des affectations.
+Sub CopyTaskTagsToAssignment(ByVal tSource As Task, ByVal a As Assignment)
+    ' Tentative de copie SANS masquage d'erreur pour détecter le problème
+    On Error GoTo ErrHandler
+    
+    ' MS Project nécessite parfois un délai pour que l'assignment soit "prêt"
+    DoEvents
+    
+    ' Copie des champs texte
+    a.Text1 = tSource.Text1  ' Tranche
+    a.Text2 = tSource.Text2  ' Zone
+    a.Text3 = tSource.Text3  ' Sous-Zone
+    a.Text4 = tSource.Text4  ' Type/Métier
+    a.Text5 = tSource.Text5  ' Entreprise
+    
+    Exit Sub
+
+ErrHandler:
+    ' Si erreur, on continue mais on log dans Debug
+    Debug.Print "ERREUR CopyTaskTagsToAssignment: " & Err.Description & " (Tâche: " & tSource.Name & ")"
+    Resume Next
+End Sub
 
 Function GetOrCreateWorkResource(nom As String) As Resource
     Dim r As Resource
