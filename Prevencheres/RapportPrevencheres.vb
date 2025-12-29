@@ -41,6 +41,9 @@ Public Sub BuildWeeklyReport()
         Exit Sub
     End If
 
+    ' Générer fichier de traçabilité des données (pour validation)
+    ExportProjectDataTrace outFolder
+
     outPath = outFolder & "\Rapport_Hebdo_Prevencheres_" & GetReportDateTimeStamp() & ".docx"
 
     Set wdApp = WordAppCreate()
@@ -174,17 +177,15 @@ Private Function ExtractProgressData(ByVal groupBy As String, ByVal useTaskPerce
     ' Remplit zonesOut et metiersOut avec les valeurs uniques (Dictionaries)
     
     Dim data As Object
-    Dim workDict As Object
-    Dim actualWorkDict As Object
     Dim percentDict As Object
+    Dim percentWorkDict As Object
     Dim countDict As Object
     Dim t As Task
     Dim zone As String
     Dim metier As String
     Dim key As String
-    Dim workMinutes As Double
-    Dim actualWorkMinutes As Double
     Dim pctComplete As Double
+    Dim pctWorkComplete As Double
     Dim finalPercent As Double
     
     ' Compteurs logs
@@ -200,9 +201,8 @@ Private Function ExtractProgressData(ByVal groupBy As String, ByVal useTaskPerce
     Debug.Print "=== DEBUT ExtractProgressData (groupBy=" & groupBy & ", useTaskPercent=" & useTaskPercent & ") ==="
     
     Set data = CreateObject("Scripting.Dictionary")
-    Set workDict = CreateObject("Scripting.Dictionary")
-    Set actualWorkDict = CreateObject("Scripting.Dictionary")
     Set percentDict = CreateObject("Scripting.Dictionary")
+    Set percentWorkDict = CreateObject("Scripting.Dictionary")
     Set countDict = CreateObject("Scripting.Dictionary")
     Set zonesOut = CreateObject("Scripting.Dictionary")
     Set metiersOut = CreateObject("Scripting.Dictionary")
@@ -227,10 +227,9 @@ Private Function ExtractProgressData(ByVal groupBy As String, ByVal useTaskPerce
                 GoTo NextTask
             End If
             
-            ' Récupérer Work
+            ' Récupérer Work (juste pour filtrage)
             On Error Resume Next
-            workMinutes = t.Work
-            If Err.Number <> 0 Or workMinutes = 0 Then
+            If t.Work = 0 Then
                 On Error GoTo EH
                 ignoredNoWork = ignoredNoWork + 1
                 GoTo NextTask
@@ -261,29 +260,27 @@ Private Function ExtractProgressData(ByVal groupBy As String, ByVal useTaskPerce
             End If
             On Error GoTo EH
             
-            ' Récupérer ActualWork et PercentComplete
+            ' Récupérer PercentComplete et PercentWorkComplete
             On Error Resume Next
-            actualWorkMinutes = t.ActualWork
-            If Err.Number <> 0 Then actualWorkMinutes = 0
-            
             pctComplete = t.PercentComplete
             If Err.Number <> 0 Then pctComplete = 0
+            
+            pctWorkComplete = t.PercentWorkComplete
+            If Err.Number <> 0 Then pctWorkComplete = 0
             On Error GoTo EH
             
             ' Clé : "Zone|Métier"
             key = zone & "|" & metier
             
             ' Accumulation
-            If Not workDict.Exists(key) Then
-                workDict(key) = 0
-                actualWorkDict(key) = 0
+            If Not percentDict.Exists(key) Then
                 percentDict(key) = 0
+                percentWorkDict(key) = 0
                 countDict(key) = 0
             End If
             
-            workDict(key) = workDict(key) + workMinutes
-            actualWorkDict(key) = actualWorkDict(key) + actualWorkMinutes
             percentDict(key) = percentDict(key) + pctComplete
+            percentWorkDict(key) = percentWorkDict(key) + pctWorkComplete
             countDict(key) = countDict(key) + 1
             
             ' Enregistrer zone et métier uniques
@@ -291,7 +288,7 @@ Private Function ExtractProgressData(ByVal groupBy As String, ByVal useTaskPerce
             If Not metiersOut.Exists(metier) Then metiersOut(metier) = True
             
             processedTasks = processedTasks + 1
-            Debug.Print "  Tâche [" & t.Name & "] - Zone=" & zone & " | Métier=" & metier & " | Work=" & workMinutes & " | ActualWork=" & actualWorkMinutes & " | Pct=" & pctComplete
+            Debug.Print "  Tâche [" & t.Name & "] - Zone=" & zone & " | Métier=" & metier & " | PctComplete=" & pctComplete & " | PctWorkComplete=" & pctWorkComplete
         End If
         
 NextTask:
@@ -311,7 +308,7 @@ NextTask:
     ' Calcul final par clé
     Debug.Print "=== CALCUL FINAL PAR (ZONE|METIER) ==="
     Dim k As Variant
-    For Each k In workDict.Keys
+    For Each k In percentDict.Keys
         If useTaskPercent Then
             ' Moyenne des PercentComplete
             If countDict(k) > 0 Then
@@ -320,9 +317,9 @@ NextTask:
                 finalPercent = 0
             End If
         Else
-            ' (ActualWork / Work) * 100
-            If workDict(k) > 0 Then
-                finalPercent = (actualWorkDict(k) / workDict(k)) * 100
+            ' Moyenne des PercentWorkComplete (travail et consommables)
+            If countDict(k) > 0 Then
+                finalPercent = percentWorkDict(k) / countDict(k)
             Else
                 finalPercent = 0
             End If
@@ -676,21 +673,31 @@ End Sub
 
 Private Sub Section3_Qualite(ByVal doc As Object)
     ' Section 3 : Suivi des contrôles qualité
-    ' Génère un tableau récapitulatif et un graphique des CQ par zone et métier
+    ' Sépare les CQ sur tâches normales et les CQ dédiées
     
     On Error GoTo EH
     
     AddHeading doc, "3 : Suivi des contrôles qualité", 1
     AddBlankLine doc
     
-    ' 3.1 : Tableau récapitulatif
-    AddHeading doc, "3.1 : Tableau récapitulatif", 2
-    CreateQualityTable doc
+    ' 3.1 : Tableau CQ sur tâches normales (Text4 <> "CQ")
+    AddHeading doc, "3.1 : CQ sur tâches normales - Tableau récapitulatif", 2
+    CreateQualityTable doc, False  ' False = tâches normales
     AddBlankLine doc
     
-    ' 3.2 : Graphique d'avancement
-    AddHeading doc, "3.2 : Avancement des contrôles qualité par zone", 2
-    CreateQualityChart doc
+    ' 3.2 : Graphique CQ sur tâches normales
+    AddHeading doc, "3.2 : CQ sur tâches normales - Graphique d'avancement", 2
+    CreateQualityChart doc, False  ' False = tâches normales
+    AddBlankLine doc
+    
+    ' 3.3 : Tableau CQ dédiées (Text4 = "CQ")
+    AddHeading doc, "3.3 : CQ dédiées - Tableau récapitulatif", 2
+    CreateQualityTable doc, True  ' True = tâches CQ dédiées
+    AddBlankLine doc
+    
+    ' 3.4 : Graphique CQ dédiées
+    AddHeading doc, "3.4 : CQ dédiées - Graphique d'avancement", 2
+    CreateQualityChart doc, True  ' True = tâches CQ dédiées
     
     AddPageBreak doc
     Exit Sub
@@ -744,8 +751,9 @@ End Sub
 ' =========================
 ' HELPERS SECTION 3 - QUALITÉ (CONTRÔLES CQ)
 ' =========================
-Private Function ExtractQualityData(ByRef zonesOut As Object, ByRef metiersOut As Object) As Object
+Private Function ExtractQualityData(ByVal onlyDedicatedCQ As Boolean, ByRef zonesOut As Object, ByRef metiersOut As Object) As Object
     ' Extrait les données CQ depuis MS Project (tâches avec assignation ressource "CQ")
+    ' onlyDedicatedCQ: True = seulement CQ dédiées (Text4="CQ"), False = seulement CQ sur tâches normales (Text4<>"CQ")
     ' Retourne un Dictionary avec clés "Zone|Métier" -> { total, completed, avgPercent }
     ' Remplit zonesOut et metiersOut avec les valeurs uniques (Dictionaries)
     
@@ -758,6 +766,7 @@ Private Function ExtractQualityData(ByRef zonesOut As Object, ByRef metiersOut A
     Dim hasCQ As Boolean
     Dim zone As String
     Dim metier As String
+    Dim text4Val As String
     Dim key As String
     Dim pct As Double
     Dim cqNormales As Long
@@ -768,7 +777,7 @@ Private Function ExtractQualityData(ByRef zonesOut As Object, ByRef metiersOut A
     
     On Error GoTo EH
     
-    Debug.Print "=== DEBUT ExtractQualityData ==="
+    Debug.Print "=== DEBUT ExtractQualityData (onlyDedicatedCQ=" & onlyDedicatedCQ & ") ==="
     
     Set data = CreateObject("Scripting.Dictionary")
     Set totalCountDict = CreateObject("Scripting.Dictionary")
@@ -822,8 +831,33 @@ Private Function ExtractQualityData(ByRef zonesOut As Object, ByRef metiersOut A
             End If
             On Error GoTo EH
             
-            ' Récupérer Métier (dépend de Text4)
-            metier = GetQualityTaskMetier(t, cqNormales, cqDediees)
+            ' Récupérer Text4 pour déterminer le type de CQ
+            On Error Resume Next
+            text4Val = Trim(CStr(t.Text4))
+            If Err.Number <> 0 Then text4Val = ""
+            On Error GoTo EH
+            
+            ' Filtrer selon le type demandé
+            If onlyDedicatedCQ Then
+                ' On veut seulement les CQ dédiées (Text4 = "CQ")
+                If UCase(text4Val) <> "CQ" Then GoTo NextTaskCQ
+            Else
+                ' On veut seulement les CQ sur tâches normales (Text4 <> "CQ")
+                If UCase(text4Val) = "CQ" Or Len(text4Val) = 0 Then GoTo NextTaskCQ
+            End If
+            
+            ' Récupérer le métier
+            If onlyDedicatedCQ Then
+                ' CQ dédiée : chercher la tâche d'origine
+                metier = GetQualityTaskMetierFromOrigin(t)
+                If Len(metier) = 0 Then metier = "CQ"  ' Fallback
+                cqDediees = cqDediees + 1
+            Else
+                ' CQ sur tâche normale : utiliser Text4 directement
+                metier = text4Val
+                cqNormales = cqNormales + 1
+            End If
+            
             If Len(metier) = 0 Then GoTo NextTaskCQ
             
             ' Récupérer % Complete
@@ -859,8 +893,8 @@ NextTaskCQ:
     ' Logs récapitulatifs
     Debug.Print "=== RECAPITULATIF CQ ==="
     Debug.Print "Total tâches CQ: " & totalCQ
-    Debug.Print "  - CAS 1 (CQ sur tâche normale): " & cqNormales
-    Debug.Print "  - CAS 2 (tâche CQ dédiée): " & cqDediees
+    Debug.Print "  - CQ sur tâche normale (Text4<>'CQ'): " & cqNormales
+    Debug.Print "  - CQ dédiées (Text4='CQ'): " & cqDediees
     Debug.Print "Zones CQ: " & zonesOut.Count & " | Métiers CQ: " & metiersOut.Count
     
     ' Calcul final par clé
@@ -892,15 +926,59 @@ EH:
     Set ExtractQualityData = data
 End Function
 
-Private Function GetQualityTaskMetier(ByVal tCQ As Task, ByRef cqNormalesCount As Long, ByRef cqDedieesCount As Long) As String
-    ' Récupère le métier d'une tâche CQ
-    ' CAS 1 : Si Text4 <> "CQ", retourne Text4 directement (CQ sur tâche normale)
-    ' CAS 2 : Si Text4 = "CQ", cherche la tâche d'origine (tâche CQ dédiée)
+Private Function GetQualityTaskMetierFromOrigin(ByVal tCQ As Task) As String
+    ' Récupère le métier d'une tâche CQ dédiée en cherchant la tâche d'origine
+    ' Utilisé quand Text4 = "CQ"
     
     Dim metier As String
     Dim nomCQ As String
     Dim nomOrigine As String
     Dim tOrigine As Task
+    
+    On Error GoTo EH
+    
+    nomCQ = tCQ.Name
+    Debug.Print "  Tâche CQ dédiée [" & nomCQ & "] - Recherche tâche origine..."
+    
+    ' Vérifier si le nom commence par "Contrôle Qualité - "
+    If InStr(1, nomCQ, "Contrôle Qualité - ", vbTextCompare) = 1 Then
+        ' Extraire le nom après " - "
+        nomOrigine = Mid(nomCQ, Len("Contrôle Qualité - ") + 1)
+        
+        ' Chercher la tâche avec ce nom
+        For Each tOrigine In ActiveProject.Tasks
+            If Not tOrigine Is Nothing And Not tOrigine.Summary Then
+                On Error Resume Next
+                If Trim(tOrigine.Name) = nomOrigine Then
+                    metier = Trim(CStr(tOrigine.Text4))
+                    If Err.Number = 0 And Len(metier) > 0 And UCase(metier) <> "CQ" Then
+                        Debug.Print "    -> Tâche origine trouvée: [" & nomOrigine & "] avec Métier=" & metier
+                        GetQualityTaskMetierFromOrigin = metier
+                        Exit Function
+                    End If
+                End If
+                On Error GoTo EH
+            End If
+        Next tOrigine
+    End If
+    
+    ' Si pas trouvé, retourner chaîne vide
+    Debug.Print "    -> Tâche origine NON trouvée"
+    GetQualityTaskMetierFromOrigin = ""
+    Exit Function
+    
+EH:
+    Debug.Print "ERREUR dans GetQualityTaskMetierFromOrigin: " & Err.Number & " - " & Err.Description
+    GetQualityTaskMetierFromOrigin = ""
+End Function
+
+Private Function GetQualityTaskMetier(ByVal tCQ As Task, ByRef cqNormalesCount As Long, ByRef cqDedieesCount As Long) As String
+    ' DEPRECATED - Garder pour compatibilité avec traçabilité
+    ' Récupère le métier d'une tâche CQ
+    ' CAS 1 : Si Text4 <> "CQ", retourne Text4 directement (CQ sur tâche normale)
+    ' CAS 2 : Si Text4 = "CQ", cherche la tâche d'origine (tâche CQ dédiée)
+    
+    Dim metier As String
     Dim text4Val As String
     
     On Error GoTo EH
@@ -921,35 +999,8 @@ Private Function GetQualityTaskMetier(ByVal tCQ As Task, ByRef cqNormalesCount A
     End If
     
     ' CAS 2 : Text4 = "CQ" => Tâche CQ dédiée
-    nomCQ = tCQ.Name
-    Debug.Print "  Tâche [" & nomCQ & "] - CAS 2 - Recherche tâche origine..."
-    
-    ' Vérifier si le nom commence par "Contrôle Qualité - "
-    If InStr(1, nomCQ, "Contrôle Qualité - ", vbTextCompare) = 1 Then
-        ' Extraire le nom après " - "
-        nomOrigine = Mid(nomCQ, Len("Contrôle Qualité - ") + 1)
-        
-        ' Chercher la tâche avec ce nom
-        For Each tOrigine In ActiveProject.Tasks
-            If Not tOrigine Is Nothing And Not tOrigine.Summary Then
-                On Error Resume Next
-                If Trim(tOrigine.Name) = nomOrigine Then
-                    metier = Trim(CStr(tOrigine.Text4))
-                    If Err.Number = 0 And Len(metier) > 0 Then
-                        Debug.Print "    -> Tâche origine trouvée: [" & nomOrigine & "] avec Métier=" & metier
-                        Exit For
-                    End If
-                End If
-                On Error GoTo EH
-            End If
-        Next tOrigine
-    End If
-    
-    ' Si pas trouvé, retourner "CQ" par défaut
-    If Len(metier) = 0 Then
-        metier = "CQ"
-        Debug.Print "    -> Tâche origine NON trouvée, utilisation métier par défaut: CQ"
-    End If
+    metier = GetQualityTaskMetierFromOrigin(tCQ)
+    If Len(metier) = 0 Then metier = "CQ"
     
     cqDedieesCount = cqDedieesCount + 1
     GetQualityTaskMetier = metier
@@ -960,8 +1011,9 @@ EH:
     GetQualityTaskMetier = "CQ"
 End Function
 
-Private Sub CreateQualityTable(ByVal doc As Object)
+Private Sub CreateQualityTable(ByVal doc As Object, ByVal onlyDedicatedCQ As Boolean)
     ' Crée un tableau Word récapitulatif des CQ par (Zone, Métier)
+    ' onlyDedicatedCQ: True = seulement CQ dédiées, False = seulement CQ sur tâches normales
     ' Colonnes : Zone | Métier | Nb Total | Nb Terminés | % Moyen
     
     Dim data As Object
@@ -983,10 +1035,10 @@ Private Sub CreateQualityTable(ByVal doc As Object)
     
     On Error GoTo EH
     
-    Debug.Print "=== DEBUT CreateQualityTable ==="
+    Debug.Print "=== DEBUT CreateQualityTable (onlyDedicatedCQ=" & onlyDedicatedCQ & ") ==="
     
     ' Extraire les données
-    Set data = ExtractQualityData(zones, metiers)
+    Set data = ExtractQualityData(onlyDedicatedCQ, zones, metiers)
     
     ' Vérifier qu'on a des données
     If data Is Nothing Or data.Count = 0 Then
@@ -1122,8 +1174,9 @@ EH:
     On Error GoTo 0
 End Sub
 
-Private Sub CreateQualityChart(ByVal doc As Object)
+Private Sub CreateQualityChart(ByVal doc As Object, ByVal onlyDedicatedCQ As Boolean)
     ' Crée un graphique en colonnes groupées des CQ par (Zone, Métier)
+    ' onlyDedicatedCQ: True = seulement CQ dédiées, False = seulement CQ sur tâches normales
     ' Réutilise AddMultiSeriesChart existante
     
     Dim dataRaw As Object
@@ -1136,10 +1189,10 @@ Private Sub CreateQualityChart(ByVal doc As Object)
     
     On Error GoTo EH
     
-    Debug.Print "=== DEBUT CreateQualityChart ==="
+    Debug.Print "=== DEBUT CreateQualityChart (onlyDedicatedCQ=" & onlyDedicatedCQ & ") ==="
     
     ' Extraire les données
-    Set dataRaw = ExtractQualityData(zones, metiers)
+    Set dataRaw = ExtractQualityData(onlyDedicatedCQ, zones, metiers)
     
     ' Vérifier qu'on a des données
     If dataRaw Is Nothing Or dataRaw.Count = 0 Then
@@ -1322,4 +1375,480 @@ End Function
 Private Function GetPath_CRReunionTemplate() As String
     GetPath_CRReunionTemplate = ExpandEnv("%USERPROFILE%") & BASE_PROJECT_PATH & "\B - CR REUNION\00 - Template"
 End Function
+
+' =============================================================================
+' SECTION TRAÇABILITÉ - Export données MS Project pour validation
+' =============================================================================
+' Cette section génère un fichier .txt détaillé qui permet de tracer l'origine
+' de chaque donnée affichée dans les graphiques/tableaux du rapport Word.
+' 
+' Point d'entrée : ExportProjectDataTrace(outFolder)
+' Appelé automatiquement depuis BuildWeeklyReport()
+' 
+' Fonctions incluses :
+' - ExportProjectDataTrace : orchestrateur principal
+' - TraceExportRawTaskList : liste brute de toutes les tâches
+' - TraceExportProgressDetails : détail des calculs Section 2 (avancement)
+' - TraceExportQualityDetails : détail des calculs Section 3 (CQ)
+' =============================================================================
+
+' =========================
+' TRAÇABILITÉ - ORCHESTRATEUR PRINCIPAL
+' =========================
+Private Sub ExportProjectDataTrace(ByVal outFolder As String)
+    ' Génère un fichier .txt contenant :
+    ' - Liste brute de toutes les tâches MS Project
+    ' - Détail des calculs pour chaque graphique Section 2 (4 graphiques)
+    ' - Détail des calculs pour Section 3 (Contrôles Qualité)
+    
+    Dim txtPath As String
+    Dim fso As Object
+    Dim txtFile As Object
+    
+    On Error GoTo EH
+    
+    txtPath = outFolder & "\Rapport_Data_Trace_" & GetReportDateTimeStamp() & ".txt"
+    
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    Set txtFile = fso.CreateTextFile(txtPath, True)
+    
+    ' En-tête du fichier
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine "TRAÇABILITÉ DES DONNÉES - MS PROJECT → RAPPORT PREVENCHERES"
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine "Date génération : " & Now
+    txtFile.WriteLine "Projet MS Project : " & ActiveProject.Name
+    txtFile.WriteLine "Nombre total de tâches : " & ActiveProject.Tasks.Count
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine ""
+    txtFile.WriteLine ""
+    
+    ' PARTIE 1 : Liste brute de toutes les tâches
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine "PARTIE 1 : LISTE BRUTE DE TOUTES LES TÂCHES"
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine ""
+    TraceExportRawTaskList txtFile
+    txtFile.WriteLine ""
+    txtFile.WriteLine ""
+    
+    ' PARTIE 2 : Section 2 - Graphique 2.1 (Zone × Métier, % tâches)
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine "PARTIE 2 : SECTION 2 - GRAPHIQUE 2.1"
+    txtFile.WriteLine "Avancement par Zone et Métier (% tâches)"
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine ""
+    TraceExportProgressDetails txtFile, "Zone", True
+    txtFile.WriteLine ""
+    txtFile.WriteLine ""
+    
+    ' PARTIE 3 : Section 2 - Graphique 2.2 (Zone × Métier, % ressources)
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine "PARTIE 3 : SECTION 2 - GRAPHIQUE 2.2"
+    txtFile.WriteLine "Avancement par Zone et Métier (% ressources)"
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine ""
+    TraceExportProgressDetails txtFile, "Zone", False
+    txtFile.WriteLine ""
+    txtFile.WriteLine ""
+    
+    ' PARTIE 4 : Section 2 - Graphique 2.3 (SousZone × Métier, % tâches)
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine "PARTIE 4 : SECTION 2 - GRAPHIQUE 2.3"
+    txtFile.WriteLine "Avancement par Sous-Zone et Métier (% tâches)"
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine ""
+    TraceExportProgressDetails txtFile, "SousZone", True
+    txtFile.WriteLine ""
+    txtFile.WriteLine ""
+    
+    ' PARTIE 5 : Section 2 - Graphique 2.4 (SousZone × Métier, % ressources)
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine "PARTIE 5 : SECTION 2 - GRAPHIQUE 2.4"
+    txtFile.WriteLine "Avancement par Sous-Zone et Métier (% ressources)"
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine ""
+    TraceExportProgressDetails txtFile, "SousZone", False
+    txtFile.WriteLine ""
+    txtFile.WriteLine ""
+    
+    ' PARTIE 6 : Section 3 - Contrôles Qualité sur tâches normales
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine "PARTIE 6A : SECTION 3 - CONTRÔLES QUALITÉ SUR TÂCHES NORMALES"
+    txtFile.WriteLine "CQ avec Text4 <> 'CQ'"
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine ""
+    TraceExportQualityDetails txtFile, False  ' False = CQ normales
+    txtFile.WriteLine ""
+    
+    ' PARTIE 7 : Section 3 - Contrôles Qualité dédiées
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine "PARTIE 6B : SECTION 3 - CONTRÔLES QUALITÉ DÉDIÉES"
+    txtFile.WriteLine "Tâches CQ avec Text4 = 'CQ'"
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine ""
+    TraceExportQualityDetails txtFile, True  ' True = CQ dédiées
+    txtFile.WriteLine ""
+    
+    ' Footer
+    txtFile.WriteLine ""
+    txtFile.WriteLine String(80, "=")
+    txtFile.WriteLine "FIN DU FICHIER DE TRAÇABILITÉ"
+    txtFile.WriteLine "Fichier : " & txtPath
+    txtFile.WriteLine String(80, "=")
+    
+    txtFile.Close
+    Set txtFile = Nothing
+    Set fso = Nothing
+    
+    Debug.Print "✓ Fichier de traçabilité créé : " & txtPath
+    
+    Exit Sub
+    
+EH:
+    Debug.Print "ERREUR ExportProjectDataTrace : " & Err.Number & " - " & Err.Description
+    On Error Resume Next
+    If Not txtFile Is Nothing Then txtFile.Close
+    On Error GoTo 0
+End Sub
+
+' =========================
+' TRAÇABILITÉ - LISTE BRUTE
+' =========================
+Private Sub TraceExportRawTaskList(ByRef txtFile As Object)
+    ' Exporte la liste brute de toutes les tâches avec leurs propriétés principales
+    ' Format : [ID] | Nom | Zone | SousZone | Métier | Work(h) | ActualWork(h) | %Complete | Ressources | Summary
+    
+    Dim t As Task
+    Dim a As Object
+    Dim resourcesList As String
+    Dim ligne As String
+    Dim taskCount As Long
+    
+    On Error Resume Next
+    
+    txtFile.WriteLine "Format des colonnes :"
+    txtFile.WriteLine "[ID] | Nom | Zone | SousZone | Métier | Work(h) | ActualWork(h) | %Complete | Ressources | Summary"
+    txtFile.WriteLine String(80, "-")
+    txtFile.WriteLine ""
+    
+    For Each t In ActiveProject.Tasks
+        If Not t Is Nothing Then
+            taskCount = taskCount + 1
+            
+            ' Récupérer les ressources affectées
+            resourcesList = ""
+            For Each a In t.Assignments
+                If Not a Is Nothing And Not a.Resource Is Nothing Then
+                    If Len(resourcesList) > 0 Then resourcesList = resourcesList & ", "
+                    resourcesList = resourcesList & a.Resource.Name
+                End If
+            Next a
+            If Len(resourcesList) = 0 Then resourcesList = "[Aucune]"
+            
+            ' Construire la ligne
+            ligne = "[" & t.ID & "] | "
+            ligne = ligne & t.Name & " | "
+            ligne = ligne & Trim(CStr(t.Text2)) & " | "
+            ligne = ligne & Trim(CStr(t.Text3)) & " | "
+            ligne = ligne & Trim(CStr(t.Text4)) & " | "
+            ligne = ligne & Format(t.Work / 60, "0.00") & " | "
+            ligne = ligne & Format(t.ActualWork / 60, "0.00") & " | "
+            ligne = ligne & Format(t.PercentComplete, "0.0") & "% | "
+            ligne = ligne & resourcesList & " | "
+            ligne = ligne & IIf(t.Summary, "OUI", "NON")
+            
+            txtFile.WriteLine ligne
+        End If
+    Next t
+    
+    txtFile.WriteLine ""
+    txtFile.WriteLine "Total tâches listées : " & taskCount
+    
+    On Error GoTo 0
+End Sub
+
+' =========================
+' TRAÇABILITÉ - DÉTAIL AVANCEMENT (SECTION 2)
+' =========================
+Private Sub TraceExportProgressDetails(ByRef txtFile As Object, ByVal groupBy As String, ByVal useTaskPercent As Boolean)
+    ' Exporte les détails de calcul pour un graphique d'avancement Section 2
+    ' Montre pour chaque combinaison (Zone|Métier) :
+    ' - Quelles tâches contribuent au calcul
+    ' - Le détail du calcul étape par étape
+    ' - Le résultat final qui apparaît dans le graphique
+    
+    Dim t As Task
+    Dim zone As String
+    Dim metier As String
+    Dim key As String
+    Dim tasksDict As Object  ' key -> Collection de lignes de tâches
+    Dim percentDict As Object
+    Dim percentWorkDict As Object
+    Dim countDict As Object
+    Dim finalPercent As Double
+    Dim k As Variant
+    Dim taskList As Collection
+    Dim taskInfo As Variant
+    Dim i As Long
+    
+    On Error Resume Next
+    
+    Set tasksDict = CreateObject("Scripting.Dictionary")
+    Set percentDict = CreateObject("Scripting.Dictionary")
+    Set percentWorkDict = CreateObject("Scripting.Dictionary")
+    Set countDict = CreateObject("Scripting.Dictionary")
+    
+    txtFile.WriteLine "Type de calcul : " & IIf(useTaskPercent, "Moyenne des % Achevé (PercentComplete)", "Moyenne des % Travail Achevé (PercentWorkComplete)")
+    txtFile.WriteLine "Groupement : " & groupBy & IIf(groupBy = "Zone", " (Text2)", " (Text3)")
+    txtFile.WriteLine ""
+    
+    ' Collecte des tâches par (Zone|Métier)
+    For Each t In ActiveProject.Tasks
+        If Not t Is Nothing And Not t.Summary Then
+            If t.Work > 0 Then
+                ' Récupérer Zone ou SousZone
+                If groupBy = "Zone" Then
+                    zone = Trim(CStr(t.Text2))
+                Else
+                    zone = Trim(CStr(t.Text3))
+                End If
+                
+                metier = Trim(CStr(t.Text4))
+                
+                If Len(zone) > 0 And Len(metier) > 0 Then
+                    key = zone & "|" & metier
+                    
+                    ' Créer la collection si nécessaire
+                    If Not tasksDict.Exists(key) Then
+                        Set tasksDict(key) = New Collection
+                        percentDict(key) = 0
+                        percentWorkDict(key) = 0
+                        countDict(key) = 0
+                    End If
+                    
+                    ' Ajouter les informations de la tâche
+                    taskInfo = "[" & t.ID & "] " & t.Name & " : " & _
+                               "% Achevé=" & Format(t.PercentComplete, "0.0") & "% | " & _
+                               "% Travail Achevé=" & Format(t.PercentWorkComplete, "0.0") & "%"
+                    
+                    tasksDict(key).Add taskInfo
+                    
+                    ' Accumuler
+                    percentDict(key) = percentDict(key) + t.PercentComplete
+                    percentWorkDict(key) = percentWorkDict(key) + t.PercentWorkComplete
+                    countDict(key) = countDict(key) + 1
+                End If
+            End If
+        End If
+    Next t
+    
+    ' Afficher les résultats par clé
+    If tasksDict.Count = 0 Then
+        txtFile.WriteLine "[Aucune donnée disponible pour ce graphique]"
+        txtFile.WriteLine ""
+        On Error GoTo 0
+        Exit Sub
+    End If
+    
+    For Each k In tasksDict.Keys
+        ' Calcul du résultat final
+        If useTaskPercent Then
+            If countDict(k) > 0 Then
+                finalPercent = percentDict(k) / countDict(k)
+            Else
+                finalPercent = 0
+            End If
+        Else
+            If countDict(k) > 0 Then
+                finalPercent = percentWorkDict(k) / countDict(k)
+            Else
+                finalPercent = 0
+            End If
+        End If
+        
+        ' Afficher le header
+        txtFile.WriteLine String(80, "-")
+        txtFile.WriteLine "📊 " & Replace(k, "|", " | ") & " => " & Format(finalPercent, "0.0") & "%"
+        txtFile.WriteLine "   Nombre de tâches : " & countDict(k)
+        txtFile.WriteLine "   Détail des tâches :"
+        
+        ' Lister les tâches
+        Set taskList = tasksDict(k)
+        i = 1
+        For Each taskInfo In taskList
+            If i = taskList.Count Then
+                txtFile.WriteLine "   └─ " & taskInfo
+            Else
+                txtFile.WriteLine "   ├─ " & taskInfo
+            End If
+            i = i + 1
+        Next
+        
+        ' Afficher le calcul
+        txtFile.WriteLine ""
+        If useTaskPercent Then
+            txtFile.WriteLine "   Calcul (moyenne % Achevé) :"
+            txtFile.WriteLine "   = " & Format(percentDict(k), "0.0") & " / " & countDict(k)
+            txtFile.WriteLine "   = " & Format(finalPercent, "0.0") & "%"
+        Else
+            txtFile.WriteLine "   Calcul (moyenne % Travail Achevé) :"
+            txtFile.WriteLine "   = " & Format(percentWorkDict(k), "0.0") & " / " & countDict(k)
+            txtFile.WriteLine "   = " & Format(finalPercent, "0.0") & "%"
+        End If
+        
+        txtFile.WriteLine ""
+    Next k
+    
+    txtFile.WriteLine ""
+    txtFile.WriteLine "Total combinaisons (Zone|Métier) : " & tasksDict.Count
+    
+    On Error GoTo 0
+End Sub
+
+' =========================
+' TRAÇABILITÉ - DÉTAIL CONTRÔLES QUALITÉ (SECTION 3)
+' =========================
+Private Sub TraceExportQualityDetails(ByRef txtFile As Object, ByVal onlyDedicatedCQ As Boolean)
+    ' Exporte les détails des contrôles qualité (tâches avec ressource CQ)
+    ' onlyDedicatedCQ: True = seulement CQ dédiées (Text4="CQ"), False = seulement CQ sur tâches normales
+    ' Montre pour chaque combinaison (Zone|Métier) :
+    ' - Quelles tâches CQ contribuent au calcul
+    ' - Le nombre total et le nombre terminé
+    ' - Le % moyen qui apparaît dans le tableau/graphique
+    
+    Dim t As Task
+    Dim a As Object
+    Dim hasCQ As Boolean
+    Dim zone As String
+    Dim metier As String
+    Dim text4Val As String
+    Dim key As String
+    Dim tasksDict As Object
+    Dim totalDict As Object
+    Dim completedDict As Object
+    Dim sumPercentDict As Object
+    Dim taskList As Collection
+    Dim taskInfo As Variant
+    Dim k As Variant
+    Dim avgPercent As Double
+    Dim i As Long
+    Dim cqCount As Long
+    
+    On Error Resume Next
+    
+    Set tasksDict = CreateObject("Scripting.Dictionary")
+    Set totalDict = CreateObject("Scripting.Dictionary")
+    Set completedDict = CreateObject("Scripting.Dictionary")
+    Set sumPercentDict = CreateObject("Scripting.Dictionary")
+    
+    txtFile.WriteLine "Filtre : Tâches avec ressource 'CQ' affectée"
+    If onlyDedicatedCQ Then
+        txtFile.WriteLine "Type : CQ DÉDIÉES (Text4 = 'CQ')"
+    Else
+        txtFile.WriteLine "Type : CQ SUR TÂCHES NORMALES (Text4 <> 'CQ')"
+    End If
+    txtFile.WriteLine ""
+    
+    ' Collecte des tâches CQ
+    For Each t In ActiveProject.Tasks
+        If Not t Is Nothing And Not t.Summary Then
+            ' Vérifier si ressource CQ affectée
+            hasCQ = False
+            For Each a In t.Assignments
+                If Not a Is Nothing And Not a.Resource Is Nothing Then
+                    If UCase(Trim(a.Resource.Name)) = "CQ" Then
+                        hasCQ = True
+                        Exit For
+                    End If
+                End If
+            Next a
+            
+            If hasCQ Then
+                zone = Trim(CStr(t.Text2))
+                text4Val = Trim(CStr(t.Text4))
+                
+                ' Filtrer selon le type demandé
+                If onlyDedicatedCQ Then
+                    ' On veut seulement les CQ dédiées (Text4 = "CQ")
+                    If UCase(text4Val) <> "CQ" Then GoTo NextCQTrace
+                    metier = GetQualityTaskMetierFromOrigin(t)
+                    If Len(metier) = 0 Then metier = "CQ"
+                Else
+                    ' On veut seulement les CQ sur tâches normales (Text4 <> "CQ")
+                    If UCase(text4Val) = "CQ" Or Len(text4Val) = 0 Then GoTo NextCQTrace
+                    metier = text4Val
+                End If
+                
+                If Len(zone) > 0 And Len(metier) > 0 Then
+                    key = zone & "|" & metier
+                    
+                    If Not tasksDict.Exists(key) Then
+                        Set tasksDict(key) = New Collection
+                        totalDict(key) = 0
+                        completedDict(key) = 0
+                        sumPercentDict(key) = 0
+                    End If
+                    
+                    taskInfo = "[" & t.ID & "] " & t.Name & " : " & Format(t.PercentComplete, "0.0") & "%"
+                    If t.PercentComplete = 100 Then taskInfo = taskInfo & " ✓"
+                    
+                    tasksDict(key).Add taskInfo
+                    
+                    totalDict(key) = totalDict(key) + 1
+                    If t.PercentComplete = 100 Then completedDict(key) = completedDict(key) + 1
+                    sumPercentDict(key) = sumPercentDict(key) + t.PercentComplete
+                    
+                    cqCount = cqCount + 1
+                End If
+            End If
+NextCQTrace:
+        End If
+    Next t
+    
+    ' Afficher les résultats
+    If tasksDict.Count = 0 Then
+        txtFile.WriteLine "[Aucune tâche CQ de ce type détectée]"
+        txtFile.WriteLine ""
+        On Error GoTo 0
+        Exit Sub
+    End If
+    
+    txtFile.WriteLine "Nombre total de tâches CQ : " & cqCount
+    txtFile.WriteLine ""
+    
+    For Each k In tasksDict.Keys
+        avgPercent = 0
+        If totalDict(k) > 0 Then avgPercent = sumPercentDict(k) / totalDict(k)
+        
+        txtFile.WriteLine String(80, "-")
+        txtFile.WriteLine "📊 " & Replace(k, "|", " | ")
+        txtFile.WriteLine "   Nb CQ Total : " & totalDict(k)
+        txtFile.WriteLine "   Nb CQ Terminés (100%) : " & completedDict(k)
+        txtFile.WriteLine "   % Complet Moyen : " & Format(avgPercent, "0.0") & "%"
+        txtFile.WriteLine "   Détail des tâches CQ :"
+        
+        Set taskList = tasksDict(k)
+        i = 1
+        For Each taskInfo In taskList
+            If i = taskList.Count Then
+                txtFile.WriteLine "   └─ " & taskInfo
+            Else
+                txtFile.WriteLine "   ├─ " & taskInfo
+            End If
+            i = i + 1
+        Next
+        
+        txtFile.WriteLine ""
+        txtFile.WriteLine "   Calcul (% moyen) :"
+        txtFile.WriteLine "   = " & Format(sumPercentDict(k), "0.0") & " / " & totalDict(k)
+        txtFile.WriteLine "   = " & Format(avgPercent, "0.0") & "%"
+        txtFile.WriteLine ""
+    Next k
+    
+    txtFile.WriteLine ""
+    txtFile.WriteLine "Total combinaisons (Zone|Métier) avec CQ : " & tasksDict.Count
+    
+    On Error GoTo 0
+End Sub
 
