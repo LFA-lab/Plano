@@ -675,24 +675,28 @@ EH:
 End Sub
 
 Private Sub Section3_Qualite(ByVal doc As Object)
-    Dim col As Collection, i As Long
-
+    ' Section 3 : Suivi des contrôles qualité
+    ' Génère un tableau récapitulatif et un graphique des CQ par zone et métier
+    
+    On Error GoTo EH
+    
     AddHeading doc, "3 : Suivi des contrôles qualité", 1
-    AddParagraph doc, "Extract depuis Teepee ou MS ? ==> Taches dans MS", WD_ALIGN_LEFT
-    AddParagraph doc, "BI Teepee: pas pour le moment", WD_ALIGN_LEFT
     AddBlankLine doc
-
-    Set col = GetQualityTasks()
-
-    If col.Count = 0 Then
-        AddParagraph doc, "Aucune tâche qualité détectée (filtre actuel: 'qualit' ou 'QC').", WD_ALIGN_LEFT
-    Else
-        AddParagraph doc, "Tâches qualité détectées: " & col.Count, WD_ALIGN_LEFT
-        For i = 1 To col.Count
-            AddParagraph doc, "• " & col(i).Name, WD_ALIGN_LEFT
-        Next i
-    End If
-
+    
+    ' 3.1 : Tableau récapitulatif
+    AddHeading doc, "3.1 : Tableau récapitulatif", 2
+    CreateQualityTable doc
+    AddBlankLine doc
+    
+    ' 3.2 : Graphique d'avancement
+    AddHeading doc, "3.2 : Avancement des contrôles qualité par zone", 2
+    CreateQualityChart doc
+    
+    AddPageBreak doc
+    Exit Sub
+    
+EH:
+    AddParagraph doc, "[Erreur Section 3: " & Err.Number & " - " & Err.Description & "]", WD_ALIGN_LEFT
     AddPageBreak doc
 End Sub
 
@@ -738,33 +742,439 @@ Private Sub Section8_Divers(ByVal doc As Object)
 End Sub
 
 ' =========================
-' PROJECT DATA (MS Project)
+' HELPERS SECTION 3 - QUALITÉ (CONTRÔLES CQ)
 ' =========================
-Private Function GetQualityTasks() As Collection
-    Dim col As New Collection
+Private Function ExtractQualityData(ByRef zonesOut As Object, ByRef metiersOut As Object) As Object
+    ' Extrait les données CQ depuis MS Project (tâches avec assignation ressource "CQ")
+    ' Retourne un Dictionary avec clés "Zone|Métier" -> { total, completed, avgPercent }
+    ' Remplit zonesOut et metiersOut avec les valeurs uniques (Dictionaries)
+    
+    Dim data As Object
+    Dim totalCountDict As Object
+    Dim completedCountDict As Object
+    Dim sumPercentDict As Object
     Dim t As Task
-
+    Dim a As Object
+    Dim hasCQ As Boolean
+    Dim zone As String
+    Dim metier As String
+    Dim key As String
+    Dim pct As Double
+    Dim cqNormales As Long
+    Dim cqDediees As Long
+    Dim totalCQ As Long
+    Dim k As Variant
+    Dim dictItem As Object
+    
     On Error GoTo EH
-
+    
+    Debug.Print "=== DEBUT ExtractQualityData ==="
+    
+    Set data = CreateObject("Scripting.Dictionary")
+    Set totalCountDict = CreateObject("Scripting.Dictionary")
+    Set completedCountDict = CreateObject("Scripting.Dictionary")
+    Set sumPercentDict = CreateObject("Scripting.Dictionary")
+    Set zonesOut = CreateObject("Scripting.Dictionary")
+    Set metiersOut = CreateObject("Scripting.Dictionary")
+    
+    cqNormales = 0
+    cqDediees = 0
+    
+    ' Vérification ActiveProject
     If ActiveProject Is Nothing Then
-        Set GetQualityTasks = col
+        Debug.Print "ERREUR: ActiveProject est Nothing"
+        Set ExtractQualityData = data
         Exit Function
     End If
-
+    
+    Debug.Print "ActiveProject OK - Nombre de tâches: " & ActiveProject.Tasks.Count
+    
+    ' Parcours des tâches
     For Each t In ActiveProject.Tasks
         If Not t Is Nothing Then
-            If InStr(1, t.Name, "qualit", vbTextCompare) > 0 Or InStr(1, t.Name, "QC", vbTextCompare) > 0 Then
-                col.Add t
+            ' Ignorer les Summary tasks
+            If t.Summary Then GoTo NextTaskCQ
+            
+            ' Vérifier si la tâche a une affectation de ressource "CQ"
+            hasCQ = False
+            On Error Resume Next
+            For Each a In t.Assignments
+                If Not a Is Nothing Then
+                    If Not a.Resource Is Nothing Then
+                        If UCase(Trim(a.Resource.Name)) = "CQ" Then
+                            hasCQ = True
+                            Exit For
+                        End If
+                    End If
+                End If
+            Next a
+            On Error GoTo EH
+            
+            ' Si pas de ressource CQ, ignorer cette tâche
+            If Not hasCQ Then GoTo NextTaskCQ
+            
+            ' Récupérer Zone (Text2)
+            On Error Resume Next
+            zone = Trim(CStr(t.Text2))
+            If Err.Number <> 0 Or Len(zone) = 0 Then
+                On Error GoTo EH
+                GoTo NextTaskCQ
             End If
+            On Error GoTo EH
+            
+            ' Récupérer Métier (dépend de Text4)
+            metier = GetQualityTaskMetier(t, cqNormales, cqDediees)
+            If Len(metier) = 0 Then GoTo NextTaskCQ
+            
+            ' Récupérer % Complete
+            On Error Resume Next
+            pct = t.PercentComplete
+            If Err.Number <> 0 Then pct = 0
+            On Error GoTo EH
+            
+            ' Clé : "Zone|Métier"
+            key = zone & "|" & metier
+            
+            ' Accumulation
+            If Not totalCountDict.Exists(key) Then
+                totalCountDict(key) = 0
+                completedCountDict(key) = 0
+                sumPercentDict(key) = 0
+            End If
+            
+            totalCountDict(key) = totalCountDict(key) + 1
+            If pct = 100 Then completedCountDict(key) = completedCountDict(key) + 1
+            sumPercentDict(key) = sumPercentDict(key) + pct
+            
+            ' Enregistrer zone et métier uniques
+            If Not zonesOut.Exists(zone) Then zonesOut(zone) = True
+            If Not metiersOut.Exists(metier) Then metiersOut(metier) = True
+            
+            totalCQ = totalCQ + 1
         End If
+        
+NextTaskCQ:
     Next t
-
-    Set GetQualityTasks = col
+    
+    ' Logs récapitulatifs
+    Debug.Print "=== RECAPITULATIF CQ ==="
+    Debug.Print "Total tâches CQ: " & totalCQ
+    Debug.Print "  - CAS 1 (CQ sur tâche normale): " & cqNormales
+    Debug.Print "  - CAS 2 (tâche CQ dédiée): " & cqDediees
+    Debug.Print "Zones CQ: " & zonesOut.Count & " | Métiers CQ: " & metiersOut.Count
+    
+    ' Calcul final par clé
+    Debug.Print "=== CALCUL FINAL ==="
+    For Each k In totalCountDict.Keys
+        Set dictItem = CreateObject("Scripting.Dictionary")
+        dictItem("total") = totalCountDict(k)
+        dictItem("completed") = completedCountDict(k)
+        
+        ' Moyenne des PercentComplete
+        If totalCountDict(k) > 0 Then
+            dictItem("avgPercent") = sumPercentDict(k) / totalCountDict(k)
+        Else
+            dictItem("avgPercent") = 0
+        End If
+        
+        Set data(k) = dictItem
+        
+        Debug.Print k & ": Total=" & dictItem("total") & ", Terminés=" & dictItem("completed") & ", Moy=" & Format(dictItem("avgPercent"), "0.0") & "%"
+    Next k
+    
+    Debug.Print "=== FIN ExtractQualityData ===" & vbCrLf
+    
+    Set ExtractQualityData = data
     Exit Function
-
+    
 EH:
-    Set GetQualityTasks = col
+    Debug.Print "ERREUR dans ExtractQualityData: " & Err.Number & " - " & Err.Description
+    Set ExtractQualityData = data
 End Function
+
+Private Function GetQualityTaskMetier(ByVal tCQ As Task, ByRef cqNormalesCount As Long, ByRef cqDedieesCount As Long) As String
+    ' Récupère le métier d'une tâche CQ
+    ' CAS 1 : Si Text4 <> "CQ", retourne Text4 directement (CQ sur tâche normale)
+    ' CAS 2 : Si Text4 = "CQ", cherche la tâche d'origine (tâche CQ dédiée)
+    
+    Dim metier As String
+    Dim nomCQ As String
+    Dim nomOrigine As String
+    Dim tOrigine As Task
+    Dim text4Val As String
+    
+    On Error GoTo EH
+    
+    ' Récupérer Text4 de la tâche CQ
+    On Error Resume Next
+    text4Val = Trim(CStr(tCQ.Text4))
+    If Err.Number <> 0 Then text4Val = ""
+    On Error GoTo EH
+    
+    ' CAS 1 : Text4 <> "CQ" => CQ sur tâche normale
+    If UCase(text4Val) <> "CQ" And Len(text4Val) > 0 Then
+        metier = text4Val
+        cqNormalesCount = cqNormalesCount + 1
+        Debug.Print "  Tâche [" & tCQ.Name & "] - CAS 1 - Zone=" & tCQ.Text2 & " | Métier=" & metier & " | Pct=" & tCQ.PercentComplete & "%"
+        GetQualityTaskMetier = metier
+        Exit Function
+    End If
+    
+    ' CAS 2 : Text4 = "CQ" => Tâche CQ dédiée
+    nomCQ = tCQ.Name
+    Debug.Print "  Tâche [" & nomCQ & "] - CAS 2 - Recherche tâche origine..."
+    
+    ' Vérifier si le nom commence par "Contrôle Qualité - "
+    If InStr(1, nomCQ, "Contrôle Qualité - ", vbTextCompare) = 1 Then
+        ' Extraire le nom après " - "
+        nomOrigine = Mid(nomCQ, Len("Contrôle Qualité - ") + 1)
+        
+        ' Chercher la tâche avec ce nom
+        For Each tOrigine In ActiveProject.Tasks
+            If Not tOrigine Is Nothing And Not tOrigine.Summary Then
+                On Error Resume Next
+                If Trim(tOrigine.Name) = nomOrigine Then
+                    metier = Trim(CStr(tOrigine.Text4))
+                    If Err.Number = 0 And Len(metier) > 0 Then
+                        Debug.Print "    -> Tâche origine trouvée: [" & nomOrigine & "] avec Métier=" & metier
+                        Exit For
+                    End If
+                End If
+                On Error GoTo EH
+            End If
+        Next tOrigine
+    End If
+    
+    ' Si pas trouvé, retourner "CQ" par défaut
+    If Len(metier) = 0 Then
+        metier = "CQ"
+        Debug.Print "    -> Tâche origine NON trouvée, utilisation métier par défaut: CQ"
+    End If
+    
+    cqDedieesCount = cqDedieesCount + 1
+    GetQualityTaskMetier = metier
+    Exit Function
+    
+EH:
+    Debug.Print "ERREUR dans GetQualityTaskMetier: " & Err.Number & " - " & Err.Description
+    GetQualityTaskMetier = "CQ"
+End Function
+
+Private Sub CreateQualityTable(ByVal doc As Object)
+    ' Crée un tableau Word récapitulatif des CQ par (Zone, Métier)
+    ' Colonnes : Zone | Métier | Nb Total | Nb Terminés | % Moyen
+    
+    Dim data As Object
+    Dim zones As Object
+    Dim metiers As Object
+    Dim tbl As Object
+    Dim rng As Object
+    Dim sortedKeys() As String
+    Dim numKeys As Long
+    Dim i As Long, j As Long
+    Dim key As Variant
+    Dim dictItem As Object
+    Dim zone As String
+    Dim metier As String
+    Dim nbTotal As Long
+    Dim nbCompleted As Long
+    Dim avgPercent As Double
+    Dim colorRGB As Long
+    
+    On Error GoTo EH
+    
+    Debug.Print "=== DEBUT CreateQualityTable ==="
+    
+    ' Extraire les données
+    Set data = ExtractQualityData(zones, metiers)
+    
+    ' Vérifier qu'on a des données
+    If data Is Nothing Or data.Count = 0 Then
+        AddParagraph doc, "[Aucune tâche CQ détectée]", WD_ALIGN_LEFT
+        Debug.Print "Aucune donnée CQ disponible"
+        Exit Sub
+    End If
+    
+    Debug.Print "Nombre de lignes à créer: " & data.Count
+    
+    ' Trier les clés par Zone puis Métier
+    numKeys = data.Count
+    ReDim sortedKeys(numKeys - 1)
+    i = 0
+    For Each key In data.Keys
+        sortedKeys(i) = CStr(key)
+        i = i + 1
+    Next key
+    
+    ' Tri simple (bubble sort)
+    Dim temp As String
+    For i = 0 To numKeys - 2
+        For j = i + 1 To numKeys - 1
+            If sortedKeys(i) > sortedKeys(j) Then
+                temp = sortedKeys(i)
+                sortedKeys(i) = sortedKeys(j)
+                sortedKeys(j) = temp
+            End If
+        Next j
+    Next i
+    
+    ' Positionner le curseur
+    Set rng = doc.Range(doc.Content.End - 1)
+    
+    ' Créer le tableau (nombre de lignes = données + 1 pour en-tête)
+    Set tbl = doc.Tables.Add(rng, numKeys + 1, 5)
+    
+    ' Style du tableau
+    On Error Resume Next
+    tbl.Style = "Grille du tableau moyenne 2"
+    tbl.AutoFitBehavior 2  ' wdAutoFitContent = 2
+    On Error GoTo EH
+    
+    ' En-têtes (ligne 1)
+    tbl.Cell(1, 1).Range.Text = "Zone"
+    tbl.Cell(1, 1).Range.Bold = True
+    tbl.Cell(1, 1).Shading.BackgroundPatternColor = RGB(200, 200, 200)
+    tbl.Cell(1, 1).Range.ParagraphFormat.alignment = WD_ALIGN_CENTER
+    
+    tbl.Cell(1, 2).Range.Text = "Métier"
+    tbl.Cell(1, 2).Range.Bold = True
+    tbl.Cell(1, 2).Shading.BackgroundPatternColor = RGB(200, 200, 200)
+    tbl.Cell(1, 2).Range.ParagraphFormat.alignment = WD_ALIGN_CENTER
+    
+    tbl.Cell(1, 3).Range.Text = "Nb CQ Total"
+    tbl.Cell(1, 3).Range.Bold = True
+    tbl.Cell(1, 3).Shading.BackgroundPatternColor = RGB(200, 200, 200)
+    tbl.Cell(1, 3).Range.ParagraphFormat.alignment = WD_ALIGN_CENTER
+    
+    tbl.Cell(1, 4).Range.Text = "Nb CQ Terminés"
+    tbl.Cell(1, 4).Range.Bold = True
+    tbl.Cell(1, 4).Shading.BackgroundPatternColor = RGB(200, 200, 200)
+    tbl.Cell(1, 4).Range.ParagraphFormat.alignment = WD_ALIGN_CENTER
+    
+    tbl.Cell(1, 5).Range.Text = "% Complet Moyen"
+    tbl.Cell(1, 5).Range.Bold = True
+    tbl.Cell(1, 5).Shading.BackgroundPatternColor = RGB(200, 200, 200)
+    tbl.Cell(1, 5).Range.ParagraphFormat.alignment = WD_ALIGN_CENTER
+    
+    Debug.Print "En-têtes créés"
+    
+    ' Remplir les données (lignes suivantes)
+    For i = 0 To numKeys - 1
+        key = sortedKeys(i)
+        Set dictItem = data(key)
+        
+        ' Extraire zone et métier de la clé "Zone|Métier"
+        zone = Left(key, InStr(1, key, "|") - 1)
+        metier = Mid(key, InStr(1, key, "|") + 1)
+        
+        nbTotal = dictItem("total")
+        nbCompleted = dictItem("completed")
+        avgPercent = dictItem("avgPercent")
+        
+        ' Colonne 1 : Zone (en gras)
+        tbl.Cell(i + 2, 1).Range.Text = zone
+        tbl.Cell(i + 2, 1).Range.Bold = True
+        tbl.Cell(i + 2, 1).Range.ParagraphFormat.alignment = WD_ALIGN_CENTER
+        
+        ' Colonne 2 : Métier
+        tbl.Cell(i + 2, 2).Range.Text = metier
+        tbl.Cell(i + 2, 2).Range.ParagraphFormat.alignment = WD_ALIGN_LEFT
+        
+        ' Colonne 3 : Nb Total (centré)
+        tbl.Cell(i + 2, 3).Range.Text = CStr(nbTotal)
+        tbl.Cell(i + 2, 3).Range.ParagraphFormat.alignment = WD_ALIGN_CENTER
+        
+        ' Colonne 4 : Nb Terminés (centré)
+        tbl.Cell(i + 2, 4).Range.Text = CStr(nbCompleted)
+        tbl.Cell(i + 2, 4).Range.ParagraphFormat.alignment = WD_ALIGN_CENTER
+        
+        ' Colonne 5 : % Moyen avec 1 décimale + symbole % + coloration
+        tbl.Cell(i + 2, 5).Range.Text = Format(avgPercent, "0.0") & "%"
+        tbl.Cell(i + 2, 5).Range.ParagraphFormat.alignment = WD_ALIGN_CENTER
+        
+        ' Coloration selon la valeur
+        On Error Resume Next
+        If avgPercent >= 80 Then
+            colorRGB = RGB(200, 255, 200)  ' Vert clair
+        ElseIf avgPercent >= 50 Then
+            colorRGB = RGB(255, 255, 200)  ' Jaune clair
+        Else
+            colorRGB = RGB(255, 200, 200)  ' Rouge clair
+        End If
+        tbl.Cell(i + 2, 5).Shading.BackgroundPatternColor = colorRGB
+        On Error GoTo EH
+        
+        Debug.Print "  Ligne " & (i + 2) & ": " & zone & " | " & metier & " | Total=" & nbTotal & " | Terminés=" & nbCompleted & " | Moy=" & Format(avgPercent, "0.0") & "%"
+    Next i
+    
+    ' Saut de ligne après le tableau
+    rng.InsertAfter vbCrLf
+    rng.Collapse WD_COLLAPSE_END
+    
+    Debug.Print "=== TABLEAU QUALITE CREE AVEC SUCCES ===" & vbCrLf
+    
+    Exit Sub
+    
+EH:
+    Debug.Print "ERREUR CreateQualityTable: " & Err.Number & " - " & Err.Description
+    On Error Resume Next
+    AddParagraph doc, "[Erreur création tableau CQ: " & Err.Description & "]", WD_ALIGN_LEFT
+    On Error GoTo 0
+End Sub
+
+Private Sub CreateQualityChart(ByVal doc As Object)
+    ' Crée un graphique en colonnes groupées des CQ par (Zone, Métier)
+    ' Réutilise AddMultiSeriesChart existante
+    
+    Dim dataRaw As Object
+    Dim dataChart As Object
+    Dim zones As Object
+    Dim metiers As Object
+    Dim k As Variant
+    Dim dictItem As Object
+    Dim avgPercent As Double
+    
+    On Error GoTo EH
+    
+    Debug.Print "=== DEBUT CreateQualityChart ==="
+    
+    ' Extraire les données
+    Set dataRaw = ExtractQualityData(zones, metiers)
+    
+    ' Vérifier qu'on a des données
+    If dataRaw Is Nothing Or dataRaw.Count = 0 Then
+        AddParagraph doc, "[Aucune donnée CQ disponible pour le graphique]", WD_ALIGN_LEFT
+        Debug.Print "Aucune donnée CQ pour graphique"
+        Exit Sub
+    End If
+    
+    ' Convertir le format de données : { "Zone|Métier": {total, completed, avgPercent} } -> { "Zone|Métier": avgPercent }
+    Set dataChart = CreateObject("Scripting.Dictionary")
+    For Each k In dataRaw.Keys
+        Set dictItem = dataRaw(k)
+        avgPercent = dictItem("avgPercent")
+        dataChart(k) = avgPercent
+    Next k
+    
+    Debug.Print "Données converties pour graphique: " & dataChart.Count & " entrées"
+    
+    ' Créer le graphique (ou tableau si échec)
+    AddMultiSeriesChart doc, dataChart, zones, metiers, "Avancement des contrôles qualité par zone et métier"
+    
+    Debug.Print "=== FIN CreateQualityChart ===" & vbCrLf
+    
+    Exit Sub
+    
+EH:
+    Debug.Print "ERREUR CreateQualityChart: " & Err.Number & " - " & Err.Description
+    On Error Resume Next
+    AddParagraph doc, "[Erreur création graphique CQ: " & Err.Description & "]", WD_ALIGN_LEFT
+    On Error GoTo 0
+End Sub
+
+' =========================
+' PROJECT DATA (MS Project)
+' =========================
 
 ' =========================
 ' WORD HELPERS (Late Binding)

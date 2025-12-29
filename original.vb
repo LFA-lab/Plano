@@ -121,14 +121,11 @@ Sub Import_Taches_Simples_AvecTitre()
         Dim nom As String, qte As Variant, pers As Variant, h As Variant
         Dim zone As String, sousZone As String, tranche As String, typ As String, entreprise As String
         Dim qualite As String
-        Dim dateDebutMonteurs As Date, dateFinMonteurs As Date
-        Dim hasMonteursAssignment As Boolean
 
         nom = Trim(CStr(xlSheet.Cells(i, 1).Value))
         qte = xlSheet.Cells(i, 2).Value
         pers = xlSheet.Cells(i, 3).Value
         h = xlSheet.Cells(i, 4).Value
-        hasMonteursAssignment = False
         
         ' LOG LIGNE COURANTE
         logStream.WriteLine "--- Ligne " & i & " ---"
@@ -167,83 +164,15 @@ Sub Import_Taches_Simples_AvecTitre()
             t.Text4 = typ
             t.Text5 = entreprise
 
-            ' ✅ DÉFINIR LE TRAVAIL DE LA TÂCHE EN PREMIER (avant les assignments)
-            ' Cela permet à MS Project de calculer correctement la durée
-            If IsNumeric(h) And h > 0 Then
-                Dim workMinutes As Long
-                workMinutes = CLng(CDbl(h) * 60)
-                t.Type = pjFixedWork
-                t.Work = workMinutes
-                logStream.WriteLine "  -> Travail de la tâche défini: " & workMinutes & " minutes (" & CDbl(h) & "h)"
-            End If
-
-            ' ✅ ORDRE CRITIQUE : d'abord TRAVAIL (pour calculer Duration), puis matériau et CQ
+            ' ORDRE CRITIQUE : d'abord matériau, puis qualité, PUIS travail en dernier
             
-            ' Travail (Monteurs) - EN PREMIER pour que MS Project calcule t.Duration correctement
-            If IsNumeric(h) And h > 0 Then
-                Dim nbPers As Long
-                nbPers = IIf(IsNumeric(pers) And pers > 0, CLng(pers), 1)
-                
-                logStream.WriteLine "  -> HEURES: h = " & h
-                logStream.WriteLine "     nbPers = " & nbPers
-                logStream.WriteLine "     workMinutes calculé = " & workMinutes
-
-                Set a = t.Assignments.Add(ResourceID:=rMonteurs.ID)
-                
-                ' ÉTAPE 1: Assigner Work EN PREMIER
-                a.Work = workMinutes
-                
-                ' ÉTAPE 2: Puis assigner Units
-                a.Units = nbPers ' 1=100%, 2=200%, 3=300% automatiquement
-                
-                ' ÉTAPE 3: FORCER le Work à nouveau après Units
-                a.Work = workMinutes
-                
-                ' ÉTAPE 4: Profil de travail régulier (répartition uniforme)
-                a.WorkContour = pjFlat
-                
-                ' ÉTAPE 5: Sauvegarder les dates de l'assignment Monteurs
-                dateDebutMonteurs = a.Start
-                dateFinMonteurs = a.Finish
-                hasMonteursAssignment = True
-                
-                ' ÉTAPE 6: Copie DIRECTE des tags
-                a.Text1 = tranche
-                a.Text2 = zone
-                a.Text3 = sousZone
-                a.Text4 = typ
-                a.Text5 = entreprise
-                
-                logStream.WriteLine "     Assignment.Units = " & a.Units
-                logStream.WriteLine "     Assignment.Work FINAL = " & a.Work & " minutes"
-                logStream.WriteLine "     Assignment Monteurs - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
-                logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
-            Else
-                logStream.WriteLine "  -> HEURES IGNORÉES: h = " & h & " | IsNumeric = " & IsNumeric(h) & " | h > 0 = " & (h > 0)
-            End If
-            
-            ' Quantité (matériau) - APRÈS le travail pour avoir la vraie durée
+            ' Quantité (matériau)
             If IsNumeric(qte) And qte > 0 Then
                 Dim rMat As Resource
                 Set rMat = GetOrCreateMaterialResource(nom)
 
                 Set a = t.Assignments.Add(ResourceID:=rMat.ID)
-                
-                Dim qteTotal As Double
-                qteTotal = CDbl(qte)  ' Valeur Excel conservée
-                
-                ' ✅ Injecter simplement la quantité
-                a.Units = qteTotal  ' La quantité Excel affichée dans MS Project
-                a.WorkContour = pjFlat  ' Répartition régulière sur la durée
-                
-                ' ✅ FORCER les dates pour correspondre aux Monteurs si présents
-                If hasMonteursAssignment Then
-                    a.Start = dateDebutMonteurs
-                    a.Finish = dateFinMonteurs
-                    logStream.WriteLine "  -> QUANTITE: " & qteTotal & " unités de matériau '" & nom & "' (dates synchronisées avec Monteurs)"
-                Else
-                    logStream.WriteLine "  -> QUANTITE: " & qteTotal & " unités de matériau '" & nom & "' (pas de Monteurs, dates par défaut)"
-                End If
+                a.Units = CDbl(qte)
                 
                 ' Copie DIRECTE des tags (sans passer par fonction)
                 a.Text1 = tranche
@@ -252,9 +181,9 @@ Sub Import_Taches_Simples_AvecTitre()
                 a.Text4 = typ
                 a.Text5 = entreprise
                 
+                logStream.WriteLine "  -> QUANTITE: " & qte & " unités de matériau '" & nom & "'"
                 logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
                 logStream.WriteLine "     Vérif lecture: a.Text1=" & a.Text1 & " | a.Text2=" & a.Text2
-                logStream.WriteLine "     Assignment Matériau - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
             End If
 
             ' Qualité (J) : 3 cas
@@ -264,17 +193,7 @@ Sub Import_Taches_Simples_AvecTitre()
             If qualite = "CQ" Then
 
                 Set a = t.Assignments.Add(ResourceID:=rCQ.ID)
-                a.Units = 1  ' 1 CQ affiché dans MS Project
-                a.WorkContour = pjFlat  ' Répartition régulière sur la durée
-                
-                ' ✅ FORCER les dates pour correspondre aux Monteurs si présents
-                If hasMonteursAssignment Then
-                    a.Start = dateDebutMonteurs
-                    a.Finish = dateFinMonteurs
-                    logStream.WriteLine "  -> QUALITE CQ ajoutée sur la tâche (dates synchronisées avec Monteurs)"
-                Else
-                    logStream.WriteLine "  -> QUALITE CQ ajoutée sur la tâche (pas de Monteurs, dates par défaut)"
-                End If
+                a.Units = 1 ' V0: 1 lot CQ par tâche, tu pourras raffiner
                 
                 ' Copie DIRECTE des tags
                 a.Text1 = tranche
@@ -283,8 +202,8 @@ Sub Import_Taches_Simples_AvecTitre()
                 a.Text4 = typ
                 a.Text5 = entreprise
                 
+                logStream.WriteLine "  -> QUALITE CQ ajoutée sur la tâche"
                 logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
-                logStream.WriteLine "     Assignment CQ - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
 
             ElseIf qualite = "TACHE" Or qualite = "TÂCHE" Then
 
@@ -303,17 +222,7 @@ Sub Import_Taches_Simples_AvecTitre()
 
                 ' Assigner la ressource CQ
                 Set a = tCQ.Assignments.Add(ResourceID:=rCQ.ID)
-                a.Units = 1  ' 1 CQ affiché dans MS Project
-                a.WorkContour = pjFlat  ' Répartition régulière sur la durée
-                
-                ' ✅ FORCER les dates de la tâche CQ pour correspondre aux Monteurs si présents
-                If hasMonteursAssignment Then
-                    tCQ.Start = dateDebutMonteurs
-                    tCQ.Finish = dateFinMonteurs
-                    logStream.WriteLine "  -> TACHE CQ créée: " & tCQ.Name & " (dates synchronisées avec Monteurs)"
-                Else
-                    logStream.WriteLine "  -> TACHE CQ créée: " & tCQ.Name & " (pas de Monteurs, dates par défaut)"
-                End If
+                a.Units = 1
                 
                 ' Copie DIRECTE des tags (depuis tCQ)
                 a.Text1 = tCQ.Text1  ' = tranche
@@ -322,9 +231,46 @@ Sub Import_Taches_Simples_AvecTitre()
                 a.Text4 = tCQ.Text4  ' = "CQ"
                 a.Text5 = tCQ.Text5  ' = entreprise
                 
+                logStream.WriteLine "  -> TACHE CQ créée: " & tCQ.Name
                 logStream.WriteLine "     Tags copiés: Tranche=" & tCQ.Text1 & " | Zone=" & tCQ.Text2 & " | Type=" & tCQ.Text4
-                logStream.WriteLine "     Tâche CQ - Début: " & Format(tCQ.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(tCQ.Finish, "dd/mm/yyyy hh:nn")
-                logStream.WriteLine "     Assignment CQ - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
+            End If
+            
+            ' Travail (Monteurs) - EN DERNIER avec méthode qui fonctionne
+            If IsNumeric(h) And h > 0 Then
+                Dim nbPers As Long
+                nbPers = IIf(IsNumeric(pers) And pers > 0, CLng(pers), 1)
+                
+                Dim workMinutes As Long
+                workMinutes = CLng(CDbl(h) * 60)
+                
+                logStream.WriteLine "  -> HEURES: h = " & h
+                logStream.WriteLine "     nbPers = " & nbPers
+                logStream.WriteLine "     workMinutes calculé = " & workMinutes
+
+                Set a = t.Assignments.Add(ResourceID:=rMonteurs.ID)
+                
+                ' ÉTAPE 1: Assigner Work EN PREMIER
+                a.Work = workMinutes
+                
+                ' ÉTAPE 2: Puis assigner Units
+                a.Units = nbPers ' 1=100%, 2=200%, 3=300% automatiquement
+                
+                ' ÉTAPE 3: FORCER le Work à nouveau après Units
+                a.Work = workMinutes
+                
+                ' ÉTAPE 4: Copie DIRECTE des tags
+                a.Text1 = tranche
+                a.Text2 = zone
+                a.Text3 = sousZone
+                a.Text4 = typ
+                a.Text5 = entreprise
+                
+                logStream.WriteLine "     Assignment.Units = " & a.Units
+                logStream.WriteLine "     Assignment.Work FINAL = " & a.Work & " minutes"
+                logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
+                logStream.WriteLine "     >> Vérification Task.Work = " & t.Work & " minutes"
+            Else
+                logStream.WriteLine "  -> HEURES IGNORÉES: h = " & h & " | IsNumeric = " & IsNumeric(h) & " | h > 0 = " & (h > 0)
             End If
         Else
             logStream.WriteLine "  -> Ligne ignorée (nom vide)"
@@ -333,10 +279,94 @@ Sub Import_Taches_Simples_AvecTitre()
         logStream.WriteLine ""
     Next i
 
-    ' ==== VÉRIFICATION FINALE ====
-    ' Le travail est déjà défini correctement sur les tâches et assignments
-    ' Cette section vérifie simplement que tout correspond
+    ' ==== FORCAGE FINAL DU WORK (CRITIQUE!) ====
+    ' MS Project peut recalculer le Work après l'import, donc on le force à nouveau
     logStream.WriteLine ""
+    logStream.WriteLine "===== FORCAGE FINAL DU WORK ====="
+    
+    ' Reparcourir toutes les lignes et forcer le Work
+    For i = 3 To lastRow
+        Dim nomForce As String
+        nomForce = Trim(CStr(xlSheet.Cells(i, 1).Value))
+        If nomForce = "" Then GoTo ContinueForce
+        
+        Dim qteForce As Variant, persForce As Variant, hForce As Variant
+        qteForce = xlSheet.Cells(i, 2).Value
+        persForce = xlSheet.Cells(i, 3).Value
+        hForce = xlSheet.Cells(i, 4).Value
+        
+        ' Ignorer les récaps
+        Dim isRecapForce As Boolean
+        isRecapForce = (Trim(CStr(qteForce)) = "") And (Trim(CStr(persForce)) = "") And (Trim(CStr(hForce)) = "")
+        If isRecapForce Then GoTo ContinueForce
+        
+        ' Lire les heures
+        Dim hoursForce As Double
+        hoursForce = 0#
+        If IsNumeric(hForce) Then hoursForce = CDbl(hForce)
+        If hoursForce <= 0# Then GoTo ContinueForce
+        
+        ' Trouver la tâche
+        Dim tForce As Task
+        Set tForce = Nothing
+        Dim tAll As Task
+        For Each tAll In pjProj.Tasks
+            If Not tAll Is Nothing Then
+                If Trim(tAll.Name) = nomForce And Not tAll.Summary Then
+                    Set tForce = tAll
+                    Exit For
+                End If
+            End If
+        Next tAll
+        
+        ' Forcer le Work sur le premier assignment (Monteurs)
+        If Not tForce Is Nothing Then
+            On Error Resume Next
+            If tForce.Assignments.Count > 0 Then
+                Dim aForce As Assignment
+                ' Chercher l'assignment Monteurs (pas matériau/CQ)
+                Dim foundMonteurs As Boolean
+                foundMonteurs = False
+                Dim aTemp As Assignment
+                For Each aTemp In tForce.Assignments
+                    If Not aTemp Is Nothing Then
+                        If aTemp.Resource.Type = pjResourceTypeWork Then
+                            Set aForce = aTemp
+                            foundMonteurs = True
+                            Exit For
+                        End If
+                    End If
+                Next aTemp
+                
+                If foundMonteurs And Not aForce Is Nothing Then
+                    Dim workMinutesForce As Long
+                    workMinutesForce = CLng(hoursForce * 60#)
+                    
+                    Dim workBefore As Long
+                    workBefore = aForce.Work
+                    
+                    ' Forcer le Work
+                    tForce.Type = pjFixedWork
+                    aForce.Work = workMinutesForce
+                    
+                    Dim workAfter As Long
+                    workAfter = aForce.Work
+                    
+                    If workBefore <> workAfter Then
+                        logStream.WriteLine "Ligne " & i & " (" & nomForce & "): Work forcé de " & workBefore & " à " & workAfter & " minutes"
+                    End If
+                End If
+            End If
+            On Error GoTo 0
+        End If
+
+ContinueForce:
+    Next i
+    
+    logStream.WriteLine "===== FIN FORCAGE ====="
+    logStream.WriteLine ""
+    
+    ' ==== VERIFICATION FINALE ====
     logStream.WriteLine "===== VERIFICATION FINALE WORK ====="
     For i = 3 To lastRow
         Dim nomCheck As String
