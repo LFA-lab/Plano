@@ -22,7 +22,7 @@ Private Const MASTER_PROJECT_RELATIVE_PATH As String = "\VINCI Energies\GO-ENR S
 Private Const WD_COLLAPSE_END As Long = 0
 Private Const WD_PAGE_BREAK As Long = 7
 Private Const WD_ALIGN_LEFT As Long = 0
-Private Const WD_ALIGN_CENTER As Long = 1
+Private Const WD_ALIGN_CENTER As Long = 1kl56
 
 ' =========================
 ' PUBLIC ENTRY POINT
@@ -728,10 +728,35 @@ Private Sub Section6_MasterProject(ByVal doc As Object)
     AddHeading doc, "6 : MS Project maître", 1
     AddParagraph doc, "Total + zoom à 3 semaines", WD_ALIGN_LEFT
     AddBlankLine doc
+    
+    Dim mppPath As String
+    Dim imgPath As String
+    
+    mppPath = GetMasterProjectPath()
+    
+    ' Chemin vers l'image pré-exportée (via macro dédiée du fichier maître)
+    imgPath = ExpandEnv("%USERPROFILE%") & BASE_PROJECT_PATH & "\G - PLANNING\Gantt_Export_3Semaines.png"
+    
     AddParagraph doc, "Fichier maître:", WD_ALIGN_LEFT
-    AddParagraph doc, GetMasterProjectPath(), WD_ALIGN_LEFT
+    AddParagraph doc, mppPath, WD_ALIGN_LEFT
     AddBlankLine doc
-    AddParagraph doc, "[À brancher] Export image/PDF du Gantt et insertion", WD_ALIGN_LEFT
+    
+    AddParagraph doc, "Vue Gantt (3 semaines):", WD_ALIGN_LEFT
+    AddBlankLine doc
+    
+    ' Insertion de l'image pré-exportée
+    If Len(Dir(imgPath)) > 0 Then
+        AddImage doc, imgPath, 650
+        ' Afficher la date de dernière mise à jour
+        On Error Resume Next
+        AddParagraph doc, "[Dernière mise à jour: " & Format(FileDateTime(imgPath), "dd/mm/yyyy à hh:nn") & "]", WD_ALIGN_LEFT
+        On Error GoTo 0
+    Else
+        AddParagraph doc, "[Image du Gantt non trouvée]", WD_ALIGN_LEFT
+        AddParagraph doc, "Lancez la macro d'export depuis le fichier maître avant de générer le rapport.", WD_ALIGN_LEFT
+        AddParagraph doc, "Chemin attendu: " & imgPath, WD_ALIGN_LEFT
+    End If
+    
     AddPageBreak doc
 End Sub
 

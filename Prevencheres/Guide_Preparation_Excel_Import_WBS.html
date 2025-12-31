@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide de Préparation Excel - Import PREVENCHERES WBS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 1.4em;
+            margin: 20px 0 15px 0;
+        }
+        
+        .info-box {
+            background: #f0f4ff;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .warning-box {
+            background: #fff4e6;
+            border-left: 5px solid #ff9800;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .success-box {
+            background: #e8f5e9;
+            border-left: 5px solid #4caf50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        table tbody tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .example {
+            background: #fafafa;
+            border: 2px solid #e0e0e0;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .tree {
+            background: #263238;
+            color: #aed581;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        ul {
+            margin-left: 30px;
+            margin-top: 10px;
+        }
+        
+        li {
+            margin-bottom: 10px;
+            line-height: 1.8;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .badge-warning {
+            background: #ff9800;
+        }
+        
+        .badge-success {
+            background: #4caf50;
+        }
+        
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+        
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Guide de Préparation Excel</h1>
+            <p>Import PREVENCHERES avec Structure WBS (Work Breakdown Structure)</p>
+        </header>
+        
+        <div class="content">
+            
+            <!-- SECTION 1 : INTRODUCTION -->
+            <section id="introduction">
+                <h2>🎯 Introduction</h2>
+                <div class="info-box">
+                    <p><strong>Ce guide explique comment préparer votre fichier Excel</strong> pour qu'il soit correctement importé dans MS Project via la macro <code>Import_Prevencheres_WBS.vb</code>.</p>
+                    <p style="margin-top: 10px;">Cette macro crée automatiquement une structure hiérarchique (WBS) basée sur votre numérotation et vos données.</p>
+                </div>
+                
+                <h3>Qu'est-ce qui sera créé dans MS Project ?</h3>
+                <ul>
+                    <li><strong>Tâches</strong> : Toutes les lignes avec des données (Quantité/Personnes/Heures)</li>
+                    <li><strong>Titres/Groupes</strong> : Les lignes sans données qui structurent votre projet</li>
+                    <li><strong>Hiérarchie automatique</strong> : Basée sur votre numérotation WBS (1, 1.1, 1.1.1, etc.)</li>
+                    <li><strong>Ressources</strong> : Monteurs (travail) et matériaux (consommables)</li>
+                    <li><strong>Contrôles Qualité</strong> : Tâches CQ créées automatiquement selon vos besoins</li>
+                </ul>
+            </section>
+            
+            <!-- SECTION 2 : STRUCTURE DU FICHIER EXCEL -->
+            <section id="structure">
+                <h2>📋 Structure Obligatoire du Fichier Excel</h2>
+                
+                <h3><span class="step-number">1</span>Ligne 1 : En-têtes de colonnes</h3>
+                <p>La première ligne doit contenir les en-têtes (peu importe le texte, mais respectez l'ordre des colonnes).</p>
+                
+                <h3><span class="step-number">2</span>Ligne 2 : Titre du projet</h3>
+                <div class="warning-box">
+                    <strong>⚠️ Important :</strong> La cellule <strong>A2</strong> doit contenir le titre principal de votre projet (ex: "PREVENCHERES").<br>
+                    Ce sera la racine de toute votre structure.
+                </div>
+                
+                <h3><span class="step-number">3</span>Ligne 3 et suivantes : Vos données</h3>
+                <p>À partir de la ligne 3, vous saisissez vos tâches et titres de groupes.</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Colonne</th>
+                            <th>Nom du Champ</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Obligatoire</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>A</strong></td>
+                            <td>Nom</td>
+                            <td>Texte</td>
+                            <td>Nom de la tâche ou du groupe (avec numérotation WBS si applicable)</td>
+                            <td><span class="badge-success badge">OUI</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>B</strong></td>
+                            <td>Quantité</td>
+                            <td>Nombre</td>
+                            <td>Quantité de matériel (unités)</td>
+                            <td><span class="badge">Facultatif</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>C</strong></td>
+                            <td>Personnes</td>
+                            <td>Nombre</td>
+                            <td>Nombre de personnes affectées</td>
+                            <td><span class="badge">Facultatif</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>D</strong></td>
+                            <td>Heures</td>
+                            <td>Nombre</td>
+                            <td>Charge de travail en heures</td>
+                            <td><span class="badge">Facultatif</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>E</strong></td>
+                            <td>Zone</td>
+                            <td>Texte</td>
+                            <td>Zone géographique ou de travail</td>
+                            <td><span class="badge">Facultatif</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>F</strong></td>
+                            <td>Sous-Zone</td>
+                            <td>Texte</td>
+                            <td>Détail de la zone</td>
+                            <td><span class="badge">Facultatif</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>G</strong></td>
+                            <td>Tranche</td>
+                            <td>Texte</td>
+                            <td>Tranche de travaux</td>
+                            <td><span class="badge">Facultatif</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>H</strong></td>
+                            <td>Métier</td>
+                            <td>Texte</td>
+                            <td>Type de métier (ELEC, MECA, etc.)</td>
+                            <td><span class="badge">Facultatif</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>I</strong></td>
+                            <td>Entreprise</td>
+                            <td>Texte</td>
+                            <td>Nom de l'entreprise (OMX, OMEXOM, SST, etc.)</td>
+                            <td><span class="badge">Facultatif</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>J</strong></td>
+                            <td>Qualité</td>
+                            <td>Texte</td>
+                            <td>Type de contrôle : <code>CQ</code> ou <code>TACHE</code></td>
+                            <td><span class="badge">Facultatif</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>K</strong></td>
+                            <td>Niveau</td>
+                            <td>Texte</td>
+                            <td>Niveau technique ou d'importance</td>
+                            <td><span class="badge">Facultatif</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>L</strong></td>
+                            <td>Onduleur</td>
+                            <td>Texte</td>
+                            <td>Référence onduleur (OND1, OND2, etc.)</td>
+                            <td><span class="badge">Facultatif</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <!-- SECTION 3 : LOGIQUE DE DÉTECTION -->
+            <section id="detection">
+                <h2>🔍 Comment la Macro Distingue Tâche vs Titre ?</h2>
+                
+                <div class="success-box">
+                    <h3 style="margin-top: 0;">✅ Règle Simple</h3>
+                    <ul style="margin-bottom: 0;">
+                        <li><strong>TÂCHE</strong> : Au moins un des champs Quantité (B), Personnes (C) ou Heures (D) contient une valeur > 0</li>
+                        <li><strong>TITRE/GROUPE</strong> : Toutes les colonnes B, C, D sont vides ou = 0</li>
+                    </ul>
+                </div>
+                
+                <div class="example">
+                    <strong>Exemple de TITRE :</strong><br>
+                    A: "1 ELEC - ZONE 3A" | B: vide | C: vide | D: vide → Sera un GROUPE<br><br>
+                    
+                    <strong>Exemple de TÂCHE :</strong><br>
+                    A: "1.1.1 OND1" | B: 50 | C: 2 | D: 8 → Sera une TÂCHE avec 50 unités, 2 personnes, 8h
+                </div>
+            </section>
+            
+            <!-- SECTION 4 : HIÉRARCHIE WBS -->
+            <section id="hierarchie">
+                <h2>🌳 Hiérarchie et Numérotation WBS</h2>
+                
+                <h3>Principe de la Numérotation</h3>
+                <p>La macro détecte automatiquement le niveau hiérarchique en analysant la <strong>numérotation au début du nom</strong>.</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Format</th>
+                            <th>Nombre de Points</th>
+                            <th>Niveau MS Project</th>
+                            <th>Exemple</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Pas de numéro</td>
+                            <td>-</td>
+                            <td><strong>2</strong></td>
+                            <td>ZONE 3A (MECA)</td>
+                        </tr>
+                        <tr>
+                            <td>X</td>
+                            <td>0</td>
+                            <td><strong>2</strong></td>
+                            <td>1 ELEC - ZONE 3A</td>
+                        </tr>
+                        <tr>
+                            <td>X.X</td>
+                            <td>1</td>
+                            <td><strong>3</strong></td>
+                            <td>1.1 Pose chemins de câbles BT</td>
+                        </tr>
+                        <tr>
+                            <td>X.X.X</td>
+                            <td>2</td>
+                            <td><strong>4</strong></td>
+                            <td>1.1.1 OND1</td>
+                        </tr>
+                        <tr>
+                            <td>X.X.X.X</td>
+                            <td>3</td>
+                            <td><strong>5</strong></td>
+                            <td>1.1.1.1 Câblage interne</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="warning-box">
+                    <strong>⚠️ Règles importantes :</strong>
+                    <ul style="margin-bottom: 0;">
+                        <li>Le numéro WBS doit être <strong>au début du nom</strong>, suivi d'un espace</li>
+                        <li>Utilisez uniquement des <strong>chiffres et des points</strong> (ex: 1.2.3)</li>
+                        <li>Les tâches se placent automatiquement <strong>sous le dernier titre créé</strong></li>
+                        <li>Niveau 1 = racine du projet (ligne A2)</li>
+                    </ul>
+                </div>
+                
+                <h3>Exemple de Structure Complète</h3>
+                <div class="tree">
+PREVENCHERES (Niveau 1 - root)
+├─ ZONE 3A (MECA) (Niveau 2)
+│  ├─ Zone 3.1 (Niveau 2)
+│  │  └─ Tâche montage structure (Niveau 3)
+│  └─ Zone 3.2 (Niveau 2)
+│     └─ Tâche soudure (Niveau 3)
+│
+└─ 1 ELEC – ZONE 3A (Niveau 2)
+   ├─ 1.1 Pose chemins de câbles BT (Niveau 3)
+   │  ├─ 1.1.1 OND1 (Niveau 4)
+   │  ├─ 1.1.2 OND2 (Niveau 4)
+   │  └─ 1.1.3 OND3 (Niveau 4)
+   │
+   └─ 1.2 Raccordement onduleurs (Niveau 3)
+      ├─ 1.2.1 OND1 (Niveau 4)
+      ├─ 1.2.2 OND2 (Niveau 4)
+      └─ 1.2.3 OND3 (Niveau 4)
+                </div>
+            </section>
+            
+            <!-- SECTION 5 : CONTRÔLES QUALITÉ -->
+            <section id="qualite">
+                <h2>✔️ Gestion des Contrôles Qualité</h2>
+                
+                <p>La colonne <strong>J (Qualité)</strong> permet de générer automatiquement des contrôles qualité.</p>
+                
+                <h3>Valeurs Possibles</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Valeur</th>
+                            <th>Comportement</th>
+                            <th>Usage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>CQ</code></td>
+                            <td>
+                                <strong>Si entreprise = OMX/OMEXOM :</strong> Ajoute une ressource matérielle "CQ" sur la tâche<br>
+                                <strong>Si entreprise = autre (SST, etc.) :</strong> Crée une tâche CQ séparée avec dépendance DD+1j
+                            </td>
+                            <td>Contrôle qualité standard</td>
+                        </tr>
+                        <tr>
+                            <td><code>TACHE</code> ou <code>TÂCHE</code></td>
+                            <td>Force la création d'une tâche CQ séparée (même pour OMX)</td>
+                            <td>Contrôle nécessitant une tâche dédiée</td>
+                        </tr>
+                        <tr>
+                            <td>(vide)</td>
+                            <td>Aucun contrôle qualité créé</td>
+                            <td>Tâche sans contrôle requis</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="info-box">
+                    <strong>💡 Logique Métier :</strong>
+                    <ul style="margin-bottom: 0;">
+                        <li><strong>CQ OMX</strong> : Utilise des ressources internes (intérimaires dédiés) → ressource consommable sur la tâche</li>
+                        <li><strong>CQ SST</strong> : Nécessite une intervention externe → tâche séparée qui démarre 1 jour après le début de la tâche principale</li>
+                    </ul>
+                </div>
+                
+                <h3>Exemple de Tâche CQ Séparée</h3>
+                <div class="example">
+                    <strong>Tâche principale :</strong><br>
+                    A: "1.1.1 Installation OND1" | D: 8h | I: "SST" | J: "CQ"<br><br>
+                    
+                    <strong>→ Crée automatiquement :</strong><br>
+                    - Tâche : "1.1.1 Installation OND1" (8h de travail)<br>
+                    - Tâche : "Contrôle Qualité - 1.1.1 Installation OND1" (avec ressource CQ)<br>
+                    - Dépendance : CQ démarre 1 jour après le début de l'installation
+                </div>
+            </section>
+            
+            <!-- SECTION 6 : RESSOURCES -->
+            <section id="ressources">
+                <h2>👷 Gestion des Ressources</h2>
+                
+                <h3>1. Ressources de Travail (Monteurs)</h3>
+                <p>Créées automatiquement quand la colonne <strong>D (Heures)</strong> contient une valeur > 0.</p>
+                <ul>
+                    <li><strong>Ressource</strong> : "Monteurs" (ressource travail)</li>
+                    <li><strong>Charge</strong> : Colonne D (en heures)</li>
+                    <li><strong>Nombre de personnes</strong> : Colonne C (si vide, = 1 personne)</li>
+                    <li><strong>Type de tâche</strong> : Travail fixe (Fixed Work)</li>
+                </ul>
+                
+                <h3>2. Ressources Matérielles</h3>
+                <p>Créées automatiquement quand la colonne <strong>B (Quantité)</strong> contient une valeur > 0.</p>
+                <ul>
+                    <li><strong>Nom de la ressource</strong> : Nom de la tâche (colonne A)</li>
+                    <li><strong>Type</strong> : Ressource matérielle</li>
+                    <li><strong>Quantité</strong> : Valeur de la colonne B</li>
+                    <li><strong>Calendrier</strong> : Synchronisé avec les monteurs si présents</li>
+                </ul>
+                
+                <h3>3. Ressource CQ (Contrôle Qualité)</h3>
+                <p>Ressource matérielle "CQ" créée automatiquement et réutilisée pour tous les contrôles.</p>
+                
+                <div class="warning-box">
+                    <strong>⚠️ Paramétrage Calendrier :</strong><br>
+                    Le calendrier "Standard" est configuré automatiquement :
+                    <ul style="margin-bottom: 0; margin-top: 10px;">
+                        <li><strong>Lundi à Vendredi</strong> : 09h00 - 18h00</li>
+                        <li><strong>Samedi et Dimanche</strong> : Chômés</li>
+                        <li><strong>Période</strong> : 01/01/2025 au 01/01/2027</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- SECTION 7 : EXEMPLES COMPLETS -->
+            <section id="exemples">
+                <h2>📝 Exemples Complets de Saisie</h2>
+                
+                <h3>Exemple 1 : Groupe Principal (Titre)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th><th>L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1 ELEC - ZONE 3A</td>
+                            <td></td><td></td><td></td>
+                            <td>Zone 3A</td><td></td><td>T1</td><td>ELEC</td><td>OMX</td>
+                            <td></td><td></td><td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p><strong>→ Résultat :</strong> Titre de niveau 2 (1 chiffre seul)</p>
+                
+                <h3>Exemple 2 : Sous-Groupe</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th><th>L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.1 Pose chemins de câbles BT</td>
+                            <td></td><td></td><td></td>
+                            <td>Zone 3A</td><td>3.1</td><td>T1</td><td>ELEC</td><td>OMX</td>
+                            <td></td><td></td><td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p><strong>→ Résultat :</strong> Titre de niveau 3 (1 point)</p>
+                
+                <h3>Exemple 3 : Tâche Simple</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th><th>L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.1.1 OND1</td>
+                            <td>50</td><td>2</td><td>8</td>
+                            <td>Zone 3A</td><td>3.1</td><td>T1</td><td>ELEC</td><td>OMX</td>
+                            <td></td><td>N1</td><td>OND1</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p><strong>→ Résultat :</strong> Tâche de niveau 4 avec :</p>
+                <ul>
+                    <li>50 unités de matériel "1.1.1 OND1"</li>
+                    <li>2 monteurs pendant 8 heures</li>
+                    <li>Tags : Zone 3A, sous-zone 3.1, tranche T1, métier ELEC, entreprise OMX, niveau N1, onduleur OND1</li>
+                </ul>
+                
+                <h3>Exemple 4 : Tâche avec CQ OMX</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th><th>L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.1.2 OND2</td>
+                            <td>45</td><td>3</td><td>10</td>
+                            <td>Zone 3A</td><td>3.1</td><td>T1</td><td>ELEC</td><td>OMEXOM</td>
+                            <td>CQ</td><td>N1</td><td>OND2</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p><strong>→ Résultat :</strong> Tâche avec une ressource CQ matérielle ajoutée (1 contrôle)</p>
+                
+                <h3>Exemple 5 : Tâche avec CQ SST (Externe)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th><th>L</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.2.1 Raccordement OND1</td>
+                            <td></td><td>2</td><td>4</td>
+                            <td>Zone 3A</td><td>3.2</td><td>T1</td><td>ELEC</td><td>SST</td>
+                            <td>CQ</td><td>N2</td><td>OND1</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p><strong>→ Résultat :</strong></p>
+                <ul>
+                    <li>Tâche : "1.2.1 Raccordement OND1" (2 personnes, 4h)</li>
+                    <li>Tâche CQ séparée : "Contrôle Qualité - 1.2.1 Raccordement OND1"</li>
+                    <li>Dépendance : CQ démarre 1 jour après le début du raccordement</li>
+                </ul>
+            </section>
+            
+            <!-- SECTION 8 : CHECKLIST -->
+            <section id="checklist">
+                <h2>✅ Checklist Avant Import</h2>
+                
+                <div class="success-box">
+                    <h3 style="margin-top: 0;">Vérifications Obligatoires</h3>
+                    <ul style="margin-bottom: 0;">
+                        <li>✓ Ligne 1 : En-têtes de colonnes présents</li>
+                        <li>✓ Cellule A2 : Titre du projet renseigné</li>
+                        <li>✓ Toutes les lignes ont un nom en colonne A</li>
+                        <li>✓ Les titres (groupes) n'ont AUCUNE valeur dans B, C, D</li>
+                        <li>✓ Les tâches ont AU MOINS une valeur dans B, C ou D</li>
+                        <li>✓ La numérotation WBS est cohérente (1, 1.1, 1.1.1, etc.)</li>
+                        <li>✓ Les valeurs numériques sont bien des nombres (pas de texte)</li>
+                        <li>✓ La colonne Qualité (J) contient uniquement : CQ, TACHE, ou vide</li>
+                        <li>✓ Format de fichier : .xlsx ou .xls</li>
+                    </ul>
+                </div>
+                
+                <div class="warning-box">
+                    <h3 style="margin-top: 0;">⚠️ Erreurs Fréquentes à Éviter</h3>
+                    <ul style="margin-bottom: 0;">
+                        <li>❌ Numéros WBS avec des lettres (ex: "1A.2")</li>
+                        <li>❌ Espaces avant le numéro WBS</li>
+                        <li>❌ Titres avec des valeurs dans Qté/Pers/Heures</li>
+                        <li>❌ Tâches sans AUCUNE donnée (B, C, D vides)</li>
+                        <li>❌ Valeurs textuelles dans colonnes numériques</li>
+                        <li>❌ Sauts de niveaux (ex: passer de 1 à 1.1.1 sans 1.1)</li>
+                        <li>❌ Colonnes décalées ou manquantes</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- SECTION 9 : PROCESSUS D'IMPORT -->
+            <section id="processus">
+                <h2>🚀 Processus d'Import</h2>
+                
+                <h3>Étapes Automatiques</h3>
+                <ol style="font-size: 1.1em; line-height: 2;">
+                    <li>Lancement de la macro dans MS Project</li>
+                    <li>Sélection du fichier Excel via dialogue</li>
+                    <li>Création d'un nouveau projet MS Project</li>
+                    <li>Configuration du calendrier (9h-18h, Lun-Ven)</li>
+                    <li>Création de la tâche racine (A2)</li>
+                    <li>Parcours de toutes les lignes (à partir de la ligne 3)</li>
+                    <li>Détection automatique : Titre ou Tâche</li>
+                    <li>Création de la hiérarchie WBS</li>
+                    <li>Affectation des ressources (Monteurs, Matériaux, CQ)</li>
+                    <li>Création des tâches CQ si nécessaire</li>
+                    <li>Calcul final du planning</li>
+                    <li>Génération d'un fichier LOG détaillé</li>
+                </ol>
+                
+                <h3>Après l'Import</h3>
+                <div class="info-box">
+                    <ul style="margin-bottom: 0;">
+                        <li>📊 Un projet MS Project structuré est créé</li>
+                        <li>📄 Un fichier LOG (.txt) est généré à côté de votre Excel</li>
+                        <li>🔍 Consultez le LOG pour vérifier que tout s'est bien passé</li>
+                        <li>✏️ Vous pouvez ajuster manuellement le planning dans MS Project</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- SECTION 10 : FICHIER LOG -->
+            <section id="log">
+                <h2>📄 Fichier Log d'Import</h2>
+                
+                <p>La macro génère automatiquement un fichier LOG nommé :</p>
+                <div class="example">
+                    <strong>Nom du fichier :</strong><br>
+                    [Nom_de_votre_Excel]_import_WBS_log.txt<br><br>
+                    
+                    <strong>Exemple :</strong><br>
+                    Si votre fichier = PREVENCHERES_2025.xlsx<br>
+                    → Log créé = PREVENCHERES_2025_import_WBS_log.txt
+                </div>
+                
+                <h3>Contenu du LOG</h3>
+                <ul>
+                    <li><strong>En-tête</strong> : Date/heure de début, nom du fichier source, nombre de lignes</li>
+                    <li><strong>Détail par ligne</strong> : Nom, type (titre/tâche), niveau, ressources affectées</li>
+                    <li><strong>Structure hiérarchique</strong> : Arbre complet du projet créé</li>
+                    <li><strong>Erreurs éventuelles</strong> : Problèmes de dépendances, niveaux incorrects, etc.</li>
+                </ul>
+                
+                <div class="success-box">
+                    <strong>💡 Conseil :</strong> Consultez TOUJOURS ce fichier après l'import pour vérifier que la structure correspond à vos attentes.
+                </div>
+            </section>
+            
+            <!-- SECTION 11 : CONTACT -->
+            <section id="contact">
+                <h2>💬 Besoin d'Aide ?</h2>
+                
+                <div class="info-box">
+                    <p><strong>En cas de problème :</strong></p>
+                    <ol>
+                        <li>Vérifiez la checklist ci-dessus</li>
+                        <li>Consultez le fichier LOG généré</li>
+                        <li>Vérifiez que votre Excel respecte bien la structure des 12 colonnes</li>
+                        <li>Testez avec un petit fichier d'exemple avant d'importer tout le projet</li>
+                    </ol>
+                    
+                    <p style="margin-top: 20px;"><strong>Problèmes fréquents :</strong></p>
+                    <ul style="margin-bottom: 0;">
+                        <li><strong>Hiérarchie incorrecte</strong> → Vérifiez votre numérotation WBS</li>
+                        <li><strong>Tâches créées comme titres</strong> → Ajoutez des valeurs dans B, C ou D</li>
+                        <li><strong>Titres créés comme tâches</strong> → Videz les colonnes B, C, D</li>
+                        <li><strong>Ressources manquantes</strong> → Vérifiez les valeurs numériques</li>
+                    </ul>
+                </div>
+            </section>
+            
+        </div>
+        
+        <div class="footer">
+            <p><strong>Guide créé pour l'import PREVENCHERES WBS</strong></p>
+            <p>Macro : Import_Prevencheres_WBS.vb | Version : 2025</p>
+        </div>
+    </div>
+</body>
+</html>

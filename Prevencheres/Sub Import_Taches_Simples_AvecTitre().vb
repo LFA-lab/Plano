@@ -51,16 +51,23 @@ Sub Import_Taches_Simples_AvecTitre()
     pjApp.CustomFieldRename pjCustomTaskText3, "Sous-Zone"
     pjApp.CustomFieldRename pjCustomTaskText4, "Metier"
     pjApp.CustomFieldRename pjCustomTaskText5, "Entreprise"
+    pjApp.CustomFieldRename pjCustomTaskText6, "Niveau"
+    pjApp.CustomFieldRename pjCustomTaskText7, "Onduleur"
     
-    ' NOTE: Les champs d'assignments (Text1-Text5) ne peuvent pas être renommés via CustomFieldRename
+    ' NOTE: Les champs d'assignments (Text1-Text7) ne peuvent pas être renommés via CustomFieldRename
     ' Ils utiliseront les noms par défaut "Text1", "Text2", etc. dans l'interface
-    ' Mais les DONNÉES seront bien stockées dans Assignment.Text1 à Assignment.Text5
+    ' Mais les DONNÉES seront bien stockées dans Assignment.Text1 à Assignment.Text7
 
     ' ==== AJOUT DU TITRE DE PROJET (CELLULE A2) ====
     Dim tRoot As Task
     Set tRoot = pjProj.Tasks.Add(Name:=xlSheet.Cells(2, 1).Value, Before:=1)
     tRoot.Manual = False
     tRoot.Calendar = ActiveProject.BaseCalendars("Standard")
+    tRoot.OutlineLevel = 1
+    
+    ' Variable pour gérer la hiérarchie des groupes
+    Dim tGroup As Task
+    Set tGroup = tRoot
 
     ' ==== CONFIGURATION PROJET ====
     pjProj.DefaultTaskType = pjFixedWork
@@ -89,8 +96,9 @@ Sub Import_Taches_Simples_AvecTitre()
     Set rMonteurs = GetOrCreateWorkResource("Monteurs")
     rMonteurs.MaxUnits = 10 ' 1000% = 10 personnes max (large pour éviter surutilisation)
 
-    Dim rCQ As Resource
-    Set rCQ = GetOrCreateMaterialResource("CQ") ' ressource consommable pour la qualité
+    ' Ressource matérielle CQ pour tous les contrôles (OMX et SST)
+    Dim rCQMat As Resource
+    Set rCQMat = GetOrCreateMaterialResource("CQ")
     
     ' ==== DÉSACTIVER CALCUL AUTOMATIQUE PENDANT L'IMPORT ====
     ' Évite les popups de surutilisation
@@ -114,13 +122,68 @@ Sub Import_Taches_Simples_AvecTitre()
     logStream.WriteLine "Fichier source: " & fichierExcel
     logStream.WriteLine "Nombre de lignes: " & lastRow
     logStream.WriteLine ""
+    
+    ' ==== APERCU FICHIER EXCEL ====
+    logStream.WriteLine "===== APERCU FICHIER EXCEL (COLONNES A, K, L) ====="
+    Dim iPreview As Long
+    For iPreview = 2 To lastRow
+        Dim nomPreview As String, niveauPreview As String, onduleurPreview As String
+        Dim qtePreview As Variant, persPreview As Variant, hPreview As Variant
+        
+        nomPreview = Trim(CStr(xlSheet.Cells(iPreview, 1).Value))
+        qtePreview = xlSheet.Cells(iPreview, 2).Value
+        persPreview = xlSheet.Cells(iPreview, 3).Value
+        hPreview = xlSheet.Cells(iPreview, 4).Value
+        niveauPreview = Trim(CStr(xlSheet.Cells(iPreview, 11).Value))
+        onduleurPreview = Trim(CStr(xlSheet.Cells(iPreview, 12).Value))
+        
+        Dim typePreview As String
+        Dim hasData As Boolean
+        hasData = (Not IsEmpty(qtePreview) And qtePreview <> "") Or _
+                  (Not IsEmpty(persPreview) And persPreview <> "") Or _
+                  (Not IsEmpty(hPreview) And hPreview <> "")
+        
+        If hasData Then
+            typePreview = "[TACHE]"
+        Else
+            typePreview = "[TITRE]"
+        End If
+        
+        Dim niveauDetecte As String
+        If Not hasData Then
+            ' Simuler la détection de niveau
+            Dim firstWordPreview As String
+            If InStr(nomPreview, " ") > 0 Then
+                firstWordPreview = Trim$(Left$(nomPreview, InStr(nomPreview, " ") - 1))
+            Else
+                firstWordPreview = nomPreview
+            End If
+            
+            If IsNumericPattern(firstWordPreview) Then
+                Dim pointCountPreview As Integer
+                pointCountPreview = Len(firstWordPreview) - Len(Replace(firstWordPreview, ".", ""))
+                niveauDetecte = " -> Niv " & (pointCountPreview + 2)
+            Else
+                niveauDetecte = " -> Niv 2 (défaut)"
+            End If
+        Else
+            niveauDetecte = ""
+        End If
+        
+        logStream.WriteLine "Ligne " & Format(iPreview, "00") & " " & typePreview & niveauDetecte & " | " & nomPreview & _
+            IIf(niveauPreview <> "", " | K=" & niveauPreview, "") & _
+            IIf(onduleurPreview <> "", " | L=" & onduleurPreview, "")
+    Next iPreview
+    logStream.WriteLine ""
+    logStream.WriteLine "===== FIN APERCU EXCEL ====="
+    logStream.WriteLine ""
 
     ' ==== BOUCLE TACHES ====
     For i = 3 To lastRow
 
         Dim nom As String, qte As Variant, pers As Variant, h As Variant
         Dim zone As String, sousZone As String, tranche As String, typ As String, entreprise As String
-        Dim qualite As String
+        Dim qualite As String, niveau As String, onduleur As String
         Dim dateDebutMonteurs As Date, dateFinMonteurs As Date
         Dim hasMonteursAssignment As Boolean
 
@@ -140,6 +203,8 @@ Sub Import_Taches_Simples_AvecTitre()
         typ = Trim(CStr(xlSheet.Cells(i, 8).Value))         ' H
         entreprise = Trim(CStr(xlSheet.Cells(i, 9).Value))  ' I
         qualite = UCase$(Trim(CStr(xlSheet.Cells(i, 10).Value))) ' J : CQ / TACHE / vide
+        niveau = UCase$(Trim(CStr(xlSheet.Cells(i, 11).Value)))  ' K : SZ / OND / vide
+        onduleur = UCase$(Trim(CStr(xlSheet.Cells(i, 12).Value))) ' L : OND1, OND2...
 
         ' LOG VALEURS BRUTES
         logStream.WriteLine "  Qte (col B): " & qte & " | Type: " & TypeName(qte)
@@ -147,7 +212,35 @@ Sub Import_Taches_Simples_AvecTitre()
         logStream.WriteLine "  Heures (col D): " & h & " | Type: " & TypeName(h)
         logStream.WriteLine "  Zone: " & zone & " | Tranche: " & tranche
         logStream.WriteLine "  Type: " & typ & " | Entreprise: " & entreprise
-        logStream.WriteLine "  Qualité: " & qualite
+        logStream.WriteLine "  Qualité: " & qualite & " | Niveau: " & niveau & " | Onduleur: " & onduleur
+
+        If nom = "" Then
+            logStream.WriteLine "  -> Ligne ignorée (nom vide)"
+            logStream.WriteLine ""
+            GoTo NextRow
+        End If
+        
+        ' ==== DETECTION TITRE (ligne sans données ni tags) ====
+        Dim isTitle As Boolean
+        isTitle = IsEmptyOrZero(qte) And IsEmptyOrZero(pers) And IsEmptyOrZero(h) _
+                  And zone = "" And sousZone = "" And tranche = "" And typ = "" _
+                  And entreprise = "" And qualite = "" And niveau = "" And onduleur = ""
+        
+        If isTitle Then
+            ' Créer un groupe/titre - toujours niveau 2
+            Set tGroup = pjProj.Tasks.Add(nom)
+            tGroup.Manual = False
+            tGroup.OutlineLevel = 2  ' Tous les titres au niveau 2
+            
+            logStream.WriteLine "  -> TITRE créé: " & nom & " (Niveau " & tGroup.OutlineLevel & ")"
+            logStream.WriteLine ""
+            GoTo NextRow
+        End If
+        
+        ' ==== VALIDATION Niveau/Onduleur ====
+        If niveau = "OND" And onduleur = "" Then
+            logStream.WriteLine "  -> ATTENTION: Niveau=OND mais Onduleur vide!"
+        End If
 
         If nom <> "" Then
 
@@ -156,16 +249,53 @@ Sub Import_Taches_Simples_AvecTitre()
             t.Calendar = ActiveProject.BaseCalendars("Standard")
             t.LevelingCanSplit = False ' Empêche le fractionnement de la tâche
             
-            logStream.WriteLine "  -> Tâche créée: " & t.Name & " (ID: " & t.ID & ")"
+            ' ==== NIVEAU HIERARCHIQUE basé sur colonne K (Niveau) ====
+            ' On crée d'abord la tâche, puis on ajuste son niveau avec OutlineIndent
+            Dim targetLevel As Integer
+            
+            If niveau = "OND" Then
+                targetLevel = 4  ' Tâches onduleurs au niveau 4
+            ElseIf niveau = "SZ" Then
+                targetLevel = 3  ' Tâches sous-zone au niveau 3
+            ElseIf Not tGroup Is Nothing Then
+                targetLevel = tGroup.OutlineLevel + 1
+            Else
+                targetLevel = 3  ' Par défaut niveau 3
+            End If
+            
+            ' Forcer le niveau avec OutlineIndent/OutlineOutdent
+            ' Protection contre erreurs 1101 et boucles infinies
+            On Error Resume Next
+            Do While t.OutlineLevel < targetLevel And t.OutlineLevel < 9 And Not t.Summary
+                t.OutlineIndent
+                If Err.Number <> 0 Then
+                    logStream.WriteLine "  -> ATTENTION: Impossible d'indenter au niveau " & targetLevel & " (Erreur: " & Err.Number & ")"
+                    Exit Do
+                End If
+            Loop
+            Err.Clear
+            Do While t.OutlineLevel > targetLevel And t.OutlineLevel > 1 And Not t.Summary
+                t.OutlineOutdent
+                If Err.Number <> 0 Then
+                    logStream.WriteLine "  -> ATTENTION: Impossible de désindenter au niveau " & targetLevel & " (Erreur: " & Err.Number & ")"
+                    Exit Do
+                End If
+            Loop
+            On Error GoTo 0
+            
+            logStream.WriteLine "  -> Tâche créée: " & t.Name & " (ID: " & t.ID & ", Niveau: " & t.OutlineLevel & " - K=" & niveau & ")"
 
             ' Tags dans champs texte
             ' Convention proposée:
             ' Text1 = Tranche, Text2 = Zone, Text3 = Sous-zone, Text4 = Type, Text5 = Entreprise
+            ' Text6 = Niveau, Text7 = Onduleur
             t.Text1 = tranche
             t.Text2 = zone
             t.Text3 = sousZone
             t.Text4 = typ
             t.Text5 = entreprise
+            t.Text6 = niveau
+            t.Text7 = onduleur
 
             ' ✅ DÉFINIR LE TRAVAIL DE LA TÂCHE EN PREMIER (avant les assignments)
             ' Cela permet à MS Project de calculer correctement la durée
@@ -213,19 +343,32 @@ Sub Import_Taches_Simples_AvecTitre()
                 a.Text3 = sousZone
                 a.Text4 = typ
                 a.Text5 = entreprise
+                a.Text6 = niveau
+                a.Text7 = onduleur
                 
                 logStream.WriteLine "     Assignment.Units = " & a.Units
                 logStream.WriteLine "     Assignment.Work FINAL = " & a.Work & " minutes"
                 logStream.WriteLine "     Assignment Monteurs - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
-                logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
+                logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ & " | Niveau=" & niveau
             Else
                 logStream.WriteLine "  -> HEURES IGNORÉES: h = " & h & " | IsNumeric = " & IsNumeric(h) & " | h > 0 = " & (h > 0)
             End If
             
             ' Quantité (matériau) - APRÈS le travail pour avoir la vraie durée
             If IsNumeric(qte) And qte > 0 Then
+                ' Utiliser le nom du groupe parent comme ressource matérielle
+                ' Cela permet d'agréger les quantités par activité (ex: "Remontées du serpentins")
+                Dim nomRessource As String
+                If Not tGroup Is Nothing Then
+                    nomRessource = tGroup.Name  ' Nom de la tâche récap parente
+                    logStream.WriteLine "  -> Ressource matérielle: " & nomRessource & " (depuis groupe parent)"
+                Else
+                    nomRessource = nom  ' Fallback: nom de la tâche
+                    logStream.WriteLine "  -> Ressource matérielle: " & nomRessource & " (nom de tâche)"
+                End If
+                
                 Dim rMat As Resource
-                Set rMat = GetOrCreateMaterialResource(nom)
+                Set rMat = GetOrCreateMaterialResource(nomRessource)
 
                 Set a = t.Assignments.Add(ResourceID:=rMat.ID)
                 
@@ -240,9 +383,9 @@ Sub Import_Taches_Simples_AvecTitre()
                 If hasMonteursAssignment Then
                     a.Start = dateDebutMonteurs
                     a.Finish = dateFinMonteurs
-                    logStream.WriteLine "  -> QUANTITE: " & qteTotal & " unités de matériau '" & nom & "' (dates synchronisées avec Monteurs)"
+                    logStream.WriteLine "  -> QUANTITE: " & qteTotal & " unités de matériau '" & nomRessource & "' (dates synchronisées avec Monteurs)"
                 Else
-                    logStream.WriteLine "  -> QUANTITE: " & qteTotal & " unités de matériau '" & nom & "' (pas de Monteurs, dates par défaut)"
+                    logStream.WriteLine "  -> QUANTITE: " & qteTotal & " unités de matériau '" & nomRessource & "' (pas de Monteurs, dates par défaut)"
                 End If
                 
                 ' Copie DIRECTE des tags (sans passer par fonction)
@@ -251,88 +394,191 @@ Sub Import_Taches_Simples_AvecTitre()
                 a.Text3 = sousZone
                 a.Text4 = typ
                 a.Text5 = entreprise
+                a.Text6 = niveau
+                a.Text7 = onduleur
                 
                 logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
                 logStream.WriteLine "     Vérif lecture: a.Text1=" & a.Text1 & " | a.Text2=" & a.Text2
                 logStream.WriteLine "     Assignment Matériau - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
             End If
 
-            ' Qualité (J) : 3 cas
-            ' CQ    -> ajoute ressource consommable CQ sur la tâche principale
-            ' TACHE -> crée une tâche CQ dédiée "Contrôle Qualité - [Nom]" + ressource CQ + lien FS
-            ' vide  -> rien
+            ' Qualité (J) : Logique hybride OMX/SST
+            ' - Si entreprise = OMX et qualite = CQ : ajoute ressource MATERIELLE "CQ" sur la tâche
+            ' - Si entreprise = SST et qualite = CQ : crée tâche CQ séparée avec ressource CQ
+            ' - Si qualite = TACHE : force tâche CQ séparée (même pour OMX)
+            Dim isOmx As Boolean
+            isOmx = (UCase$(entreprise) = "OMX" Or UCase$(entreprise) = "OMEXOM")
+            
             If qualite = "CQ" Then
-
-                Set a = t.Assignments.Add(ResourceID:=rCQ.ID)
-                a.Units = 1  ' 1 CQ affiché dans MS Project
-                a.WorkContour = pjFlat  ' Répartition régulière sur la durée
-                
-                ' ✅ FORCER les dates pour correspondre aux Monteurs si présents
-                If hasMonteursAssignment Then
-                    a.Start = dateDebutMonteurs
-                    a.Finish = dateFinMonteurs
-                    logStream.WriteLine "  -> QUALITE CQ ajoutée sur la tâche (dates synchronisées avec Monteurs)"
+                If isOmx Then
+                    ' ===== CQ OMX : ressource MATERIELLE (consommable) =====
+                    ' But : Vérifier la cadence des contrôles (intérimaires dédiés)
+                    Set a = t.Assignments.Add(ResourceID:=rCQMat.ID)
+                    a.Units = 1  ' 1 contrôle prévu (ajustable selon besoin)
+                    a.WorkContour = pjFlat
+                    
+                    If hasMonteursAssignment Then
+                        a.Start = dateDebutMonteurs
+                        a.Finish = dateFinMonteurs
+                        logStream.WriteLine "  -> QUALITE CQ OMX ajoutée (ressource CQ, dates sync)"
+                    Else
+                        logStream.WriteLine "  -> QUALITE CQ OMX ajoutée (ressource CQ)"
+                    End If
+                    
+                    ' Copie tags
+                    a.Text1 = tranche
+                    a.Text2 = zone
+                    a.Text3 = sousZone
+                    a.Text4 = typ
+                    a.Text5 = entreprise
+                    a.Text6 = niveau
+                    a.Text7 = onduleur
+                    
+                    logStream.WriteLine "     Tags CQ copiés | Assignment CQ - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
                 Else
-                    logStream.WriteLine "  -> QUALITE CQ ajoutée sur la tâche (pas de Monteurs, dates par défaut)"
+                    ' ===== CQ SST : tâche séparée avec ressource CQ =====
+                    ' But : Visualiser le besoin de contrôle sur la zone
+                    Set tCQ = pjProj.Tasks.Add("Contrôle Qualité - " & nom)
+                    tCQ.Manual = False
+                    tCQ.Calendar = ActiveProject.BaseCalendars("Standard")
+                    tCQ.LevelingCanSplit = False
+                    
+                    ' Forcer le même niveau que la tâche principale
+                    ' Protection contre erreurs 1101
+                    On Error Resume Next
+                    Do While tCQ.OutlineLevel < t.OutlineLevel And tCQ.OutlineLevel < 9 And Not tCQ.Summary
+                        tCQ.OutlineIndent
+                        If Err.Number <> 0 Then Exit Do
+                    Loop
+                    Err.Clear
+                    Do While tCQ.OutlineLevel > t.OutlineLevel And tCQ.OutlineLevel > 1 And Not tCQ.Summary
+                        tCQ.OutlineOutdent
+                        If Err.Number <> 0 Then Exit Do
+                    Loop
+                    On Error GoTo 0
+                    
+                    ' Tags tâche CQ
+                    tCQ.Text1 = tranche
+                    tCQ.Text2 = zone
+                    tCQ.Text3 = sousZone
+                    tCQ.Text4 = "CQ"
+                    tCQ.Text5 = "OMEXOM"  ' CQ porté par OMX
+                    tCQ.Text6 = niveau
+                    tCQ.Text7 = onduleur
+                    
+                    ' Ressource matérielle CQ
+                    Set a = tCQ.Assignments.Add(ResourceID:=rCQMat.ID)
+                    a.Units = 1  ' 1 contrôle
+                    a.WorkContour = pjFlat
+                    
+                    ' Créer une dépendance DÉBUT-DÉBUT : CQ démarre 1 jour après le début de la tâche
+                    ' Utiliser LinkSuccessors depuis la tâche principale (plus fiable)
+                    Dim errNum As Long, errDesc As String
+                    On Error Resume Next
+                    t.LinkSuccessors tCQ, pjStartToStart, "1d"
+                    errNum = Err.Number
+                    errDesc = Err.Description
+                    On Error GoTo 0
+                    
+                    If errNum = 0 Then
+                        logStream.WriteLine "  -> TACHE CQ SST créée (ressource CQ, dépendance DD+1j OK)"
+                    Else
+                        logStream.WriteLine "  -> TACHE CQ SST créée (ressource CQ, ERREUR dépendance: " & errNum & " - " & errDesc & ")"
+                    End If
+                    
+                    logStream.WriteLine "     Tags CQ copiés | Tâche CQ - Début: " & Format(tCQ.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(tCQ.Finish, "dd/mm/yyyy hh:nn")
                 End If
-                
-                ' Copie DIRECTE des tags
-                a.Text1 = tranche
-                a.Text2 = zone
-                a.Text3 = sousZone
-                a.Text4 = typ
-                a.Text5 = entreprise
-                
-                logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
-                logStream.WriteLine "     Assignment CQ - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
 
             ElseIf qualite = "TACHE" Or qualite = "TÂCHE" Then
-
+                ' Force une tâche CQ séparée (même pour OMX)
                 Set tCQ = pjProj.Tasks.Add("Contrôle Qualité - " & nom)
-
                 tCQ.Manual = False
                 tCQ.Calendar = ActiveProject.BaseCalendars("Standard")
-                tCQ.LevelingCanSplit = False ' Empêche le fractionnement de la tâche CQ
-
-                ' Copie des tags
+                tCQ.LevelingCanSplit = False
+                
+                ' Forcer le même niveau que la tâche principale
+                ' Protection contre erreurs 1101
+                On Error Resume Next
+                Do While tCQ.OutlineLevel < t.OutlineLevel And tCQ.OutlineLevel < 9 And Not tCQ.Summary
+                    tCQ.OutlineIndent
+                    If Err.Number <> 0 Then Exit Do
+                Loop
+                Err.Clear
+                Do While tCQ.OutlineLevel > t.OutlineLevel And tCQ.OutlineLevel > 1 And Not tCQ.Summary
+                    tCQ.OutlineOutdent
+                    If Err.Number <> 0 Then Exit Do
+                Loop
+                On Error GoTo 0
+                
+                ' Tags
                 tCQ.Text1 = tranche
                 tCQ.Text2 = zone
                 tCQ.Text3 = sousZone
                 tCQ.Text4 = "CQ"
-                tCQ.Text5 = entreprise
-
-                ' Assigner la ressource CQ
-                Set a = tCQ.Assignments.Add(ResourceID:=rCQ.ID)
-                a.Units = 1  ' 1 CQ affiché dans MS Project
-                a.WorkContour = pjFlat  ' Répartition régulière sur la durée
+                tCQ.Text5 = "OMEXOM"
+                tCQ.Text6 = niveau
+                tCQ.Text7 = onduleur
                 
-                ' ✅ FORCER les dates de la tâche CQ pour correspondre aux Monteurs si présents
-                If hasMonteursAssignment Then
-                    tCQ.Start = dateDebutMonteurs
-                    tCQ.Finish = dateFinMonteurs
-                    logStream.WriteLine "  -> TACHE CQ créée: " & tCQ.Name & " (dates synchronisées avec Monteurs)"
+                ' Ressource matérielle CQ
+                Set a = tCQ.Assignments.Add(ResourceID:=rCQMat.ID)
+                a.Units = 1  ' 1 contrôle
+                a.WorkContour = pjFlat
+                
+                ' Créer une dépendance DÉBUT-DÉBUT +1 jour
+                ' Utiliser LinkSuccessors depuis la tâche principale (plus fiable)
+                Dim errNum2 As Long, errDesc2 As String
+                On Error Resume Next
+                t.LinkSuccessors tCQ, pjStartToStart, "1d"
+                errNum2 = Err.Number
+                errDesc2 = Err.Description
+                On Error GoTo 0
+                
+                If errNum2 = 0 Then
+                    logStream.WriteLine "  -> TACHE CQ explicite créée (ressource CQ, dépendance DD+1j OK)"
                 Else
-                    logStream.WriteLine "  -> TACHE CQ créée: " & tCQ.Name & " (pas de Monteurs, dates par défaut)"
+                    logStream.WriteLine "  -> TACHE CQ explicite créée (ressource CQ, ERREUR dépendance: " & errNum2 & " - " & errDesc2 & ")"
                 End If
                 
-                ' Copie DIRECTE des tags (depuis tCQ)
-                a.Text1 = tCQ.Text1  ' = tranche
-                a.Text2 = tCQ.Text2  ' = zone
-                a.Text3 = tCQ.Text3  ' = sousZone
-                a.Text4 = tCQ.Text4  ' = "CQ"
-                a.Text5 = tCQ.Text5  ' = entreprise
-                
-                logStream.WriteLine "     Tags copiés: Tranche=" & tCQ.Text1 & " | Zone=" & tCQ.Text2 & " | Type=" & tCQ.Text4
-                logStream.WriteLine "     Tâche CQ - Début: " & Format(tCQ.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(tCQ.Finish, "dd/mm/yyyy hh:nn")
-                logStream.WriteLine "     Assignment CQ - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
+                logStream.WriteLine "     Tags CQ copiés | Tâche CQ - Début: " & Format(tCQ.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(tCQ.Finish, "dd/mm/yyyy hh:nn")
             End If
-        Else
-            logStream.WriteLine "  -> Ligne ignorée (nom vide)"
         End If
         
+NextRow:
         logStream.WriteLine ""
     Next i
 
+    ' ==== AFFICHAGE STRUCTURE MS PROJECT ====
+    logStream.WriteLine ""
+    logStream.WriteLine "===== STRUCTURE HIERARCHIQUE MS PROJECT CREEE ====="
+    logStream.WriteLine ""
+    
+    Dim tDebug As Task
+    For Each tDebug In pjProj.Tasks
+        If Not tDebug Is Nothing Then
+            Dim indent As String
+            indent = String((tDebug.OutlineLevel - 1) * 2, " ")
+            
+            Dim prefix As String
+            If tDebug.Summary Then
+                prefix = "[GROUPE]"
+            Else
+                prefix = "[TACHE ]"
+            End If
+            
+            Dim tagInfo As String
+            tagInfo = ""
+            If tDebug.Text6 <> "" Then tagInfo = tagInfo & " | Niveau=" & tDebug.Text6
+            If tDebug.Text7 <> "" Then tagInfo = tagInfo & " | Ond=" & tDebug.Text7
+            If tDebug.Text2 <> "" Then tagInfo = tagInfo & " | Zone=" & tDebug.Text2
+            If tDebug.Text3 <> "" Then tagInfo = tagInfo & " | SsZone=" & tDebug.Text3
+            
+            logStream.WriteLine indent & prefix & " [Niv " & tDebug.OutlineLevel & "] ID=" & tDebug.ID & " | " & tDebug.Name & tagInfo
+        End If
+    Next tDebug
+    
+    logStream.WriteLine ""
+    logStream.WriteLine "===== FIN STRUCTURE ====="
+    
     ' ==== VÉRIFICATION FINALE ====
     ' Le travail est déjà défini correctement sur les tâches et assignments
     ' Cette section vérifie simplement que tout correspond
@@ -414,15 +660,80 @@ ContinueCheck:
     xlApp.Quit
     Set xlApp = Nothing
 
-    MsgBox "Import terminé: tâches, ressources, tags (Zone/Sous-zone/Tranche/Type/Entreprise) et Qualité." & vbCrLf & vbCrLf & "Fichier log créé: " & logFile, vbInformation
+    MsgBox "Import terminé: tâches, ressources, tags (Zone/Sous-zone/Tranche/Type/Entreprise/Niveau/Onduleur) et Qualité hybride." & vbCrLf & vbCrLf & "Fichier log créé: " & logFile, vbInformation
 
 End Sub
 
 
+' ===== FONCTION : Détection niveau hiérarchique par numérotation WBS =====
+Private Function DetectHierarchyLevel(nom As String) As Integer
+    ' Détecte le niveau en comptant les points dans la numérotation
+    ' Exemples :
+    '   "1 ELEC - ZONE 3A"        → niveau 2 (1 chiffre seul)
+    '   "1.1 Pose chemins"        → niveau 3 (1 point)
+    '   "1.1.1 OND1"              → niveau 4 (2 points)
+    
+    Dim firstWord As String
+    Dim pointCount As Integer
+    
+    ' Extraire le premier mot (la numérotation)
+    If InStr(nom, " ") > 0 Then
+        firstWord = Trim$(Left$(nom, InStr(nom, " ") - 1))
+    Else
+        firstWord = nom
+    End If
+    
+    ' Si c'est une numérotation valide (ex: "1", "1.1", "1.1.1")
+    If IsNumericPattern(firstWord) Then
+        ' Compter les points
+        pointCount = Len(firstWord) - Len(Replace(firstWord, ".", ""))
+        ' Niveau = nombre de points + 2 (car niveau 1 = root)
+        DetectHierarchyLevel = pointCount + 2
+    Else
+        ' Pas de numérotation détectée → niveau 2 par défaut
+        DetectHierarchyLevel = 2
+    End If
+End Function
+
+Private Function IsNumericPattern(text As String) As Boolean
+    ' Vérifie si c'est un pattern numérique type "1", "1.1", "1.1.1"
+    Dim i As Integer
+    Dim ch As String
+    
+    If text = "" Then
+        IsNumericPattern = False
+        Exit Function
+    End If
+    
+    For i = 1 To Len(text)
+        ch = Mid$(text, i, 1)
+        If Not (ch >= "0" And ch <= "9") And ch <> "." Then
+            IsNumericPattern = False
+            Exit Function
+        End If
+    Next i
+    
+    IsNumericPattern = True
+End Function
+
+Private Function IsEmptyOrZero(v As Variant) As Boolean
+    ' Helper pour détecter les cellules vides ou zéro
+    If IsEmpty(v) Then
+        IsEmptyOrZero = True
+    ElseIf Trim$(CStr(v)) = "" Then
+        IsEmptyOrZero = True
+    ElseIf IsNumeric(v) Then
+        IsEmptyOrZero = (CDbl(v) = 0)
+    Else
+        IsEmptyOrZero = False
+    End If
+End Function
+
+
 ' ==== FONCTION HELPER: COPIE DES TAGS DE LA TACHE VERS L'ASSIGNMENT ====
-' Cette fonction copie automatiquement les champs Text1 à Text5 (tags métier)
+' Cette fonction copie automatiquement les champs Text1 à Text7 (tags métier)
 ' de la tâche source vers l'assignment, permettant de filtrer les ressources
-' par Tranche/Zone/Sous-Zone/Type/Entreprise au niveau des affectations.
+' par Tranche/Zone/Sous-Zone/Type/Entreprise/Niveau/Onduleur au niveau des affectations.
 Sub CopyTaskTagsToAssignment(ByVal tSource As Task, ByVal a As Assignment)
     ' Tentative de copie SANS masquage d'erreur pour détecter le problème
     On Error GoTo ErrHandler
@@ -436,6 +747,8 @@ Sub CopyTaskTagsToAssignment(ByVal tSource As Task, ByVal a As Assignment)
     a.Text3 = tSource.Text3  ' Sous-Zone
     a.Text4 = tSource.Text4  ' Type/Métier
     a.Text5 = tSource.Text5  ' Entreprise
+    a.Text6 = tSource.Text6  ' Niveau
+    a.Text7 = tSource.Text7  ' Onduleur
     
     Exit Sub
 
