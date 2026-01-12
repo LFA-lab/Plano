@@ -352,6 +352,67 @@
             border: 1px solid #ddd;
         }
         
+        /* Vue Chef d'équipe - Reste à faire */
+        .chef-equipe-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .onduleur-card {
+            border: 2px solid #000;
+            padding: 15px;
+            background: white;
+        }
+        
+        .onduleur-card-header {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #000;
+            text-align: center;
+        }
+        
+        .onduleur-action-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 11px;
+        }
+        
+        .onduleur-action-item:last-child {
+            border-bottom: none;
+        }
+        
+        .onduleur-action-name {
+            font-weight: 600;
+        }
+        
+        .onduleur-action-reste {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+        
+        .onduleur-action-reste.low {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        
+        .onduleur-action-reste.medium {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .onduleur-action-reste.high {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        
         /* Dashboard Financier */
         .financial-dashboard {
             margin-top: 20px;
@@ -586,23 +647,14 @@
                 <button class="tab-button" data-view="main" data-category="structures">Structures</button>
             </div>
             
-            <!-- Deuxième rangée d'onglets -->
+            <!-- Menu déroulant des sous-zones -->
             <div class="tabs-row sub-navigation active">
-                <button class="tab-button" data-cq="forages">
-                    <span class="cq-label">CQ</span> Forages
-                </button>
-                <button class="tab-button" data-cq="micropieux">
-                    <span class="cq-label">CQ</span> Micropieux
-                </button>
-                <button class="tab-button" data-cq="structures">
-                    <span class="cq-label">CQ</span> Structures
-                </button>
             <select class="zone-select" id="zoneSelect">
-                <option value="">Toutes les zones</option>
-                <option value="zone1">Zone 1</option>
-                <option value="zone2">Zone 2</option>
-                <option value="zone3">Zone 3</option>
-                <option value="zone4">Zone 4</option>
+                <option value="">Toutes les sous-zones</option>
+                <option value="zone1a">Sous-zone A</option>
+                <option value="zone1b">Sous-zone B</option>
+                <option value="zone1c">Sous-zone C</option>
+                <option value="zone1d">Sous-zone D</option>
             </select>
             </div>
             
@@ -615,11 +667,11 @@
                         <div class="chart-container-wrapper">
                             <!-- Labels verticaux -->
                             <div class="chart-labels">
-                                <div class="chart-label rotated">CQ forages réel</div>
-                                <div class="chart-label rotated">CQ Forages Prévu</div>
-                                <div class="chart-label">Forages</div>
-                                <div class="chart-label rotated">Forages Réels</div>
-                                <div class="chart-label rotated">Forages Prévu</div>
+                                <div class="chart-label rotated">CQ Réel</div>
+                                <div class="chart-label rotated">CQ Prévu</div>
+                                <div class="bar-row" style="height: 8px;"></div>
+                                <div class="chart-label rotated">Réel</div>
+                                <div class="chart-label rotated">Prévu</div>
                             </div>
                             
                             <!-- Barres horizontales -->
@@ -667,6 +719,7 @@
                 <div class="electrical-header">
                     <div class="electrical-left">
                         <button class="btn-view-all" id="btnViewAll">Tout voir</button>
+                        <button class="btn-view-all" id="btnResteAFaire">Reste à faire</button>
                         <select class="select-action" id="selectAction">
                             <option value="">actions élec</option>
                             <option value="action1">Action 1 - Tirage câbles</option>
@@ -680,6 +733,7 @@
                     </div>
                 </div>
                 
+                <!-- Tableau de progression normale -->
                 <table class="progress-table" id="progressTable">
                     <thead>
                         <tr>
@@ -696,6 +750,16 @@
                         <!-- Les lignes seront générées dynamiquement -->
                     </tbody>
                 </table>
+                
+                <!-- Vue "Reste à faire" pour chef d'équipe (par onduleur) -->
+                <div id="resteAFaireView" style="display: none;">
+                    <div style="font-size: 13px; font-weight: 600; margin-bottom: 15px; padding: 10px; background: #f5f5f5; border: 1px solid #000;">
+                        Vue Chef d'Équipe - Répartition du travail par onduleur
+                    </div>
+                    <div class="chef-equipe-container" id="chefEquipeContainer">
+                        <!-- Les cartes d'onduleur seront générées dynamiquement -->
+                    </div>
+                </div>
                 
                 <div class="comparatif-note">
                     Comparatif avec un planning de ref ???
@@ -777,24 +841,24 @@
         // Données de démonstration
         const demoData = {
             forages: {
-                zone1: { cqReel: 15, cqPrevu: 35, reel: 85, prevu: 92 },
-                zone2: { cqReel: 22, cqPrevu: 40, reel: 78, prevu: 88 },
-                zone3: { cqReel: 18, cqPrevu: 38, reel: 82, prevu: 90 },
-                zone4: { cqReel: 12, cqPrevu: 32, reel: 88, prevu: 95 },
+                zone1a: { cqReel: 15, cqPrevu: 35, reel: 85, prevu: 92 },
+                zone1b: { cqReel: 22, cqPrevu: 40, reel: 78, prevu: 88 },
+                zone1c: { cqReel: 18, cqPrevu: 38, reel: 82, prevu: 90 },
+                zone1d: { cqReel: 12, cqPrevu: 32, reel: 88, prevu: 95 },
                 all: { cqReel: 17, cqPrevu: 36, reel: 83, prevu: 91 }
             },
             micropieux: {
-                zone1: { cqReel: 25, cqPrevu: 45, reel: 70, prevu: 80 },
-                zone2: { cqReel: 30, cqPrevu: 50, reel: 65, prevu: 75 },
-                zone3: { cqReel: 28, cqPrevu: 48, reel: 68, prevu: 78 },
-                zone4: { cqReel: 20, cqPrevu: 42, reel: 73, prevu: 82 },
+                zone1a: { cqReel: 25, cqPrevu: 45, reel: 70, prevu: 80 },
+                zone1b: { cqReel: 30, cqPrevu: 50, reel: 65, prevu: 75 },
+                zone1c: { cqReel: 28, cqPrevu: 48, reel: 68, prevu: 78 },
+                zone1d: { cqReel: 20, cqPrevu: 42, reel: 73, prevu: 82 },
                 all: { cqReel: 26, cqPrevu: 46, reel: 69, prevu: 79 }
             },
             structures: {
-                zone1: { cqReel: 40, cqPrevu: 60, reel: 75, prevu: 88 },
-                zone2: { cqReel: 45, cqPrevu: 65, reel: 70, prevu: 85 },
-                zone3: { cqReel: 42, cqPrevu: 62, reel: 73, prevu: 87 },
-                zone4: { cqReel: 38, cqPrevu: 58, reel: 78, prevu: 90 },
+                zone1a: { cqReel: 40, cqPrevu: 60, reel: 75, prevu: 88 },
+                zone1b: { cqReel: 45, cqPrevu: 65, reel: 70, prevu: 85 },
+                zone1c: { cqReel: 42, cqPrevu: 62, reel: 73, prevu: 87 },
+                zone1d: { cqReel: 38, cqPrevu: 58, reel: 78, prevu: 90 },
                 all: { cqReel: 41, cqPrevu: 61, reel: 74, prevu: 88 }
             }
         };
@@ -1115,6 +1179,46 @@
             tbody.innerHTML = html;
         }
         
+        // Afficher la vue "Reste à faire" par onduleur (mode chef d'équipe)
+        function renderResteAFaireView() {
+            const container = document.getElementById('chefEquipeContainer');
+            const data = projectData && projectData.electrical 
+                ? projectData.electrical.actions 
+                : demoElectricalData.actions;
+            
+            // Liste des onduleurs
+            const onduleurs = ['ond1', 'ond2', 'ond3', 'ond4', 'ond5', 'ond6'];
+            
+            let html = '';
+            
+            // Créer une carte pour chaque onduleur
+            onduleurs.forEach((ond, index) => {
+                const ondNum = index + 1;
+                html += `<div class="onduleur-card">`;
+                html += `<div class="onduleur-card-header">OND${ondNum}</div>`;
+                
+                // Pour chaque action, afficher le reste à faire
+                data.forEach(action => {
+                    const avancement = action[ond];
+                    const reste = 100 - avancement;
+                    
+                    // Déterminer la classe de couleur selon le reste à faire
+                    let colorClass = 'high'; // Peu de reste (vert)
+                    if (reste > 30) colorClass = 'low'; // Beaucoup de reste (rouge)
+                    else if (reste > 10) colorClass = 'medium'; // Moyen (orange)
+                    
+                    html += `<div class="onduleur-action-item">`;
+                    html += `<span class="onduleur-action-name">${action.name}</span>`;
+                    html += `<span class="onduleur-action-reste ${colorClass}">Reste: ${reste}%</span>`;
+                    html += `</div>`;
+                });
+                
+                html += `</div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+        
         // Gestion des clics sur les onglets de catégorie (Dashboard Mécanique)
         document.querySelectorAll('.tab-button[data-category]').forEach(button => {
             button.addEventListener('click', function() {
@@ -1139,25 +1243,6 @@
             });
         });
         
-        // Gestion des clics sur les onglets CQ
-        document.querySelectorAll('.tab-button[data-cq]').forEach(button => {
-            button.addEventListener('click', function() {
-                // Retirer la classe active de tous les boutons CQ
-                document.querySelectorAll('.tab-button[data-cq]').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // Ajouter la classe active au bouton cliqué
-                this.classList.add('active');
-                
-                // Récupérer la catégorie CQ
-                const cqCategory = this.getAttribute('data-cq');
-                
-                // Mettre à jour le graphique avec les données CQ et la zone actuelle
-                updateChart(cqCategory, currentZone);
-            });
-        });
-        
         // Gestion du changement de zone
         document.getElementById('zoneSelect').addEventListener('change', function() {
             const zone = this.value;
@@ -1174,8 +1259,23 @@
         
         // Gestion du bouton "Tout voir"
         document.getElementById('btnViewAll').addEventListener('click', function() {
+            // Afficher le tableau de progression normal
+            document.getElementById('progressTable').style.display = 'table';
+            document.getElementById('resteAFaireView').style.display = 'none';
+            document.getElementById('selectAction').disabled = false;
+            
             document.getElementById('selectAction').value = '';
             renderElectricalTable();
+        });
+        
+        // Gestion du bouton "Reste à faire"
+        document.getElementById('btnResteAFaire').addEventListener('click', function() {
+            // Afficher la vue "Reste à faire" par onduleur
+            document.getElementById('progressTable').style.display = 'none';
+            document.getElementById('resteAFaireView').style.display = 'block';
+            document.getElementById('selectAction').disabled = true;
+            
+            renderResteAFaireView();
         });
         
         // Gestion du changement de sélection d'action électrique

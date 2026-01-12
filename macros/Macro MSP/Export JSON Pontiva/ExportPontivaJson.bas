@@ -6,8 +6,12 @@ Option Explicit
 ' Exporte un projet MS Project au format JSON
 ' compatible avec le Dashboard Pontiva
 '
-' Version: 0.2
-' Date: 2025-12-05
+' Version: 0.3
+' Date: 2025-01-12
+' Changelog:
+' - Ajout du contrat de données (data_contract) dans le JSON
+' - Mapping explicite entre colonnes CSV et champs MSP
+' - Export garanti de tous les champs mappés, même si vides
 ' ============================================
 
 ' Point d'entrée principal
@@ -62,9 +66,12 @@ Private Function BuildProjectJson(prj As Project) As String
     
     sb = ""
     sb = sb & "{" & vbCrLf
-    sb = sb & "  ""version"": ""0.2""," & vbCrLf
+    sb = sb & "  ""version"": ""0.3""," & vbCrLf
     sb = sb & "  ""project_name"": """ & JsonEscape(prj.Name) & """," & vbCrLf
     sb = sb & "  ""export_date"": """ & Format(Date, "yyyy-mm-dd") & """," & vbCrLf
+    sb = sb & "  ""data_contract"": {" & vbCrLf
+    sb = sb & BuildDataContract()
+    sb = sb & vbCrLf & "  }," & vbCrLf
     sb = sb & "  ""tasks"": [" & vbCrLf
     
     firstTask = True
@@ -86,6 +93,32 @@ Private Function BuildProjectJson(prj As Project) As String
     sb = sb & "}" & vbCrLf
     
     BuildProjectJson = sb
+End Function
+
+' Construit le contrat de données (mapping entre colonnes CSV et champs MSP)
+Private Function BuildDataContract() As String
+    Dim sb As String
+    
+    sb = "    ""description"": ""Mapping entre les colonnes du fichier d'import Excel et les champs MS Project""," & vbCrLf
+    sb = sb & "    ""version"": ""1.0""," & vbCrLf
+    sb = sb & "    ""import_source"": ""Prevencheres/Modeledonneesimport.csv""," & vbCrLf
+    sb = sb & "    ""fields_mapping"": {" & vbCrLf
+    sb = sb & "      ""Nom"": ""name""," & vbCrLf
+    sb = sb & "      ""Quantités"": ""custom_fields.Number1""," & vbCrLf
+    sb = sb & "      ""Nb personnes"": ""custom_fields.Number2""," & vbCrLf
+    sb = sb & "      ""Heures"": ""custom_fields.Number3""," & vbCrLf
+    sb = sb & "      ""Zone"": ""custom_fields.Text1""," & vbCrLf
+    sb = sb & "      ""Sous-Zone"": ""custom_fields.Text2""," & vbCrLf
+    sb = sb & "      ""Tranche"": ""custom_fields.Text3""," & vbCrLf
+    sb = sb & "      ""Lot"": ""custom_fields.Text4""," & vbCrLf
+    sb = sb & "      ""Entreprise"": ""custom_fields.Text5""," & vbCrLf
+    sb = sb & "      ""Qualité"": ""custom_fields.Text6""," & vbCrLf
+    sb = sb & "      ""Niveau"": ""custom_fields.Text7""," & vbCrLf
+    sb = sb & "      ""Onduleur"": ""custom_fields.Text8""" & vbCrLf
+    sb = sb & "    }," & vbCrLf
+    sb = sb & "    ""required_fields"": [""Nom"", ""Quantités"", ""Nb personnes"", ""Heures"", ""Zone"", ""Sous-Zone"", ""Tranche"", ""Lot"", ""Entreprise"", ""Qualité"", ""Niveau"", ""Onduleur""]"
+    
+    BuildDataContract = sb
 End Function
 
 ' Construit le JSON pour une tâche complète
@@ -173,8 +206,13 @@ Private Function BuildCustomFields(t As Task) As String
     Dim fieldValue As String
     Dim firstField As Boolean
     Dim i As Integer
+    Dim isContractField As Boolean
     
-    ' Liste des champs personnalisés à vérifier (Text1-30, Number1-20, Flag1-20, Date1-10)
+    ' Champs mappés du contrat de données (TOUJOURS exportés, même si vides)
+    Dim contractFields As String
+    contractFields = "Number1,Number2,Number3,Text1,Text2,Text3,Text4,Text5,Text6,Text7,Text8"
+    
+    ' Liste complète des champs personnalisés à vérifier
     fieldList = "Text1,Text2,Text3,Text4,Text5,Text6,Text7,Text8,Text9,Text10,Text11,Text12,Text13,Text14,Text15,Text16,Text17,Text18,Text19,Text20,Text21,Text22,Text23,Text24,Text25,Text26,Text27,Text28,Text29,Text30," & _
                 "Number1,Number2,Number3,Number4,Number5,Number6,Number7,Number8,Number9,Number10,Number11,Number12,Number13,Number14,Number15,Number16,Number17,Number18,Number19,Number20," & _
                 "Flag1,Flag2,Flag3,Flag4,Flag5,Flag6,Flag7,Flag8,Flag9,Flag10,Flag11,Flag12,Flag13,Flag14,Flag15,Flag16,Flag17,Flag18,Flag19,Flag20," & _
@@ -191,17 +229,32 @@ Private Function BuildCustomFields(t As Task) As String
         fieldName = Trim(fields(i))
         fieldValue = GetCustomFieldValue(t, fieldName)
         
-        ' N'inclure que les champs non vides
-        If fieldValue <> "" And fieldValue <> "0" And fieldValue <> "False" And fieldValue <> "01/01/1984" Then
+        ' Vérifier si c'est un champ du contrat de données
+        isContractField = (InStr(1, "," & contractFields & ",", "," & fieldName & ",") > 0)
+        
+        ' Inclure le champ si :
+        ' - c'est un champ du contrat (toujours, même si vide)
+        ' - OU si c'est un autre champ avec une valeur non vide
+        If isContractField Or (fieldValue <> "" And fieldValue <> "0" And fieldValue <> "False" And fieldValue <> "01/01/1984") Then
             If Not firstField Then
                 sb = sb & "," & vbCrLf
             End If
             
             ' Déterminer le format selon le type de champ
             If Left(fieldName, 4) = "Text" Then
-                sb = sb & "        """ & fieldName & """: """ & JsonEscape(fieldValue) & """"
+                ' Pour les champs texte du contrat, toujours exporter même si vide
+                If isContractField Then
+                    sb = sb & "        """ & fieldName & """: """ & JsonEscape(fieldValue) & """"
+                Else
+                    sb = sb & "        """ & fieldName & """: """ & JsonEscape(fieldValue) & """"
+                End If
             ElseIf Left(fieldName, 6) = "Number" Then
-                sb = sb & "        """ & fieldName & """: " & FormatNumberDot(CDbl(Val(fieldValue)))
+                ' Pour les champs numériques du contrat, exporter 0 si vide
+                If fieldValue = "" Or fieldValue = "0" Then
+                    sb = sb & "        """ & fieldName & """: 0"
+                Else
+                    sb = sb & "        """ & fieldName & """: " & FormatNumberDot(CDbl(Val(fieldValue)))
+                End If
             ElseIf Left(fieldName, 4) = "Flag" Then
                 sb = sb & "        """ & fieldName & """: " & LCase(fieldValue)
             ElseIf Left(fieldName, 4) = "Date" Then
