@@ -3,915 +3,1221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Pontiva - Import JSON</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <title>Dashboard Interne</title>
     <style>
-        .upload-section {
-            background: var(--background-white);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-card);
-            padding: var(--spacing-lg);
-            margin-bottom: var(--spacing-lg);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        .upload-section.hidden {
-            display: none;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
         }
         
-        .upload-section h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-blue);
-            margin-bottom: var(--spacing-md);
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid #000;
+            padding: 20px;
         }
         
-        .upload-section p {
-            color: var(--text-gray);
-            margin-bottom: var(--spacing-md);
-            line-height: 1.6;
+        /* En-tête */
+        h1 {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: left;
         }
         
-        .file-input-wrapper {
-            margin: var(--spacing-md) 0;
+        /* Layout principal */
+        .main-layout {
+            margin-top: 20px;
         }
         
-        .file-input-label {
-            display: inline-block;
-            padding: 12px 24px;
-            background: var(--primary-blue);
-            color: white;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-        
-        .file-input-label:hover {
-            background: var(--secondary-blue);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-subtle);
-        }
-        
-        .file-input {
-            display: none;
-        }
-        
-        .dashboard-section {
-            background: var(--background-white);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-card);
-            padding: var(--spacing-lg);
-            margin-bottom: var(--spacing-lg);
-            display: none;
-        }
-        
-        .dashboard-section.active {
-            display: block;
-        }
-        
-        /* Navigation par onglets */
-        .view-tabs {
+        /* Section gauche */
+        .left-section {
             display: flex;
-            gap: var(--spacing-xs);
-            margin-bottom: var(--spacing-lg);
-            border-bottom: 2px solid var(--border-gray);
+            flex-direction: column;
+            gap: 15px;
         }
         
-        .view-tab {
-            padding: var(--spacing-sm) var(--spacing-md);
-            background: transparent;
-            border: none;
-            border-bottom: 3px solid transparent;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--text-gray);
-            transition: all 0.2s ease;
-            font-size: 1rem;
-        }
-        
-        .view-tab:hover {
-            color: var(--primary-blue);
-            background: var(--light-blue);
-        }
-        
-        .view-tab.active {
-            color: var(--primary-blue);
-            border-bottom-color: var(--primary-blue);
-        }
-        
-        .view-content {
-            display: none;
-        }
-        
-        .view-content.active {
-            display: block;
-        }
-        
-        /* Boutons de filtre */
-        .filter-buttons {
+        /* Boutons et onglets */
+        .tabs-row {
             display: flex;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-md);
+            gap: 8px;
             flex-wrap: wrap;
         }
         
-        .filter-btn {
+        .tab-button {
             padding: 8px 16px;
-            background: var(--background-white);
-            border: 2px solid var(--secondary-blue);
-            border-radius: var(--border-radius);
+            background: white;
+            border: 1px solid #000;
             cursor: pointer;
+            font-size: 11px;
             font-weight: 600;
-            color: var(--secondary-blue);
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
         
-        .filter-btn:hover {
-            background: var(--light-blue);
+        .tab-button:hover {
+            background: #e8e8e8;
         }
         
-        .filter-btn.active {
-            background: var(--primary-blue);
-            color: white;
-            border-color: var(--primary-blue);
+        .tab-button.active {
+            background: #d0d0d0;
+            border-width: 2px;
         }
         
-        /* Tableaux */
-        .tasks-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: var(--spacing-md);
+        /* Menu déroulant */
+        .zone-select {
+            padding: 7px 12px;
+            border: 1px solid #000;
+            font-size: 11px;
+            background: white;
+            cursor: pointer;
         }
         
-        .tasks-table th {
-            background: var(--light-blue);
-            color: var(--primary-blue);
-            font-weight: 600;
-            padding: var(--spacing-sm);
-            text-align: left;
-            border-bottom: 2px solid var(--primary-blue);
+        /* Section graphique */
+        .chart-section {
+            border: 1px solid #000;
+            padding: 15px;
         }
         
-        .tasks-table td {
-            padding: var(--spacing-sm);
-            border-bottom: 1px solid var(--border-light);
+        .chart-title {
+            text-align: center;
+            font-size: 12px;
+            font-weight: normal;
+            margin-bottom: 15px;
         }
         
-        .tasks-table tr:hover {
-            background: var(--background-gray);
+        .chart-container-wrapper {
+            position: relative;
+            height: 280px;
         }
         
-        .status-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
+        /* Labels verticaux */
+        .chart-labels {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            position: absolute;
+            left: 0;
+            top: 20px;
         }
         
-        .status-on_time { background: #d4edda; color: #155724; }
-        .status-late { background: #f8d7da; color: #721c24; }
-        .status-not_started { background: #fff3cd; color: #856404; }
-        .status-completed { background: #d1ecf1; color: #0c5460; }
-        
-        /* Cartes de statistiques */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-lg);
+        .chart-label {
+            font-size: 9px;
+            text-align: right;
+            width: 120px;
         }
         
-        .stat-card {
-            background: var(--light-blue);
-            border: 1px solid var(--border-gray);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-md);
+        .chart-label.rotated {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            width: auto;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        
+        /* Zone de barres */
+        .bars-container {
+            margin-left: 130px;
+            margin-top: 15px;
+            position: relative;
+        }
+        
+        .bar-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            height: 22px;
+            align-items: center;
+        }
+        
+        .bar {
+            height: 20px;
+            background: linear-gradient(to right, #FF0000 0%, #FFFF00 50%, #00B050 100%);
+            position: relative;
+        }
+        
+        /* Axe X */
+        .x-axis {
+            display: flex;
+            justify-content: space-between;
+            margin-left: 130px;
+            margin-top: 5px;
+            padding-right: 10px;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+        }
+        
+        .x-axis-label {
+            font-size: 10px;
+        }
+        
+        /* Vue cachée par défaut */
+        .view-section {
+            display: none;
+        }
+        
+        .view-section.active {
+            display: block;
+        }
+        
+        /* Page d'accueil */
+        .home-view {
+            padding: 40px 20px;
             text-align: center;
         }
         
-        .stat-card h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-gray);
-            margin-bottom: var(--spacing-xs);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .home-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            color: #333;
         }
         
-        .stat-card .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-blue);
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1000px;
+            margin: 0 auto;
         }
         
-        /* Histogramme */
-        .chart-container {
+        .dashboard-card {
+            background: white;
+            border: 2px solid #000;
+            padding: 40px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             position: relative;
-            height: 300px;
-            margin: var(--spacing-lg) 0;
         }
         
-        /* Groupes de ressources */
-        .resource-group-card {
-            background: var(--background-gray);
-            border: 1px solid var(--border-gray);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-md);
-            margin-bottom: var(--spacing-md);
+        .dashboard-card:hover {
+            background: #f0f0f0;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
         }
         
-        .resource-group-card h3 {
-            color: var(--primary-blue);
-            margin-bottom: var(--spacing-sm);
+        .dashboard-card-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
         }
         
-        .error-message {
-            background: #ffebee;
-            color: #d32f2f;
-            padding: var(--spacing-md);
-            border-radius: var(--border-radius);
-            border: 1px solid #ffcdd2;
-            margin: var(--spacing-md) 0;
-            font-weight: 500;
+        .dashboard-card-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
         }
         
-        .file-name {
-            margin-top: var(--spacing-xs);
-            font-size: 0.9rem;
-            color: var(--text-gray);
+        .dashboard-card-description {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        /* Bouton retour */
+        .back-button {
+            padding: 8px 16px;
+            background: #666;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-bottom: 15px;
+        }
+        
+        .back-button:hover {
+            background: #444;
+        }
+        
+        /* Navigation dans les sous-vues */
+        .sub-navigation {
+            display: none;
+            margin-bottom: 15px;
+        }
+        
+        .sub-navigation.active {
+            display: block;
+        }
+        
+        /* Dashboard Électrique */
+        .electrical-dashboard {
+            margin-top: 20px;
+        }
+        
+        .electrical-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+        
+        .electrical-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .btn-view-all {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #000;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-view-all:hover {
+            background: #e8e8e8;
+        }
+        
+        .select-action {
+            padding: 7px 12px;
+            border: 1px solid #000;
+            font-size: 11px;
+            background: white;
+            cursor: pointer;
+            min-width: 150px;
+        }
+        
+        .electrical-right {
+            font-size: 10px;
+            color: #666;
             font-style: italic;
+            max-width: 300px;
         }
         
-        .info-box {
-            background: var(--light-blue);
-            border-left: 4px solid var(--primary-blue);
-            padding: var(--spacing-sm);
-            margin: var(--spacing-md) 0;
-            border-radius: 4px;
+        /* Tableau de progression */
+        .progress-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000;
+            margin-bottom: 20px;
+        }
+        
+        .progress-table th,
+        .progress-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+            font-size: 11px;
+        }
+        
+        .progress-table th {
+            background: #e0e0e0;
+            font-weight: 600;
+        }
+        
+        .progress-table td.action-name {
+            text-align: left;
+            font-weight: 600;
+            background: #f5f5f5;
+        }
+        
+        .progress-table td.percentage {
+            font-weight: 600;
+        }
+        
+        .progress-table td.percentage.low {
+            color: #d32f2f;
+        }
+        
+        .progress-table td.percentage.medium {
+            color: #f57c00;
+        }
+        
+        .progress-table td.percentage.high {
+            color: #388e3c;
+        }
+        
+        .comparatif-note {
+            font-size: 11px;
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        
+        /* Dashboard Financier */
+        .financial-dashboard {
+            margin-top: 20px;
+        }
+        
+        .financial-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border: 1px solid #000;
+        }
+        
+        .date-selector-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .date-selector-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .date-selector {
+            padding: 7px 12px;
+            border: 1px solid #000;
+            font-size: 11px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .financial-summary {
+            text-align: right;
+        }
+        
+        .financial-summary-title {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .financial-summary-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        
+        /* Tableau des tranches */
+        .tranches-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000;
+            margin-bottom: 20px;
+        }
+        
+        .tranches-table th,
+        .tranches-table td {
+            border: 1px solid #000;
+            padding: 10px;
+            font-size: 11px;
+        }
+        
+        .tranches-table th {
+            background: #e0e0e0;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .tranches-table td.tranche-name {
+            font-weight: 600;
+            background: #f5f5f5;
+            width: 120px;
+        }
+        
+        .tranches-table td.sub-category {
+            padding-left: 30px;
+            font-size: 10px;
+            background: #fafafa;
+        }
+        
+        .tranches-table td.amount {
+            text-align: right;
+            font-weight: 600;
+            color: #2e7d32;
+        }
+        
+        .tranches-table td.percentage {
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        /* Timeline mensuelle */
+        .timeline-container {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+        
+        .timeline-header {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 10px;
+            min-width: 800px;
+        }
+        
+        .timeline-labels {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .timeline-label {
+            font-size: 10px;
+            font-weight: 600;
+            height: 30px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .timeline-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .timeline-bar-row {
+            display: flex;
+            align-items: center;
+            height: 30px;
+            position: relative;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+        }
+        
+        .timeline-bar {
+            height: 100%;
+            background: linear-gradient(to right, #FF5722 0%, #FFC107 50%, #4CAF50 100%);
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        
+        .timeline-bar-label {
+            position: absolute;
+            right: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .timeline-months {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 9px;
+            color: #666;
+        }
+        
+        /* Total facturable */
+        .total-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .total-label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .total-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2e7d32;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Dashboard Pontiva</h1>
-            <p>Import et analyse du fichier JSON généré depuis MS Project</p>
-        </header>
-
-        <!-- Section Upload -->
-        <div class="upload-section">
-            <h2>Import JSON Pontiva</h2>
-            <p>Importez le fichier JSON généré depuis MS Project pour afficher le dashboard.</p>
-            
-            <div class="file-input-wrapper">
-                <label for="json-file-input" class="file-input-label">
-                    📥 Importer le JSON Pontiva
-                </label>
-                <input 
-                    type="file" 
-                    id="json-file-input" 
-                    class="file-input" 
-                    accept="application/json,.json"
-                >
-                <div id="file-name" class="file-name"></div>
+    <div class="dashboard-container">
+        <h1>STRUCTURE DU DASHBOARD INTERNE</h1>
+        
+        <!-- Page d'accueil -->
+        <div id="home-view" class="view-section active">
+            <div class="home-view">
+                <div class="home-title">Choisissez votre dashboard</div>
+                <div class="dashboard-cards">
+                    <div class="dashboard-card" data-dashboard="mechanical">
+                        <div class="dashboard-card-icon">⚙️</div>
+                        <div class="dashboard-card-title">Dashboard Mécanique</div>
+                        <div class="dashboard-card-description">
+                            Suivi des forages, micropieux, structures et contrôles qualité associés
+                        </div>
+                    </div>
+                    <div class="dashboard-card" data-dashboard="electrical">
+                        <div class="dashboard-card-icon">⚡</div>
+                        <div class="dashboard-card-title">Dashboard Électrique</div>
+                        <div class="dashboard-card-description">
+                            Suivi des actions électriques par onduleur (tirage câbles, raccordement, tests, etc.)
+                        </div>
+                    </div>
+                    <div class="dashboard-card" data-dashboard="financial">
+                        <div class="dashboard-card-icon">💰</div>
+                        <div class="dashboard-card-title">Dashboard Financier</div>
+                        <div class="dashboard-card-description">
+                            Suivi des montants facturables par tranche selon l'avancement (MECA, MOD, ELEC)
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div id="error-container"></div>
         </div>
-
-        <!-- Section Dashboard -->
-        <div id="dashboard-section" class="dashboard-section">
-            <h2>Dashboard du projet : <span id="project-name-header"></span></h2>
+        
+        <!-- Dashboard Mécanique -->
+        <div id="mechanical-view" class="view-section">
+            <button class="back-button" id="btnBackFromMeca">← Retour à l'accueil</button>
             
-            <!-- Navigation par onglets -->
-            <div class="view-tabs">
-                <button class="view-tab active" data-view="ra">Responsable d'affaires</button>
-                <button class="view-tab" data-view="activites">Responsable d'activités</button>
-                <button class="view-tab" data-view="client">Vue Client</button>
+            <!-- Première rangée d'onglets -->
+            <div class="tabs-row sub-navigation active">
+                <button class="tab-button active" data-view="main" data-category="forages">Forages</button>
+                <button class="tab-button" data-view="main" data-category="micropieux">Micropieux</button>
+                <button class="tab-button" data-view="main" data-category="structures">Structures</button>
             </div>
             
-            <!-- Vue Responsable d'affaires -->
-            <div id="view-ra" class="view-content active">
-                <h3>Suivi par activité</h3>
-                <!-- Boutons pour suivi mécanique/électrique (si données disponibles) -->
-                <div id="ra-suivi-buttons" class="filter-buttons" style="display: none;">
-                    <button class="filter-btn" data-suivi="mecanique">Suivi Avancement Mécanique</button>
-                    <button class="filter-btn" data-suivi="electrique">Suivi Avancement Électrique</button>
-                </div>
-                <!-- Filtres pour tâches (si données disponibles) -->
-                <div id="ra-filter-buttons" class="filter-buttons">
-                    <button class="filter-btn active" data-filter="all">Toutes</button>
-                    <button class="filter-btn" data-filter="mecanique">Mécanique</button>
-                    <button class="filter-btn" data-filter="electrique">Électrique</button>
-                    <button class="filter-btn" data-filter="qualite">Qualité</button>
-                </div>
-                <div id="ra-tasks-container"></div>
-                <div id="ra-suivi-container"></div>
+            <!-- Deuxième rangée d'onglets -->
+            <div class="tabs-row sub-navigation active">
+                <button class="tab-button" data-cq="forages">
+                    <span class="cq-label">CQ</span> Forages
+                </button>
+                <button class="tab-button" data-cq="micropieux">
+                    <span class="cq-label">CQ</span> Micropieux
+                </button>
+                <button class="tab-button" data-cq="structures">
+                    <span class="cq-label">CQ</span> Structures
+                </button>
+            <select class="zone-select" id="zoneSelect">
+                <option value="">Toutes les zones</option>
+                <option value="zone1">Zone 1</option>
+                <option value="zone2">Zone 2</option>
+                <option value="zone3">Zone 3</option>
+                <option value="zone4">Zone 4</option>
+            </select>
             </div>
             
-            <!-- Vue Responsable d'activités -->
-            <div id="view-activites" class="view-content">
-                <h3>Vue par groupe de ressources</h3>
-                <div id="activites-container"></div>
-            </div>
-            
-            <!-- Vue Client -->
-            <div id="view-client" class="view-content">
-                <h3>Vue synthétique</h3>
-                <div class="chart-container">
-                    <canvas id="progress-chart"></canvas>
+            <!-- Graphiques mécaniques -->
+            <div class="main-layout">
+                <div class="left-section">
+                    <div class="chart-section">
+                        <div class="chart-title">Affichage sur la zone voulue à date</div>
+                        
+                        <div class="chart-container-wrapper">
+                            <!-- Labels verticaux -->
+                            <div class="chart-labels">
+                                <div class="chart-label rotated">CQ forages réel</div>
+                                <div class="chart-label rotated">CQ Forages Prévu</div>
+                                <div class="chart-label">Forages</div>
+                                <div class="chart-label rotated">Forages Réels</div>
+                                <div class="chart-label rotated">Forages Prévu</div>
+                            </div>
+                            
+                            <!-- Barres horizontales -->
+                            <div class="bars-container">
+                                <div class="bar-row">
+                                    <div class="bar" id="bar1" style="width: 5%;"></div>
+                                </div>
+                                <div class="bar-row">
+                                    <div class="bar" id="bar2" style="width: 12%;"></div>
+                                </div>
+                                <div class="bar-row" style="height: 8px;"></div>
+                                <div class="bar-row">
+                                    <div class="bar" id="bar3" style="width: 65%;"></div>
+                                </div>
+                                <div class="bar-row">
+                                    <div class="bar" id="bar4" style="width: 72%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Axe X -->
+                        <div class="x-axis">
+                            <span class="x-axis-label">0%</span>
+                            <span class="x-axis-label">10%</span>
+                            <span class="x-axis-label">20%</span>
+                            <span class="x-axis-label">30%</span>
+                            <span class="x-axis-label">40%</span>
+                            <span class="x-axis-label">50%</span>
+                            <span class="x-axis-label">60%</span>
+                            <span class="x-axis-label">70%</span>
+                            <span class="x-axis-label">80%</span>
+                            <span class="x-axis-label">90%</span>
+                            <span class="x-axis-label">100%</span>
+                        </div>
+                    </div>
                 </div>
-                <div id="client-next-tasks"></div>
-                <div id="client-starting-tasks"></div>
-                <div id="client-week-progress"></div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Électrique -->
+        <div id="electrical-view" class="view-section">
+            <button class="back-button" id="btnBackFromElec">← Retour à l'accueil</button>
+            
+            <div class="electrical-dashboard">
+                <div class="electrical-header">
+                    <div class="electrical-left">
+                        <button class="btn-view-all" id="btnViewAll">Tout voir</button>
+                        <select class="select-action" id="selectAction">
+                            <option value="">actions élec</option>
+                            <option value="action1">Action 1 - Tirage câbles</option>
+                            <option value="action2">Action 2 - Raccordement</option>
+                            <option value="action3">Action 3 - Tests</option>
+                            <option value="action4">Action 4 - Mise en service</option>
+                        </select>
+                    </div>
+                    <div class="electrical-right">
+                        Menu déroulant pour sélectionner une tâche précise ou une autre option
+                    </div>
+                </div>
+                
+                <table class="progress-table" id="progressTable">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>OND1</th>
+                            <th>OND2</th>
+                            <th>OND3</th>
+                            <th>OND4</th>
+                            <th>OND5</th>
+                            <th>OND6</th>
+                        </tr>
+                    </thead>
+                    <tbody id="progressTableBody">
+                        <!-- Les lignes seront générées dynamiquement -->
+                    </tbody>
+                </table>
+                
+                <div class="comparatif-note">
+                    Comparatif avec un planning de ref ???
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Financier -->
+        <div id="financial-view" class="view-section">
+            <button class="back-button" id="btnBackFromFinancial">← Retour à l'accueil</button>
+            
+            <div class="financial-dashboard">
+                <!-- En-tête avec sélecteur de date -->
+                <div class="financial-header">
+                    <div class="date-selector-container">
+                        <span class="date-selector-label">Date de référence :</span>
+                        <input type="date" id="dateSelector" class="date-selector">
+                    </div>
+                    <div class="financial-summary">
+                        <div class="financial-summary-title">Montant total facturable à date</div>
+                        <div class="financial-summary-amount" id="totalFacturable">0 €</div>
+                    </div>
+                </div>
+                
+                <!-- Tableau des tranches -->
+                <table class="tranches-table" id="tranchesTable">
+                    <thead>
+                        <tr>
+                            <th>Tranche / Catégorie</th>
+                            <th>Montant Total (€)</th>
+                            <th>% Avancement</th>
+                            <th>Montant Facturable (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tranchesTableBody">
+                        <!-- Les lignes seront générées dynamiquement -->
+                    </tbody>
+                </table>
+                
+                <!-- Timeline mensuelle -->
+                <div class="timeline-container">
+                    <div class="timeline-header">Timeline d'avancement par tranche</div>
+                    <div class="timeline-grid">
+                        <div class="timeline-labels" id="timelineLabels">
+                            <!-- Généré dynamiquement -->
+                        </div>
+                        <div>
+                            <div class="timeline-bars" id="timelineBars">
+                                <!-- Généré dynamiquement -->
+                            </div>
+                            <div class="timeline-months">
+                                <span>Jan</span>
+                                <span>Fév</span>
+                                <span>Mar</span>
+                                <span>Avr</span>
+                                <span>Mai</span>
+                                <span>Jun</span>
+                                <span>Jul</span>
+                                <span>Aoû</span>
+                                <span>Sep</span>
+                                <span>Oct</span>
+                                <span>Nov</span>
+                                <span>Déc</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Total facturable -->
+                <div class="total-section">
+                    <span class="total-label">TOTAL FACTURABLE À DATE</span>
+                    <span class="total-amount" id="totalFacturableBottom">0 €</span>
+                </div>
             </div>
         </div>
     </div>
-
+    
     <script>
-        // ============================================
-        // MODULE DE GESTION DES DONNÉES
-        // ============================================
+        // Données de démonstration
+        const demoData = {
+            forages: {
+                zone1: { cqReel: 15, cqPrevu: 35, reel: 85, prevu: 92 },
+                zone2: { cqReel: 22, cqPrevu: 40, reel: 78, prevu: 88 },
+                zone3: { cqReel: 18, cqPrevu: 38, reel: 82, prevu: 90 },
+                zone4: { cqReel: 12, cqPrevu: 32, reel: 88, prevu: 95 },
+                all: { cqReel: 17, cqPrevu: 36, reel: 83, prevu: 91 }
+            },
+            micropieux: {
+                zone1: { cqReel: 25, cqPrevu: 45, reel: 70, prevu: 80 },
+                zone2: { cqReel: 30, cqPrevu: 50, reel: 65, prevu: 75 },
+                zone3: { cqReel: 28, cqPrevu: 48, reel: 68, prevu: 78 },
+                zone4: { cqReel: 20, cqPrevu: 42, reel: 73, prevu: 82 },
+                all: { cqReel: 26, cqPrevu: 46, reel: 69, prevu: 79 }
+            },
+            structures: {
+                zone1: { cqReel: 40, cqPrevu: 60, reel: 75, prevu: 88 },
+                zone2: { cqReel: 45, cqPrevu: 65, reel: 70, prevu: 85 },
+                zone3: { cqReel: 42, cqPrevu: 62, reel: 73, prevu: 87 },
+                zone4: { cqReel: 38, cqPrevu: 58, reel: 78, prevu: 90 },
+                all: { cqReel: 41, cqPrevu: 61, reel: 74, prevu: 88 }
+            }
+        };
         
-        let projectData = null;
-        let chartInstance = null;
-        
-        /**
-         * Valide la structure du JSON Pontiva (tâches ou suivi)
-         */
-        function validatePontivaJSON(data) {
-            if (!data || typeof data !== 'object') {
-                return false;
-            }
-            if (!data.hasOwnProperty('version')) return false;
-            if (!data.hasOwnProperty('project_name')) return false;
-            
-            // Vérifier si c'est un JSON de suivi (mechanical/electrical)
-            if (data.hasOwnProperty('mechanical') || data.hasOwnProperty('electrical')) {
-                return true;
-            }
-            
-            // Sinon vérifier si c'est un JSON de tâches
-            if (data.hasOwnProperty('tasks')) {
-                if (!Array.isArray(data.tasks)) return false;
-                return true;
-            }
-            
-            return false;
-        }
-        
-        /**
-         * Détermine le type de JSON (suivi ou tâches)
-         */
-        function getJSONType(data) {
-            if (data.hasOwnProperty('mechanical') || data.hasOwnProperty('electrical')) {
-                return 'suivi';
-            }
-            if (data.hasOwnProperty('tasks')) {
-                return 'tasks';
-            }
-            return 'unknown';
-        }
-        
-        /**
-         * Détermine la catégorie d'une tâche (mecanique, electrique, qualite)
-         * Utilise les champs personnalisés ou le nom de la tâche
-         */
-        function getTaskCategory(task) {
-            // Chercher dans les champs personnalisés
-            if (task.custom_fields) {
-                // Chercher Text1, Text2, etc. pour une catégorie
-                for (let key in task.custom_fields) {
-                    const value = String(task.custom_fields[key]).toLowerCase();
-                    if (value.includes('mecanique') || value.includes('mécanique')) return 'mecanique';
-                    if (value.includes('electrique') || value.includes('électrique')) return 'electrique';
-                    if (value.includes('qualite') || value.includes('qualité')) return 'qualite';
+        // Données de démonstration pour le dashboard électrique
+        const demoElectricalData = {
+            actions: [
+                {
+                    name: "Tirage câbles",
+                    ond1: 85,
+                    ond2: 92,
+                    ond3: 78,
+                    ond4: 95,
+                    ond5: 88,
+                    ond6: 90
+                },
+                {
+                    name: "Raccordement",
+                    ond1: 65,
+                    ond2: 72,
+                    ond3: 58,
+                    ond4: 80,
+                    ond5: 68,
+                    ond6: 75
+                },
+                {
+                    name: "Tests électriques",
+                    ond1: 45,
+                    ond2: 52,
+                    ond3: 38,
+                    ond4: 60,
+                    ond5: 48,
+                    ond6: 55
+                },
+                {
+                    name: "Mise en service",
+                    ond1: 25,
+                    ond2: 32,
+                    ond3: 18,
+                    ond4: 40,
+                    ond5: 28,
+                    ond6: 35
+                },
+                {
+                    name: "Contrôle final",
+                    ond1: 15,
+                    ond2: 22,
+                    ond3: 8,
+                    ond4: 30,
+                    ond5: 18,
+                    ond6: 25
                 }
+            ]
+        };
+        
+        // Données de démonstration pour le dashboard financier
+        const demoFinancialData = {
+            tranches: [
+                {
+                    name: "Tranche 1",
+                    categories: [
+                        { name: "MECA", amount: 450000, startMonth: 0, endMonth: 6, progress: 85 },
+                        { name: "MOD", amount: 280000, startMonth: 1, endMonth: 5, progress: 92 },
+                        { name: "ELEC", amount: 320000, startMonth: 2, endMonth: 7, progress: 78 }
+                    ]
+                },
+                {
+                    name: "Tranche 2",
+                    categories: [
+                        { name: "MECA", amount: 520000, startMonth: 3, endMonth: 9, progress: 65 },
+                        { name: "MOD", amount: 310000, startMonth: 4, endMonth: 8, progress: 72 },
+                        { name: "ELEC", amount: 380000, startMonth: 5, endMonth: 10, progress: 58 }
+                    ]
+                },
+                {
+                    name: "Tranche 3",
+                    categories: [
+                        { name: "MECA", amount: 490000, startMonth: 6, endMonth: 11, progress: 45 },
+                        { name: "MOD", amount: 295000, startMonth: 7, endMonth: 11, progress: 52 },
+                        { name: "ELEC", amount: 350000, startMonth: 8, endMonth: 11, progress: 38 }
+                    ]
+                }
+            ]
+        };
+        
+        let projectData = null; // Pour le futur branchement sur export MS Project
+        let currentCategory = 'forages';
+        let currentZone = 'all';
+        let currentView = 'home';
+        let selectedDate = new Date();
+        
+        // Formater un montant en euros
+        function formatAmount(amount) {
+            return new Intl.NumberFormat('fr-FR', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount) + ' €';
+        }
+        
+        // Calculer le pourcentage d'avancement à une date donnée
+        function calculateProgressAtDate(category, date) {
+            // Pour la démo, on utilise le pourcentage déjà défini
+            // Dans la vraie version, on calculerait selon la date
+            const selectedMonth = date.getMonth();
+            const currentMonth = new Date().getMonth();
+            
+            // Si la date sélectionnée est dans le futur, limiter l'avancement
+            if (selectedMonth > currentMonth) {
+                return Math.min(category.progress, 
+                    Math.floor(category.progress * (selectedMonth / 11)));
             }
             
-            // Sinon, chercher dans le nom
-            const name = String(task.name || '').toLowerCase();
-            if (name.includes('mecanique') || name.includes('mécanique')) return 'mecanique';
-            if (name.includes('electrique') || name.includes('électrique')) return 'electrique';
-            if (name.includes('qualite') || name.includes('qualité')) return 'qualite';
+            return category.progress;
+        }
+        
+        // Afficher le tableau des tranches financières
+        function renderFinancialTable(date) {
+            const tbody = document.getElementById('tranchesTableBody');
+            const data = projectData && projectData.financial 
+                ? projectData.financial.tranches 
+                : demoFinancialData.tranches;
             
-            return 'other';
-        }
-        
-        /**
-         * Formate une date pour l'affichage
-         */
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('fr-FR');
-        }
-        
-        /**
-         * Affiche un message d'erreur
-         */
-        function showError(message) {
-            const errorContainer = document.getElementById('error-container');
-            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
-            document.getElementById('dashboard-section').classList.remove('active');
-        }
-        
-        function clearError() {
-            document.getElementById('error-container').innerHTML = '';
-        }
-        
-        // ============================================
-        // VUE RESPONSABLE D'AFFAIRES
-        // ============================================
-        
-        function renderRAView(filter = 'all', suiviType = null) {
-            const jsonType = getJSONType(projectData);
+            let html = '';
+            let totalFacturable = 0;
             
-            // Si c'est un JSON de suivi, afficher les boutons de suivi
-            if (jsonType === 'suivi') {
-                document.getElementById('ra-suivi-buttons').style.display = 'flex';
-                document.getElementById('ra-filter-buttons').style.display = 'none';
+            data.forEach(tranche => {
+                let trancheTotalAmount = 0;
+                let trancheTotalFacturable = 0;
+                let trancheTotalProgress = 0;
                 
-                if (suiviType) {
-                    renderSuiviView(suiviType);
-                } else {
-                    // Afficher un message par défaut
-                    document.getElementById('ra-suivi-container').innerHTML = 
-                        '<div class="info-box">Sélectionnez un suivi : Mécanique ou Électrique</div>';
-                    document.getElementById('ra-tasks-container').innerHTML = '';
-                }
-                return;
-            }
-            
-            // Sinon, afficher les filtres de tâches
-            document.getElementById('ra-suivi-buttons').style.display = 'none';
-            document.getElementById('ra-filter-buttons').style.display = 'flex';
-            document.getElementById('ra-suivi-container').innerHTML = '';
-            
-            if (!projectData.tasks) {
-                document.getElementById('ra-tasks-container').innerHTML = 
-                    '<div class="info-box">Aucune donnée de tâches disponible.</div>';
-                return;
-            }
-            
-            const container = document.getElementById('ra-tasks-container');
-            const tasks = projectData.tasks;
-            
-            // Filtrer les tâches
-            let filteredTasks = tasks;
-            if (filter !== 'all') {
-                filteredTasks = tasks.filter(task => getTaskCategory(task) === filter);
-            }
-            
-            if (filteredTasks.length === 0) {
-                container.innerHTML = '<div class="info-box">Aucune tâche trouvée pour ce filtre.</div>';
-                return;
-            }
-            
-            // Créer le tableau
-            let html = '<table class="tasks-table">';
-            html += '<thead><tr>';
-            html += '<th>Nom de la tâche</th>';
-            html += '<th>% Achevé</th>';
-            html += '<th>Début</th>';
-            html += '<th>Fin prévue</th>';
-            html += '<th>Fin réelle</th>';
-            html += '<th>État</th>';
-            html += '</tr></thead><tbody>';
-            
-            filteredTasks.forEach(task => {
+                // Calculer les totaux de la tranche
+                tranche.categories.forEach(category => {
+                    trancheTotalAmount += category.amount;
+                    const progress = calculateProgressAtDate(category, date);
+                    trancheTotalFacturable += (category.amount * progress / 100);
+                    trancheTotalProgress += progress;
+                });
+                
+                const avgProgress = Math.round(trancheTotalProgress / tranche.categories.length);
+                
+                // Ligne principale de la tranche
                 html += '<tr>';
-                html += `<td>${task.name || '-'}</td>`;
-                html += `<td>${task.percent_complete || 0}%</td>`;
-                html += `<td>${formatDate(task.start)}</td>`;
-                html += `<td>${formatDate(task.scheduled_finish)}</td>`;
-                html += `<td>${formatDate(task.actual_finish) || '-'}</td>`;
-                html += `<td><span class="status-badge status-${task.status || 'not_started'}">${getStatusLabel(task.status)}</span></td>`;
+                html += `<td class="tranche-name">${tranche.name}</td>`;
+                html += `<td class="amount">${formatAmount(trancheTotalAmount)}</td>`;
+                html += `<td class="percentage">${avgProgress}%</td>`;
+                html += `<td class="amount">${formatAmount(trancheTotalFacturable)}</td>`;
                 html += '</tr>';
+                
+                // Sous-lignes pour chaque catégorie
+                tranche.categories.forEach(category => {
+                    const progress = calculateProgressAtDate(category, date);
+                    const facturable = category.amount * progress / 100;
+                    
+                    html += '<tr>';
+                    html += `<td class="sub-category">└─ ${category.name}</td>`;
+                    html += `<td class="amount">${formatAmount(category.amount)}</td>`;
+                    html += `<td class="percentage">${progress}%</td>`;
+                    html += `<td class="amount">${formatAmount(facturable)}</td>`;
+                    html += '</tr>';
+                });
+                
+                totalFacturable += trancheTotalFacturable;
             });
             
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            tbody.innerHTML = html;
+            
+            // Mettre à jour les montants totaux
+            document.getElementById('totalFacturable').textContent = formatAmount(totalFacturable);
+            document.getElementById('totalFacturableBottom').textContent = formatAmount(totalFacturable);
         }
         
-        /**
-         * Affiche le suivi mécanique ou électrique
-         */
-        function renderSuiviView(type) {
-            const container = document.getElementById('ra-suivi-container');
-            const data = projectData[type === 'mecanique' ? 'mechanical' : 'electrical'];
+        // Afficher la timeline des tranches
+        function renderTimeline(date) {
+            const labelsContainer = document.getElementById('timelineLabels');
+            const barsContainer = document.getElementById('timelineBars');
+            const data = projectData && projectData.financial 
+                ? projectData.financial.tranches 
+                : demoFinancialData.tranches;
             
-            if (!data || !data.resources || data.resources.length === 0) {
-                container.innerHTML = `<div class="info-box">Aucune donnée disponible pour le suivi ${type === 'mecanique' ? 'Mécanique' : 'Électrique'}.</div>`;
-                return;
-            }
+            let labelsHtml = '';
+            let barsHtml = '';
             
-            // Récap global
-            let html = '<div class="info-box" style="margin-bottom: var(--spacing-lg);">';
-            html += `<h3>Récap global - ${type === 'mecanique' ? 'Mécanique' : 'Électrique'}</h3>`;
-            if (data.global) {
-                html += `<p><strong>Total prévu :</strong> ${data.global.total_planned_work_hours.toFixed(1)} h</p>`;
-                html += `<p><strong>Total réalisé :</strong> ${data.global.total_actual_work_hours.toFixed(1)} h</p>`;
-                html += `<p><strong>% d'avancement :</strong> ${data.global.progress_percent.toFixed(1)}%</p>`;
-            }
-            html += '</div>';
-            
-            // Tableau par ressource
-            html += '<h3 style="margin-top: var(--spacing-lg);">Détail par ressource</h3>';
-            html += '<table class="tasks-table">';
-            html += '<thead><tr>';
-            html += '<th>Ressource</th>';
-            html += '<th>Total prévu</th>';
-            html += '<th>Total réalisé</th>';
-            html += '<th>%</th>';
-            html += '</tr></thead><tbody>';
-            
-            data.resources.forEach(resource => {
-                html += '<tr>';
-                html += `<td>${resource.name || '-'}</td>`;
-                html += `<td>${resource.total_planned_work_hours.toFixed(1)} h</td>`;
-                html += `<td>${resource.total_actual_work_hours.toFixed(1)} h</td>`;
-                html += `<td>${resource.progress_percent.toFixed(1)}%</td>`;
-                html += '</tr>';
+            data.forEach(tranche => {
+                tranche.categories.forEach(category => {
+                    const progress = calculateProgressAtDate(category, date);
+                    const duration = category.endMonth - category.startMonth + 1;
+                    const width = (duration / 12) * 100;
+                    const left = (category.startMonth / 12) * 100;
+                    
+                    labelsHtml += `<div class="timeline-label">${tranche.name} - ${category.name}</div>`;
+                    
+                    barsHtml += `
+                        <div class="timeline-bar-row">
+                            <div class="timeline-bar" style="width: ${width}%; margin-left: ${left}%;">
+                                <span class="timeline-bar-label">${progress}%</span>
+                            </div>
+                        </div>
+                    `;
+                });
             });
             
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            labelsContainer.innerHTML = labelsHtml;
+            barsContainer.innerHTML = barsHtml;
         }
         
-        function getStatusLabel(status) {
-            const labels = {
-                'on_time': 'À l\'heure',
-                'late': 'En retard',
-                'not_started': 'À venir',
-                'completed': 'Terminé'
-            };
-            return labels[status] || status;
+        // Mettre à jour le dashboard financier
+        function updateFinancialDashboard() {
+            renderFinancialTable(selectedDate);
+            renderTimeline(selectedDate);
         }
         
-        // ============================================
-        // VUE RESPONSABLE D'ACTIVITÉS
-        // ============================================
+        // Changer de vue principale
+        function switchMainView(viewName) {
+            currentView = viewName;
+            
+            // Masquer toutes les vues
+            document.querySelectorAll('.view-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Afficher la vue sélectionnée
+            if (viewName === 'home') {
+                document.getElementById('home-view').classList.add('active');
+            } else if (viewName === 'mechanical') {
+                document.getElementById('mechanical-view').classList.add('active');
+                updateChart(currentCategory, currentZone);
+            } else if (viewName === 'electrical') {
+                document.getElementById('electrical-view').classList.add('active');
+                renderElectricalTable();
+            } else if (viewName === 'financial') {
+                document.getElementById('financial-view').classList.add('active');
+                updateFinancialDashboard();
+            }
+        }
         
-        function renderActivitesView() {
-            const container = document.getElementById('activites-container');
-            const tasks = projectData.tasks;
-            
-            // Grouper par groupe de ressources
-            const groups = {};
-            
-            tasks.forEach(task => {
-                if (task.resources && task.resources.length > 0) {
-                    task.resources.forEach(resource => {
-                        const group = resource.group || 'Sans groupe';
-                        if (!groups[group]) {
-                            groups[group] = {
-                                name: group,
-                                tasks: [],
-                                totalActualHours: 0,
-                                totalRemainingHours: 0,
-                                totalPercentComplete: 0
-                            };
-                        }
-                        groups[group].tasks.push(task);
-                        groups[group].totalActualHours += resource.actual_work_hours || 0;
-                        groups[group].totalRemainingHours += resource.remaining_work_hours || 0;
-                    });
+        // Navigation depuis la page d'accueil
+        document.querySelectorAll('.dashboard-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const dashboard = this.getAttribute('data-dashboard');
+                if (dashboard === 'mechanical') {
+                    switchMainView('mechanical');
+                } else if (dashboard === 'electrical') {
+                    switchMainView('electrical');
+                } else if (dashboard === 'financial') {
+                    switchMainView('financial');
                 }
             });
+        });
+        
+        // Boutons retour
+        document.getElementById('btnBackFromMeca').addEventListener('click', function() {
+            switchMainView('home');
+        });
+        
+        document.getElementById('btnBackFromElec').addEventListener('click', function() {
+            switchMainView('home');
+        });
+        
+        document.getElementById('btnBackFromFinancial').addEventListener('click', function() {
+            switchMainView('home');
+        });
+        
+        // Mise à jour des barres en fonction de la catégorie et de la zone
+        function updateChart(category, zone = 'all') {
+            const categoryData = projectData ? projectData[category] : demoData[category];
             
-            if (Object.keys(groups).length === 0) {
-                container.innerHTML = '<div class="info-box">Aucune ressource avec groupe trouvée.</div>';
-                return;
+            if (!categoryData) return;
+            
+            const data = categoryData[zone] || categoryData.all || categoryData;
+            
+            if (!data) return;
+            
+            // Appliquer les largeurs directement en pourcentage
+            document.getElementById('bar1').style.width = data.cqReel + '%';
+            document.getElementById('bar2').style.width = data.cqPrevu + '%';
+            document.getElementById('bar3').style.width = data.reel + '%';
+            document.getElementById('bar4').style.width = data.prevu + '%';
+        }
+        
+        // Fonction pour obtenir la classe de couleur selon le pourcentage
+        function getPercentageClass(percentage) {
+            if (percentage >= 70) return 'high';
+            if (percentage >= 40) return 'medium';
+            return 'low';
+        }
+        
+        // Afficher le tableau de progression électrique
+        function renderElectricalTable(filterAction = null) {
+            const tbody = document.getElementById('progressTableBody');
+            const data = projectData && projectData.electrical 
+                ? projectData.electrical.actions 
+                : demoElectricalData.actions;
+            
+            let filteredData = data;
+            
+            // Filtrer par action si sélectionnée
+            if (filterAction && filterAction !== '') {
+                // Extraire le numéro d'action (ex: "action1" -> 1)
+                const actionNumber = parseInt(filterAction.replace('action', ''));
+                if (!isNaN(actionNumber) && actionNumber > 0 && actionNumber <= data.length) {
+                    filteredData = [data[actionNumber - 1]];
+                }
             }
             
             let html = '';
-            for (let groupName in groups) {
-                const group = groups[groupName];
-                const uniqueTasks = [...new Set(group.tasks.map(t => t.uid))];
-                const avgPercent = group.tasks.length > 0 
-                    ? group.tasks.reduce((sum, t) => sum + (t.percent_complete || 0), 0) / group.tasks.length 
-                    : 0;
-                
-                html += '<div class="resource-group-card">';
-                html += `<h3>${groupName}</h3>`;
-                html += `<p><strong>Nombre de tâches :</strong> ${uniqueTasks.length}</p>`;
-                html += `<p><strong>Heures réelles :</strong> ${group.totalActualHours.toFixed(1)} h</p>`;
-                html += `<p><strong>Heures restantes :</strong> ${group.totalRemainingHours.toFixed(1)} h</p>`;
-                html += `<p><strong>% moyen d'avancement :</strong> ${avgPercent.toFixed(1)}%</p>`;
-                html += '</div>';
-            }
-            
-            container.innerHTML = html;
-        }
-        
-        // ============================================
-        // VUE CLIENT
-        // ============================================
-        
-        function renderClientView() {
-            const jsonType = getJSONType(projectData);
-            
-            // Si c'est un JSON de suivi, utiliser les données mécanique/électrique
-            if (jsonType === 'suivi') {
-                const progressData = {
-                    mecanique: projectData.mechanical && projectData.mechanical.global 
-                        ? projectData.mechanical.global.progress_percent : 0,
-                    electrique: projectData.electrical && projectData.electrical.global 
-                        ? projectData.electrical.global.progress_percent : 0,
-                    qualite: 0 // Pas de données qualité dans le suivi
-                };
-                
-                renderProgressChart(progressData);
-                
-                // Afficher les récaps
-                let html = '<div class="info-box" style="margin-top: var(--spacing-lg);">';
-                html += '<h3>Récapitulatif global</h3>';
-                if (projectData.mechanical && projectData.mechanical.global) {
-                    html += `<p><strong>Mécanique :</strong> ${projectData.mechanical.global.progress_percent.toFixed(1)}% `;
-                    html += `(${projectData.mechanical.global.total_actual_work_hours.toFixed(1)} h / ${projectData.mechanical.global.total_planned_work_hours.toFixed(1)} h)</p>`;
-                }
-                if (projectData.electrical && projectData.electrical.global) {
-                    html += `<p><strong>Électrique :</strong> ${projectData.electrical.global.progress_percent.toFixed(1)}% `;
-                    html += `(${projectData.electrical.global.total_actual_work_hours.toFixed(1)} h / ${projectData.electrical.global.total_planned_work_hours.toFixed(1)} h)</p>`;
-                }
-                html += '</div>';
-                document.getElementById('client-next-tasks').innerHTML = html;
-                document.getElementById('client-starting-tasks').innerHTML = '';
-                document.getElementById('client-week-progress').innerHTML = '';
-                return;
-            }
-            
-            // Sinon, utiliser les données de tâches
-            if (!projectData.tasks) {
-                document.getElementById('client-next-tasks').innerHTML = 
-                    '<div class="info-box">Aucune donnée disponible.</div>';
-                return;
-            }
-            
-            const tasks = projectData.tasks;
-            
-            // Calculer les pourcentages par catégorie
-            const categories = {
-                mecanique: { total: 0, complete: 0 },
-                electrique: { total: 0, complete: 0 },
-                qualite: { total: 0, complete: 0 }
-            };
-            
-            tasks.forEach(task => {
-                const category = getTaskCategory(task);
-                if (categories[category]) {
-                    categories[category].total++;
-                    if (task.percent_complete === 100) {
-                        categories[category].complete++;
-                    }
-                }
-            });
-            
-            // Calculer les pourcentages
-            const progressData = {
-                mecanique: categories.mecanique.total > 0 
-                    ? (categories.mecanique.complete / categories.mecanique.total * 100) : 0,
-                electrique: categories.electrique.total > 0 
-                    ? (categories.electrique.complete / categories.electrique.total * 100) : 0,
-                qualite: categories.qualite.total > 0 
-                    ? (categories.qualite.complete / categories.qualite.total * 100) : 0
-            };
-            
-            // Afficher l'histogramme
-            renderProgressChart(progressData);
-            
-            // 3 prochaines tâches qui seront finies
-            const nextFinishing = tasks
-                .filter(t => t.status !== 'completed' && t.scheduled_finish)
-                .sort((a, b) => new Date(a.scheduled_finish) - new Date(b.scheduled_finish))
-                .slice(0, 3);
-            
-            let html = '<h3>3 prochaines tâches qui seront finies</h3>';
-            html += '<table class="tasks-table"><thead><tr><th>Nom</th><th>% Avancement</th><th>Date de fin prévue</th></tr></thead><tbody>';
-            nextFinishing.forEach(task => {
+            filteredData.forEach(action => {
                 html += '<tr>';
-                html += `<td>${task.name}</td>`;
-                html += `<td>${task.percent_complete || 0}%</td>`;
-                html += `<td>${formatDate(task.scheduled_finish)}</td>`;
+                html += `<td class="action-name">${action.name}</td>`;
+                html += `<td class="percentage ${getPercentageClass(action.ond1)}">${action.ond1}%</td>`;
+                html += `<td class="percentage ${getPercentageClass(action.ond2)}">${action.ond2}%</td>`;
+                html += `<td class="percentage ${getPercentageClass(action.ond3)}">${action.ond3}%</td>`;
+                html += `<td class="percentage ${getPercentageClass(action.ond4)}">${action.ond4}%</td>`;
+                html += `<td class="percentage ${getPercentageClass(action.ond5)}">${action.ond5}%</td>`;
+                html += `<td class="percentage ${getPercentageClass(action.ond6)}">${action.ond6}%</td>`;
                 html += '</tr>';
             });
-            html += '</tbody></table>';
-            document.getElementById('client-next-tasks').innerHTML = html;
             
-            // 3 prochaines tâches qui vont démarrer
-            const nextStarting = tasks
-                .filter(t => t.status === 'not_started' && t.start)
-                .sort((a, b) => new Date(a.start) - new Date(b.start))
-                .slice(0, 3);
-            
-            html = '<h3 style="margin-top: var(--spacing-lg);">3 prochaines tâches qui vont démarrer</h3>';
-            html += '<table class="tasks-table"><thead><tr><th>Nom</th><th>Date de démarrage</th></tr></thead><tbody>';
-            nextStarting.forEach(task => {
-                html += '<tr>';
-                html += `<td>${task.name}</td>`;
-                html += `<td>${formatDate(task.start)}</td>`;
-                html += '</tr>';
-            });
-            html += '</tbody></table>';
-            document.getElementById('client-starting-tasks').innerHTML = html;
-            
-            // % d'avancement de la semaine
-            const thisWeek = getWeekTasks(tasks);
-            const weekProgress = thisWeek.length > 0 
-                ? (thisWeek.filter(t => t.percent_complete === 100).length / thisWeek.length * 100) 
-                : 0;
-            
-            html = '<div class="info-box" style="margin-top: var(--spacing-lg);">';
-            html += `<h3>Avancement de la semaine</h3>`;
-            html += `<p><strong>${weekProgress.toFixed(1)}%</strong> des tâches de la semaine sont terminées</p>`;
-            html += `<p>${thisWeek.filter(t => t.percent_complete === 100).length} tâche(s) terminée(s) sur ${thisWeek.length} tâche(s) de la semaine</p>`;
-            html += '</div>';
-            document.getElementById('client-week-progress').innerHTML = html;
+            tbody.innerHTML = html;
         }
         
-        function renderProgressChart(data) {
-            const ctx = document.getElementById('progress-chart');
-            
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-            
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Mécanique', 'Électrique', 'Qualité'],
-                    datasets: [{
-                        label: '% d\'avancement',
-                        data: [data.mecanique, data.electrique, data.qualite],
-                        backgroundColor: [
-                            'rgba(0, 63, 127, 0.7)',
-                            'rgba(0, 102, 204, 0.7)',
-                            'rgba(0, 150, 255, 0.7)'
-                        ],
-                        borderColor: [
-                            'rgba(0, 63, 127, 1)',
-                            'rgba(0, 102, 204, 1)',
-                            'rgba(0, 150, 255, 1)'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
+        // Gestion des clics sur les onglets de catégorie (Dashboard Mécanique)
+        document.querySelectorAll('.tab-button[data-category]').forEach(button => {
+            button.addEventListener('click', function() {
+                const view = this.getAttribute('data-view');
+                
+                // Si on clique sur un bouton de la vue principale
+                if (view === 'main') {
+                    // Retirer la classe active de tous les boutons de catégorie
+                    document.querySelectorAll('.tab-button[data-category]').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Ajouter la classe active au bouton cliqué
+                    this.classList.add('active');
+                    
+                    // Récupérer la catégorie
+                    currentCategory = this.getAttribute('data-category');
+                    
+                    // Mettre à jour le graphique avec la zone actuelle
+                    updateChart(currentCategory, currentZone);
                 }
-            });
-        }
-        
-        function getWeekTasks(tasks) {
-            const now = new Date();
-            const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-            const weekEnd = new Date(now.setDate(now.getDate() + 6));
-            
-            return tasks.filter(task => {
-                if (!task.actual_finish) return false;
-                const finishDate = new Date(task.actual_finish);
-                return finishDate >= weekStart && finishDate <= weekEnd;
-            });
-        }
-        
-        // ============================================
-        // GESTION DES ÉVÉNEMENTS
-        // ============================================
-        
-        function displayDashboard(data) {
-            clearError();
-            projectData = data;
-            
-            document.getElementById('project-name-header').textContent = data.project_name || 'Non défini';
-            document.getElementById('dashboard-section').classList.add('active');
-            
-            // Masquer la section d'upload une fois le fichier importé
-            document.querySelector('.upload-section').classList.add('hidden');
-            
-            // Masquer le header (titre et description) après l'upload
-            document.querySelector('header').style.display = 'none';
-            
-            // Afficher la vue par défaut selon le type de JSON
-            const jsonType = getJSONType(data);
-            if (jsonType === 'suivi') {
-                renderRAView('all', null);
-            } else {
-                renderRAView('all');
-            }
-        }
-        
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            
-            if (!file) return;
-            
-            document.getElementById('file-name').textContent = `Fichier sélectionné : ${file.name}`;
-            
-            if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
-                showError('Le fichier sélectionné n\'est pas un fichier JSON valide.');
-                return;
-            }
-            
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                try {
-                    const jsonData = JSON.parse(e.target.result);
-                    
-                    if (!validatePontivaJSON(jsonData)) {
-                        showError('Le fichier ne semble pas être un JSON Pontiva valide. Vérifiez qu\'il contient les champs : version, project_name, et tasks (tableau).');
-                        return;
-                    }
-                    
-                    displayDashboard(jsonData);
-                    
-                } catch (error) {
-                    console.error('Erreur lors du parsing JSON:', error);
-                    showError('Erreur lors de la lecture du fichier JSON. Vérifiez que le fichier est bien formaté et valide.');
-                }
-            };
-            
-            reader.onerror = function() {
-                showError('Erreur lors de la lecture du fichier. Veuillez réessayer.');
-            };
-            
-            reader.readAsText(file);
-        }
-        
-        // Gestion des onglets
-        document.addEventListener('DOMContentLoaded', function() {
-            const fileInput = document.getElementById('json-file-input');
-            fileInput.addEventListener('change', handleFileUpload);
-            
-            // Navigation par onglets
-            document.querySelectorAll('.view-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const viewId = this.getAttribute('data-view');
-                    
-                    // Mettre à jour les onglets
-                    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Mettre à jour les vues
-                    document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-                    document.getElementById('view-' + viewId).classList.add('active');
-                    
-                    // Afficher la vue correspondante
-                    if (viewId === 'ra') {
-                        const jsonType = getJSONType(projectData);
-                        if (jsonType === 'suivi') {
-                            renderRAView('all', null);
-                        } else {
-                            renderRAView('all');
-                        }
-                    } else if (viewId === 'activites') {
-                        renderActivitesView();
-                    } else if (viewId === 'client') {
-                        renderClientView();
-                    }
-                });
-            });
-            
-            // Filtres pour la vue RA (tâches)
-            document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    const filter = this.getAttribute('data-filter');
-                    renderRAView(filter);
-                });
-            });
-            
-            // Boutons de suivi mécanique/électrique
-            document.querySelectorAll('.filter-btn[data-suivi]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.filter-btn[data-suivi]').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    const suiviType = this.getAttribute('data-suivi');
-                    renderRAView('all', suiviType);
-                });
             });
         });
+        
+        // Gestion des clics sur les onglets CQ
+        document.querySelectorAll('.tab-button[data-cq]').forEach(button => {
+            button.addEventListener('click', function() {
+                // Retirer la classe active de tous les boutons CQ
+                document.querySelectorAll('.tab-button[data-cq]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Ajouter la classe active au bouton cliqué
+                this.classList.add('active');
+                
+                // Récupérer la catégorie CQ
+                const cqCategory = this.getAttribute('data-cq');
+                
+                // Mettre à jour le graphique avec les données CQ et la zone actuelle
+                updateChart(cqCategory, currentZone);
+            });
+        });
+        
+        // Gestion du changement de zone
+        document.getElementById('zoneSelect').addEventListener('change', function() {
+            const zone = this.value;
+            console.log('Zone sélectionnée:', zone);
+            
+            // Mettre à jour la zone actuelle
+            currentZone = zone || 'all';
+            
+            // Mettre à jour le graphique avec la nouvelle zone
+            if (currentView === 'mechanical') {
+                updateChart(currentCategory, currentZone);
+            }
+        });
+        
+        // Gestion du bouton "Tout voir"
+        document.getElementById('btnViewAll').addEventListener('click', function() {
+            document.getElementById('selectAction').value = '';
+            renderElectricalTable();
+        });
+        
+        // Gestion du changement de sélection d'action électrique
+        document.getElementById('selectAction').addEventListener('change', function() {
+            const action = this.value;
+            renderElectricalTable(action);
+        });
+        
+        // Gestion du changement de date
+        document.getElementById('dateSelector').addEventListener('change', function() {
+            selectedDate = new Date(this.value);
+            updateFinancialDashboard();
+        });
+        
+        // Fonction pour charger les données depuis projectData (export MS Project)
+        function loadProjectData(data) {
+            projectData = data;
+            
+            if (currentView === 'mechanical') {
+                updateChart(currentCategory, currentZone);
+            } else if (currentView === 'electrical') {
+                renderElectricalTable();
+            } else if (currentView === 'financial') {
+                updateFinancialDashboard();
+            }
+        }
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Par défaut, on est sur la page d'accueil
+            switchMainView('home');
+            
+            // Initialiser la date du sélecteur à aujourd'hui
+            const today = new Date();
+            document.getElementById('dateSelector').valueAsDate = today;
+            selectedDate = today;
+        });
+        
+        // Exposition de la fonction pour le chargement futur
+        window.loadProjectData = loadProjectData;
     </script>
+</body>
+</html>
 </body>
 </html>
