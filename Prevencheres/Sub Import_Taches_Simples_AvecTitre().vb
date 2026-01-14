@@ -53,6 +53,7 @@ Sub Import_Taches_Simples_AvecTitre()
     pjApp.CustomFieldRename pjCustomTaskText5, "Entreprise"
     pjApp.CustomFieldRename pjCustomTaskText6, "Niveau"
     pjApp.CustomFieldRename pjCustomTaskText7, "Onduleur"
+    pjApp.CustomFieldRename pjCustomTaskText8, "PTR"
     
     ' NOTE: Les champs d'assignments (Text1-Text7) ne peuvent pas être renommés via CustomFieldRename
     ' Ils utiliseront les noms par défaut "Text1", "Text2", etc. dans l'interface
@@ -183,7 +184,7 @@ Sub Import_Taches_Simples_AvecTitre()
 
         Dim nom As String, qte As Variant, pers As Variant, h As Variant
         Dim zone As String, sousZone As String, tranche As String, typ As String, entreprise As String
-        Dim qualite As String, niveau As String, onduleur As String
+        Dim qualite As String, niveau As String, onduleur As String, ptr As String
         Dim dateDebutMonteurs As Date, dateFinMonteurs As Date
         Dim hasMonteursAssignment As Boolean
 
@@ -196,6 +197,25 @@ Sub Import_Taches_Simples_AvecTitre()
         ' LOG LIGNE COURANTE
         logStream.WriteLine "--- Ligne " & i & " ---"
         logStream.WriteLine "  Nom: " & nom
+        
+        ' ==== LOG DETAILLE POUR DIAGNOSTIC ERREUR 1101 ====
+        logStream.WriteLine "  [DIAG] Valeur brute: """ & nom & """"
+        logStream.WriteLine "  [DIAG] TypeName: " & TypeName(nom)
+        logStream.WriteLine "  [DIAG] Len(nom): " & Len(nom)
+        logStream.WriteLine "  [DIAG] Trim(nom) = """": " & CBool(Trim(nom) = "")
+        
+        ' Analyse caractère par caractère
+        If Len(nom) > 0 Then
+            Dim analyseChars As String
+            analyseChars = AnalyzeStringCharacters(nom)
+            logStream.WriteLine "  [DIAG] Codes ASCII/Unicode des caractères:"
+            logStream.WriteLine analyseChars
+            
+            ' Détection caractères invisibles
+            If IsInvisibleOnlyString(nom) Then
+                logStream.WriteLine "  [DIAG] *** ATTENTION: nom contient UNIQUEMENT des caractères invisibles ***"
+            End If
+        End If
 
         zone = Trim(CStr(xlSheet.Cells(i, 5).Value))        ' E
         sousZone = Trim(CStr(xlSheet.Cells(i, 6).Value))    ' F
@@ -205,6 +225,12 @@ Sub Import_Taches_Simples_AvecTitre()
         qualite = UCase$(Trim(CStr(xlSheet.Cells(i, 10).Value))) ' J : CQ / TACHE / vide
         niveau = UCase$(Trim(CStr(xlSheet.Cells(i, 11).Value)))  ' K : SZ / OND / vide
         onduleur = UCase$(Trim(CStr(xlSheet.Cells(i, 12).Value))) ' L : OND1, OND2...
+        
+        ' Lecture PTR (colonne 13 / M) - Rétrocompatible si absente
+        On Error Resume Next
+        ptr = Trim(CStr(xlSheet.Cells(i, 13).Value))        ' M : PTR (optionnel)
+        If Err.Number <> 0 Then ptr = "" ' Si erreur (colonne absente), PTR vide
+        On Error GoTo 0
 
         ' LOG VALEURS BRUTES
         logStream.WriteLine "  Qte (col B): " & qte & " | Type: " & TypeName(qte)
@@ -212,7 +238,7 @@ Sub Import_Taches_Simples_AvecTitre()
         logStream.WriteLine "  Heures (col D): " & h & " | Type: " & TypeName(h)
         logStream.WriteLine "  Zone: " & zone & " | Tranche: " & tranche
         logStream.WriteLine "  Type: " & typ & " | Entreprise: " & entreprise
-        logStream.WriteLine "  Qualité: " & qualite & " | Niveau: " & niveau & " | Onduleur: " & onduleur
+        logStream.WriteLine "  Qualité: " & qualite & " | Niveau: " & niveau & " | Onduleur: " & onduleur & " | PTR: " & ptr
 
         If nom = "" Then
             logStream.WriteLine "  -> Ligne ignorée (nom vide)"
@@ -228,7 +254,22 @@ Sub Import_Taches_Simples_AvecTitre()
         
         If isTitle Then
             ' Créer un groupe/titre - toujours niveau 2
+            logStream.WriteLine "  [DIAG] Tentative de création TITRE avec Tasks.Add(nom)..."
+            On Error Resume Next
             Set tGroup = pjProj.Tasks.Add(nom)
+            If Err.Number <> 0 Then
+                logStream.WriteLine "  [DIAG] *** ERREUR Tasks.Add() pour TITRE ***"
+                logStream.WriteLine "  [DIAG] Err.Number: " & Err.Number
+                logStream.WriteLine "  [DIAG] Err.Description: " & Err.Description
+                logStream.WriteLine "  [DIAG] Valeur de nom au moment de l'erreur: """ & nom & """"
+                logStream.WriteLine "  [DIAG] Len(nom): " & Len(nom)
+                Err.Clear
+                On Error GoTo 0
+                logStream.WriteLine ""
+                GoTo NextRow
+            End If
+            On Error GoTo 0
+            
             tGroup.Manual = False
             tGroup.OutlineLevel = 2  ' Tous les titres au niveau 2
             
@@ -244,7 +285,27 @@ Sub Import_Taches_Simples_AvecTitre()
 
         If nom <> "" Then
 
+            ' ==== LOG DETAILLE AVANT Tasks.Add() ====
+            logStream.WriteLine "  [DIAG] Tentative de création TACHE avec Tasks.Add(nom)..."
+            logStream.WriteLine "  [DIAG] Valeur exacte de nom avant Tasks.Add: """ & nom & """"
+            
+            On Error Resume Next
             Set t = pjProj.Tasks.Add(nom)
+            If Err.Number <> 0 Then
+                logStream.WriteLine "  [DIAG] *** ERREUR Tasks.Add() pour TACHE ***"
+                logStream.WriteLine "  [DIAG] Err.Number: " & Err.Number
+                logStream.WriteLine "  [DIAG] Err.Description: " & Err.Description
+                logStream.WriteLine "  [DIAG] Valeur de nom au moment de l'erreur: """ & nom & """"
+                logStream.WriteLine "  [DIAG] Len(nom): " & Len(nom)
+                logStream.WriteLine "  [DIAG] TypeName(nom): " & TypeName(nom)
+                Err.Clear
+                On Error GoTo 0
+                logStream.WriteLine ""
+                GoTo NextRow
+            End If
+            On Error GoTo 0
+            logStream.WriteLine "  [DIAG] Tasks.Add() réussi - ID tâche: " & t.ID
+            
             t.Manual = False
             t.Calendar = ActiveProject.BaseCalendars("Standard")
             t.LevelingCanSplit = False ' Empêche le fractionnement de la tâche
@@ -288,7 +349,7 @@ Sub Import_Taches_Simples_AvecTitre()
             ' Tags dans champs texte
             ' Convention proposée:
             ' Text1 = Tranche, Text2 = Zone, Text3 = Sous-zone, Text4 = Type, Text5 = Entreprise
-            ' Text6 = Niveau, Text7 = Onduleur
+            ' Text6 = Niveau, Text7 = Onduleur, Text8 = PTR
             t.Text1 = tranche
             t.Text2 = zone
             t.Text3 = sousZone
@@ -296,6 +357,7 @@ Sub Import_Taches_Simples_AvecTitre()
             t.Text5 = entreprise
             t.Text6 = niveau
             t.Text7 = onduleur
+            t.Text8 = ptr
 
             ' ✅ DÉFINIR LE TRAVAIL DE LA TÂCHE EN PREMIER (avant les assignments)
             ' Cela permet à MS Project de calculer correctement la durée
@@ -345,6 +407,7 @@ Sub Import_Taches_Simples_AvecTitre()
                 a.Text5 = entreprise
                 a.Text6 = niveau
                 a.Text7 = onduleur
+                a.Text8 = ptr
                 
                 logStream.WriteLine "     Assignment.Units = " & a.Units
                 logStream.WriteLine "     Assignment.Work FINAL = " & a.Work & " minutes"
@@ -396,6 +459,7 @@ Sub Import_Taches_Simples_AvecTitre()
                 a.Text5 = entreprise
                 a.Text6 = niveau
                 a.Text7 = onduleur
+                a.Text8 = ptr
                 
                 logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
                 logStream.WriteLine "     Vérif lecture: a.Text1=" & a.Text1 & " | a.Text2=" & a.Text2
@@ -433,6 +497,7 @@ Sub Import_Taches_Simples_AvecTitre()
                     a.Text5 = entreprise
                     a.Text6 = niveau
                     a.Text7 = onduleur
+                    a.Text8 = ptr
                     
                     logStream.WriteLine "     Tags CQ copiés | Assignment CQ - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
                 Else
@@ -465,6 +530,7 @@ Sub Import_Taches_Simples_AvecTitre()
                     tCQ.Text5 = "OMEXOM"  ' CQ porté par OMX
                     tCQ.Text6 = niveau
                     tCQ.Text7 = onduleur
+                    tCQ.Text8 = ptr
                     
                     ' Ressource matérielle CQ
                     Set a = tCQ.Assignments.Add(ResourceID:=rCQMat.ID)
@@ -518,6 +584,7 @@ Sub Import_Taches_Simples_AvecTitre()
                 tCQ.Text5 = "OMEXOM"
                 tCQ.Text6 = niveau
                 tCQ.Text7 = onduleur
+                tCQ.Text8 = ptr
                 
                 ' Ressource matérielle CQ
                 Set a = tCQ.Assignments.Add(ResourceID:=rCQMat.ID)
@@ -571,6 +638,7 @@ NextRow:
             If tDebug.Text7 <> "" Then tagInfo = tagInfo & " | Ond=" & tDebug.Text7
             If tDebug.Text2 <> "" Then tagInfo = tagInfo & " | Zone=" & tDebug.Text2
             If tDebug.Text3 <> "" Then tagInfo = tagInfo & " | SsZone=" & tDebug.Text3
+            If tDebug.Text8 <> "" Then tagInfo = tagInfo & " | PTR=" & tDebug.Text8
             
             logStream.WriteLine indent & prefix & " [Niv " & tDebug.OutlineLevel & "] ID=" & tDebug.ID & " | " & tDebug.Name & tagInfo
         End If
@@ -660,9 +728,79 @@ ContinueCheck:
     xlApp.Quit
     Set xlApp = Nothing
 
-    MsgBox "Import terminé: tâches, ressources, tags (Zone/Sous-zone/Tranche/Type/Entreprise/Niveau/Onduleur) et Qualité hybride." & vbCrLf & vbCrLf & "Fichier log créé: " & logFile, vbInformation
+    MsgBox "Import terminé: tâches, ressources, tags (Zone/Sous-zone/Tranche/Type/Entreprise/Niveau/Onduleur/PTR) et Qualité hybride." & vbCrLf & vbCrLf & "Fichier log créé: " & logFile, vbInformation
 
 End Sub
+
+
+' ===== FONCTIONS HELPER DIAGNOSTIC ERREUR 1101 =====
+
+' Fonction pour analyser les caractères d'une chaîne et retourner leurs codes ASCII/Unicode
+Private Function AnalyzeStringCharacters(text As String) As String
+    Dim result As String
+    Dim i As Integer
+    Dim ch As String
+    Dim charCode As Long
+    Dim charName As String
+    
+    result = ""
+    For i = 1 To Len(text)
+        ch = Mid$(text, i, 1)
+        charCode = AscW(ch) ' AscW pour Unicode complet
+        
+        ' Identifier les caractères spéciaux
+        Select Case charCode
+            Case 9
+                charName = "TAB"
+            Case 10
+                charName = "LF (Line Feed)"
+            Case 13
+                charName = "CR (Carriage Return)"
+            Case 32
+                charName = "SPACE"
+            Case 160
+                charName = "NBSP (Non-Breaking Space)"
+            Case 0 To 31
+                charName = "CTRL (caractère de contrôle)"
+            Case 127 To 159
+                charName = "CTRL étendu"
+            Case Else
+                If charCode > 127 Then
+                    charName = "'" & ch & "' (Unicode)"
+                Else
+                    charName = "'" & ch & "'"
+                End If
+        End Select
+        
+        result = result & "    Pos " & Format(i, "00") & ": Code=" & Format(charCode, "000") & " (" & charName & ")" & vbCrLf
+    Next i
+    
+    AnalyzeStringCharacters = result
+End Function
+
+' Fonction pour détecter si une chaîne ne contient que des caractères invisibles
+Private Function IsInvisibleOnlyString(text As String) As Boolean
+    Dim i As Integer
+    Dim ch As String
+    Dim charCode As Long
+    Dim hasVisibleChar As Boolean
+    
+    hasVisibleChar = False
+    
+    For i = 1 To Len(text)
+        ch = Mid$(text, i, 1)
+        charCode = AscW(ch)
+        
+        ' Caractères invisibles typiques : 0-32 (contrôle + espace), 127-160, etc.
+        ' On considère visible : ASCII 33-126 et Unicode > 160
+        If (charCode >= 33 And charCode <= 126) Or (charCode > 160) Then
+            hasVisibleChar = True
+            Exit For
+        End If
+    Next i
+    
+    IsInvisibleOnlyString = Not hasVisibleChar
+End Function
 
 
 ' ===== FONCTION : Détection niveau hiérarchique par numérotation WBS =====
@@ -749,6 +887,7 @@ Sub CopyTaskTagsToAssignment(ByVal tSource As Task, ByVal a As Assignment)
     a.Text5 = tSource.Text5  ' Entreprise
     a.Text6 = tSource.Text6  ' Niveau
     a.Text7 = tSource.Text7  ' Onduleur
+    a.Text8 = tSource.Text8  ' PTR
     
     Exit Sub
 
