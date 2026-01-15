@@ -35,11 +35,24 @@ Sub Import_Taches_Simples_AvecTitre()
     Set xlApp = CreateObject("Excel.Application")
     xlApp.Visible = False
     xlApp.DisplayAlerts = False
+    ' Ouverture standard pour fichier XLSX
     Set xlBook = xlApp.Workbooks.Open(FileName:=fichierExcel, ReadOnly:=True, UpdateLinks:=False)
     Set xlSheet = xlBook.Sheets(1)
 
     ' ==== OUVERTURE DE MS PROJECT ====
-    Set pjApp = MSProject.Application
+    On Error Resume Next
+    Set pjApp = GetObject(, "MSProject.Application")
+    If pjApp Is Nothing Then
+        Set pjApp = CreateObject("MSProject.Application")
+    End If
+    On Error GoTo 0
+    
+    If pjApp Is Nothing Then
+        MsgBox "Impossible de démarrer Microsoft Project.", vbCritical
+        Exit Sub
+    End If
+    
+    pjApp.DisplayAlerts = False ' Désactive les popups de surutilisation pendant l'import
     pjApp.Visible = True
     pjApp.FileNew
     Set pjProj = pjApp.ActiveProject
@@ -63,7 +76,7 @@ Sub Import_Taches_Simples_AvecTitre()
     Dim tRoot As Task
     Set tRoot = pjProj.Tasks.Add(Name:=xlSheet.Cells(2, 1).Value, Before:=1)
     tRoot.Manual = False
-    tRoot.Calendar = ActiveProject.BaseCalendars("Standard")
+    tRoot.Calendar = pjProj.BaseCalendars("Standard")
     tRoot.OutlineLevel = 1
     
     ' Variable pour gérer la hiérarchie des groupes
@@ -76,7 +89,7 @@ Sub Import_Taches_Simples_AvecTitre()
     pjProj.DefaultEffortDriven = True
 
     ' ==== MODIFICATION DU CALENDRIER "Standard" ====
-    With ActiveProject.BaseCalendars("Standard").WorkWeeks
+    With pjProj.BaseCalendars("Standard").WorkWeeks
         .Add Start:="01/01/2025", Finish:="01/01/2027", Name:="Calendrier Standard"
         With .Item(1)
             Dim j As Integer
@@ -246,35 +259,48 @@ Sub Import_Taches_Simples_AvecTitre()
             GoTo NextRow
         End If
         
-        ' ==== DETECTION TITRE (ligne sans données ni tags) ====
+        ' ==== DETECTION TITRE (ligne sans données de travail) ====
         Dim isTitle As Boolean
-        isTitle = IsEmptyOrZero(qte) And IsEmptyOrZero(pers) And IsEmptyOrZero(h) _
-                  And zone = "" And sousZone = "" And tranche = "" And typ = "" _
-                  And entreprise = "" And qualite = "" And niveau = "" And onduleur = ""
+        ' Un titre est une ligne sans quantité et sans heures
+        isTitle = IsEmptyOrZero(qte) And IsEmptyOrZero(h)
         
         If isTitle Then
-            ' Créer un groupe/titre - toujours niveau 2
-            logStream.WriteLine "  [DIAG] Tentative de création TITRE avec Tasks.Add(nom)..."
+            ' Créer un groupe/titre
             On Error Resume Next
             Set tGroup = pjProj.Tasks.Add(nom)
             If Err.Number <> 0 Then
                 logStream.WriteLine "  [DIAG] *** ERREUR Tasks.Add() pour TITRE ***"
-                logStream.WriteLine "  [DIAG] Err.Number: " & Err.Number
-                logStream.WriteLine "  [DIAG] Err.Description: " & Err.Description
-                logStream.WriteLine "  [DIAG] Valeur de nom au moment de l'erreur: """ & nom & """"
-                logStream.WriteLine "  [DIAG] Len(nom): " & Len(nom)
                 Err.Clear
                 On Error GoTo 0
-                logStream.WriteLine ""
                 GoTo NextRow
             End If
             On Error GoTo 0
             
             tGroup.Manual = False
-            tGroup.OutlineLevel = 2  ' Tous les titres au niveau 2
             
-            logStream.WriteLine "  -> TITRE créé: " & nom & " (Niveau " & tGroup.OutlineLevel & ")"
-            logStream.WriteLine ""
+            ' ==== DETERMINATION DU NIVEAU DU TITRE ====
+            Dim targetGroupLevel As Integer
+            ' Si le nom contient "ZONE" -> Niveau 2, sinon Niveau 3 (sous-groupe)
+            If InStr(1, nom, "ZONE", vbTextCompare) > 0 Then
+                targetGroupLevel = 2
+            Else
+                targetGroupLevel = 3
+            End If
+            
+            ' Forcer le niveau avec OutlineIndent/OutlineOutdent
+            On Error Resume Next
+            Do While tGroup.OutlineLevel < targetGroupLevel And tGroup.OutlineLevel < 9
+                tGroup.OutlineIndent
+                If Err.Number <> 0 Then Exit Do
+            Loop
+            Err.Clear
+            Do While tGroup.OutlineLevel > targetGroupLevel And tGroup.OutlineLevel > 1
+                tGroup.OutlineOutdent
+                If Err.Number <> 0 Then Exit Do
+            Loop
+            On Error GoTo 0
+            
+            logStream.WriteLine "  -> TITRE créé: " & nom & " (Niveau " & tGroup.OutlineLevel & " auto)"
             GoTo NextRow
         End If
         
@@ -307,21 +333,23 @@ Sub Import_Taches_Simples_AvecTitre()
             logStream.WriteLine "  [DIAG] Tasks.Add() réussi - ID tâche: " & t.ID
             
             t.Manual = False
-            t.Calendar = ActiveProject.BaseCalendars("Standard")
+            t.Calendar = pjProj.BaseCalendars("Standard")
             t.LevelingCanSplit = False ' Empêche le fractionnement de la tâche
             
             ' ==== NIVEAU HIERARCHIQUE basé sur colonne K (Niveau) ====
-            ' On crée d'abord la tâche, puis on ajuste son niveau avec OutlineIndent
             Dim targetLevel As Integer
             
             If niveau = "OND" Then
                 targetLevel = 4  ' Tâches onduleurs au niveau 4
             ElseIf niveau = "SZ" Then
                 targetLevel = 3  ' Tâches sous-zone au niveau 3
-            ElseIf Not tGroup Is Nothing Then
-                targetLevel = tGroup.OutlineLevel + 1
             Else
-                targetLevel = 3  ' Par défaut niveau 3
+                ' Par défaut, on se met un niveau en dessous du dernier titre créé
+                If Not tGroup Is Nothing Then
+                    targetLevel = tGroup.OutlineLevel + 1
+                Else
+                    targetLevel = 3
+                End If
             End If
             
             ' Forcer le niveau avec OutlineIndent/OutlineOutdent
@@ -505,7 +533,7 @@ Sub Import_Taches_Simples_AvecTitre()
                     ' But : Visualiser le besoin de contrôle sur la zone
                     Set tCQ = pjProj.Tasks.Add("Contrôle Qualité - " & nom)
                     tCQ.Manual = False
-                    tCQ.Calendar = ActiveProject.BaseCalendars("Standard")
+                    tCQ.Calendar = pjProj.BaseCalendars("Standard")
                     tCQ.LevelingCanSplit = False
                     
                     ' Forcer le même niveau que la tâche principale
@@ -559,7 +587,7 @@ Sub Import_Taches_Simples_AvecTitre()
                 ' Force une tâche CQ séparée (même pour OMX)
                 Set tCQ = pjProj.Tasks.Add("Contrôle Qualité - " & nom)
                 tCQ.Manual = False
-                tCQ.Calendar = ActiveProject.BaseCalendars("Standard")
+                tCQ.Calendar = pjProj.BaseCalendars("Standard")
                 tCQ.LevelingCanSplit = False
                 
                 ' Forcer le même niveau que la tâche principale
@@ -728,6 +756,7 @@ ContinueCheck:
     xlApp.Quit
     Set xlApp = Nothing
 
+    pjApp.DisplayAlerts = True ' Réactive les alertes pour l'utilisateur
     MsgBox "Import terminé: tâches, ressources, tags (Zone/Sous-zone/Tranche/Type/Entreprise/Niveau/Onduleur/PTR) et Qualité hybride." & vbCrLf & vbCrLf & "Fichier log créé: " & logFile, vbInformation
 
 End Sub
@@ -805,30 +834,40 @@ End Function
 
 ' ===== FONCTION : Détection niveau hiérarchique par numérotation WBS =====
 Private Function DetectHierarchyLevel(nom As String) As Integer
-    ' Détecte le niveau en comptant les points dans la numérotation
+    ' Détecte le niveau en comptant les points dans la numérotation au DEBUT du nom
     ' Exemples :
-    '   "1 ELEC - ZONE 3A"        → niveau 2 (1 chiffre seul)
-    '   "1.1 Pose chemins"        → niveau 3 (1 point)
-    '   "1.1.1 OND1"              → niveau 4 (2 points)
+    '   "1 ELEC"      -> 0 point -> niveau 2
+    '   "1.1 Pose"    -> 1 point -> niveau 3
+    '   "1.1.1 OND"   -> 2 points -> niveau 4
     
-    Dim firstWord As String
+    Dim i As Integer
     Dim pointCount As Integer
+    Dim foundNumeric As Boolean
+    Dim char As String
     
-    ' Extraire le premier mot (la numérotation)
-    If InStr(nom, " ") > 0 Then
-        firstWord = Trim$(Left$(nom, InStr(nom, " ") - 1))
-    Else
-        firstWord = nom
-    End If
+    pointCount = 0
+    foundNumeric = False
     
-    ' Si c'est une numérotation valide (ex: "1", "1.1", "1.1.1")
-    If IsNumericPattern(firstWord) Then
-        ' Compter les points
-        pointCount = Len(firstWord) - Len(Replace(firstWord, ".", ""))
-        ' Niveau = nombre de points + 2 (car niveau 1 = root)
+    ' On parcourt le nom tant qu'on trouve des chiffres, des points ou des espaces
+    For i = 1 To Len(nom)
+        char = Mid(nom, i, 1)
+        If char >= "0" And char <= "9" Then
+            foundNumeric = True
+        ElseIf char = "." Then
+            pointCount = pointCount + 1
+        ElseIf char = " " Or char = Chr(160) Then
+            ' Si on a déjà trouvé des chiffres, l'espace marque la fin du pattern
+            If foundNumeric Then Exit For
+        Else
+            ' Caractère alphabétique : fin du pattern numérique
+            Exit For
+        End If
+    Next i
+    
+    If foundNumeric Then
         DetectHierarchyLevel = pointCount + 2
     Else
-        ' Pas de numérotation détectée → niveau 2 par défaut
+        ' Pas de numérotation détectée -> niveau 2 par défaut (Titre de zone)
         DetectHierarchyLevel = 2
     End If
 End Function

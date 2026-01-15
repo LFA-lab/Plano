@@ -1,28 +1,27 @@
-﻿Nom;Quantités;Nb personnes;Heures;Zone;Sous-Zone;Tranche;Lot;Entreprise;Qualité;Niveau;Onduleur;PTR
+Nom;Quantités;Nb personnes;Heures;Zone;Sous-Zone;Tranche;Lot;Entreprise;Qualité;Niveau;Onduleur;PTR
 ZONE 1 (MECA);;;;;;;;;;;;
-Zone 1.1;;;;;;;;;;;;
-Implantation;2410;;;1;1.1;1;MECA;TERELIAN;CQ;;;
-Forages;2410;;;1;1.1;1;MECA;TERELIAN;CQ;;;
-Pieux;2410;;;1;1.1;1;MECA;SUNGINEER;CQ;;;
-Arbaletriers;1205;;;1;1.1;1;MECA;SUNGINEER;CQ;;;
-Pannes;1205;;;1;1.1;1;MECA;SUNGINEER;CQ;;;
-Structures;106;;;1;1.1;1;MECA;SUNGINEER;CQ;;;
-Modules;6912;;;1;1.1;1;MECA;SUNGINEER;CQ;;;
-Zone 1.2;;;;;;;;;;;;
-Implantation;1032;;;1;1.2;1;MECA;TERELIAN;CQ;;;
-Forages;1032;;;1;1.2;1;MECA;TERELIAN;CQ;;;
-Pieux;1032;;;1;1.2;1;MECA;SUNGINEER;CQ;;;
-Arbaletriers;516;;;1;1.2;1;MECA;SUNGINEER;CQ;;;
-Pannes;258;;;1;1.2;1;MECA;SUNGINEER;CQ;;;
-Structures;51;;;1;1.2;1;MECA;SUNGINEER;CQ;;;
-Modules;2943;;;1;1.2;1;MECA;SUNGINEER;CQ;;;
+1 ZONE 1 (MECA);;;;;;;;;;;;
+Implantation;2410;;;1;1.1;1;MECA;SST;CQ;;;
+Forages;2410;;;1;1.1;1;MECA;SST;CQ;;;
+Pieux;2410;;;1;1.1;1;MECA;SST;CQ;;;
+Arbaletriers;1205;;;1;1.1;1;MECA;SST;CQ;;;
+Pannes;1205;;;1;1.1;1;MECA;SST;CQ;;;
+Structures;106;;;1;1.1;1;MECA;SST;CQ;;;
+Modules;6912;;;1;1.1;1;MECA;SST;CQ;;;
+Implantation;1032;;;1;1.2;1;MECA;SST;CQ;;;
+Forages;1032;;;1;1.2;1;MECA;SST;CQ;;;
+Pieux;1032;;;1;1.2;1;MECA;SST;CQ;;;
+Arbaletriers;516;;;1;1.2;1;MECA;SST;CQ;;;
+Pannes;258;;;1;1.2;1;MECA;SST;CQ;;;
+Structures;51;;;1;1.2;1;MECA;SST;CQ;;;
+Modules;2943;;;1;1.2;1;MECA;SST;CQ;;;
 ;;;;;;;;;;;;
-1 ELEC – ZONE 1;;;;;;;;;;;;
+Zone 1 (ELEC);;;;;;;;;;;;
 ;;;;;;;;;;;;
-1.1 Tranchées BT type 1 (0,5);142;;;1;1.1;1;ELEC;ENGELVIN;CQ;;;
-1.1 Tranchées BT type 2 (0,7);928;;;1;1.1;1;ELEC;ENGELVIN;CQ;;;
+Tranchées BT type 1 (0,5);142;;;1;1.1;1;VRD;OMX;CQ;;;
+Tranchées BT type 2 (0,7);928;;;1;1.1;1;VRD;OMX;CQ;;;
 Fourniture de câble solaire 1x6mm² - rallonge 3V9;220;3;1,170287544;1;;1;ELEC;OMX;;;;
-1.1 Fourniture de câble solaire 1x6mm²;;;;;;;;;;;;
+Fourniture de câble solaire 1x6mm²;;;;;;;;;;;;
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.1;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.1;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.1;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -38,7 +37,7 @@ Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.1;1;ELEC;OMX;
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.1;1;ELEC;OMX;CQ;OND;OND13;PTR1.1-1
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.1;1;ELEC;OMX;CQ;OND;OND14;PTR1.1-1
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.1;1;ELEC;OMX;CQ;OND;OND15;PTR1.1-1
-1.1 Fourniture de câble solaire 1x10mm²;;;;;;;;;;;;
+Fourniture de câble solaire 1x10mm²;;;;;;;;;;;;
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -54,7 +53,7 @@ Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND13;PTR1.1-1
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND14;PTR1.1-1
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND15;PTR1.1-1
-1.1 Travaux de finitions de cablage (cheminements des câbles…);;;;;;;;;;;;
+Travaux de finitions de cablage (cheminements des câbles…);;;;;;;;;;;;
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -70,7 +69,7 @@ Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,4
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND13;PTR1.1-1
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND14;PTR1.1-1
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.1;1;ELEC;OMX;CQ;OND;OND15;PTR1.1-1
-1.1 Mise en place de gaine anti-UV;;;;;;;;;;;;
+Mise en place de gaine anti-UV;;;;;;;;;;;;
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.1;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.1;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.1;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -86,7 +85,7 @@ Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.1;1;ELEC;OMX;CQ;OND
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.1;1;ELEC;OMX;CQ;OND;OND13;PTR1.1-1
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.1;1;ELEC;OMX;CQ;OND;OND14;PTR1.1-1
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.1;1;ELEC;OMX;CQ;OND;OND15;PTR1.1-1
-1.1 Raccordement des modules entre eux;;;;;;;;;;;;
+Raccordement des modules entre eux;;;;;;;;;;;;
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.1;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.1;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.1;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -102,7 +101,7 @@ Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.1;1;ELEC;OMX;CQ
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.1;1;ELEC;OMX;CQ;OND;OND13;PTR1.1-1
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.1;1;ELEC;OMX;CQ;OND;OND14;PTR1.1-1
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.1;1;ELEC;OMX;CQ;OND;OND15;PTR1.1-1
-1.1 Colsonnage des câbles de modules et des câbles;;;;;;;;;;;;
+Colsonnage des câbles de modules et des câbles;;;;;;;;;;;;
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.1;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.1;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.1;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -118,7 +117,7 @@ Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.1
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.1;1;ELEC;OMX;CQ;OND;OND13;PTR1.1-1
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.1;1;ELEC;OMX;CQ;OND;OND14;PTR1.1-1
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.1;1;ELEC;OMX;CQ;OND;OND15;PTR1.1-1
-1.1 Joint de carrossier protection;;;;;;;;;;;;
+Joint de carrossier protection;;;;;;;;;;;;
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.1;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.1;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.1;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -134,13 +133,12 @@ Joint de carrossier protection;7,363636364;1;0,073636364;1;1.1;1;ELEC;OMX;CQ;OND
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.1;1;ELEC;OMX;CQ;OND;OND13;PTR1.1-1
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.1;1;ELEC;OMX;CQ;OND;OND14;PTR1.1-1
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.1;1;ELEC;OMX;CQ;OND;OND15;PTR1.1-1
-1.1 Mise à la terre des structures une à une;97;1;7,275;1;;1;ELEC;OMX;CQ;;;
-1.1 Mise à la terre des pieds de poteaux;65;1;18,28125;1;;1;ELEC;OMX;CQ;;;
-;;;;;;;;;;;;
-1.2 Tranchées BT type 1 (0,5);142;;;1;1.2;1;ELEC;ENGELVIN;CQ;;;
-1.2 Tranchées BT type 2 (0,7);928;;;1;1.2;1;ELEC;ENGELVIN;CQ;;;
+Mise à la terre des structures une à une;97;1;7,275;1;1.1;1;ELEC;OMX;CQ;;;
+Mise à la terre des pieds de poteaux;65;1;18,28125;1;1.1;1;ELEC;OMX;CQ;;;
+Tranchées BT type 1 (0,5);142;;;1;1.2;1;ELEC;OMX;CQ;;;
+Tranchées BT type 2 (0,7);928;;;1;1.2;1;ELEC;OMX;CQ;;;
 Fourniture de câble solaire 1x6mm² - rallonge 3V9;220;3;1,170287544;1;;1;ELEC;OMX;;;;
-1.2 Fourniture de câble solaire 1x6mm²;;;;;;;;;;;;
+Fourniture de câble solaire 1x6mm²;;;;;;;;;;;;
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.2;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.2;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.2;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -148,7 +146,7 @@ Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.2;1;ELEC;OMX;
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.2;1;ELEC;OMX;CQ;OND;OND05;PTR1.1-1
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.2;1;ELEC;OMX;CQ;OND;OND06;PTR1.1-1
 Fourniture de câble solaire 1x6mm²;937,0748252;3;4,984759071;1;1.2;1;ELEC;OMX;CQ;OND;OND07;PTR1.1-1
-1.2 Fourniture de câble solaire 1x10mm²;;;;;;;;;;;;
+Fourniture de câble solaire 1x10mm²;;;;;;;;;;;;
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -156,7 +154,7 @@ Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND05;PTR1.1-1
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND06;PTR1.1-1
 Fourniture de câble solaire 1x10mm²;1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND07;PTR1.1-1
-1.2 Travaux de finitions de cablage (cheminements des câbles…);;;;;;;;;;;;
+Travaux de finitions de cablage (cheminements des câbles…);;;;;;;;;;;;
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -164,7 +162,7 @@ Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,4
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND05;PTR1.1-1
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND06;PTR1.1-1
 Travaux de finitions de cablage (cheminements des câbles…);1968,521254;3;10,47152683;1;1.2;1;ELEC;OMX;CQ;OND;OND07;PTR1.1-1
-1.2 Mise en place de gaine anti-UV;;;;;;;;;;;;
+Mise en place de gaine anti-UV;;;;;;;;;;;;
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.2;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.2;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.2;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -172,7 +170,7 @@ Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.2;1;ELEC;OMX;CQ;OND
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.2;1;ELEC;OMX;CQ;OND;OND05;PTR1.1-1
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.2;1;ELEC;OMX;CQ;OND;OND06;PTR1.1-1
 Mise en place de gaine anti-UV;14,32276364;1;0,716138182;1;1.2;1;ELEC;OMX;CQ;OND;OND07;PTR1.1-1
-1.2 Raccordement des modules entre eux;;;;;;;;;;;;
+Raccordement des modules entre eux;;;;;;;;;;;;
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.2;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.2;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.2;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -180,7 +178,7 @@ Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.2;1;ELEC;OMX;CQ
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.2;1;ELEC;OMX;CQ;OND;OND05;PTR1.1-1
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.2;1;ELEC;OMX;CQ;OND;OND06;PTR1.1-1
 Raccordement des modules entre eux;461,4545455;1;5,932987013;1;1.2;1;ELEC;OMX;CQ;OND;OND07;PTR1.1-1
-1.2 Colsonnage des câbles de modules et des câbles;;;;;;;;;;;;
+Colsonnage des câbles de modules et des câbles;;;;;;;;;;;;
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.2;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.2;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.2;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -188,7 +186,7 @@ Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.2
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.2;1;ELEC;OMX;CQ;OND;OND05;PTR1.1-1
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.2;1;ELEC;OMX;CQ;OND;OND06;PTR1.1-1
 Colsonnage des câbles de modules et des câbles;692,1818182;1;6,921818182;1;1.2;1;ELEC;OMX;CQ;OND;OND07;PTR1.1-1
-1.2 Joint de carrossier protection;;;;;;;;;;;;
+Joint de carrossier protection;;;;;;;;;;;;
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.2;1;ELEC;OMX;CQ;OND;OND01;PTR1.1-1
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.2;1;ELEC;OMX;CQ;OND;OND02;PTR1.1-1
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.2;1;ELEC;OMX;CQ;OND;OND03;PTR1.1-1
@@ -196,5 +194,5 @@ Joint de carrossier protection;7,363636364;1;0,073636364;1;1.2;1;ELEC;OMX;CQ;OND
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.2;1;ELEC;OMX;CQ;OND;OND05;PTR1.1-1
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.2;1;ELEC;OMX;CQ;OND;OND06;PTR1.1-1
 Joint de carrossier protection;7,363636364;1;0,073636364;1;1.2;1;ELEC;OMX;CQ;OND;OND07;PTR1.1-1
-1.2 Mise à la terre des structures une à une;97;1;7,275;1;;1;ELEC;OMX;CQ;;;
-1.2 Mise à la terre des pieds de poteaux;65;1;18,28125;1;;1;ELEC;OMX;CQ;;;
+Mise à la terre des structures une à une;97;1;7,275;1;1.2;1;ELEC;OMX;CQ;;;
+Mise à la terre des pieds de poteaux;65;1;18,28125;1;1.2;1;ELEC;OMX;CQ;;;

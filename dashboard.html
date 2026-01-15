@@ -293,10 +293,71 @@
         }
         
         .electrical-right {
-            font-size: 10px;
-            color: #666;
-            font-style: italic;
-            max-width: 300px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .btn-export {
+            padding: 8px 16px;
+            background: #2e7d32;
+            color: white;
+            border: 1px solid #1b5e20;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-export:hover {
+            background: #1b5e20;
+        }
+        
+        /* Filtres géographiques */
+        .electrical-filters {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border: 1px solid #000;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .filter-select {
+            padding: 7px 12px;
+            border: 1px solid #000;
+            font-size: 11px;
+            background: white;
+            cursor: pointer;
+            min-width: 140px;
+        }
+        
+        .btn-reset-filters {
+            padding: 7px 14px;
+            background: #666;
+            color: white;
+            border: 1px solid #444;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-reset-filters:hover {
+            background: #444;
         }
         
         /* Tableau de progression */
@@ -375,42 +436,42 @@
             text-align: center;
         }
         
-        .onduleur-action-item {
-            display: flex;
-            justify-content: space-between;
+        .onduleur-action-row {
+            display: grid;
+            grid-template-columns: 140px 1fr 100px;
             align-items: center;
-            padding: 6px 0;
+            gap: 10px;
+            padding: 8px 0;
             border-bottom: 1px solid #e0e0e0;
-            font-size: 11px;
         }
         
-        .onduleur-action-item:last-child {
+        .onduleur-action-row:last-child {
             border-bottom: none;
         }
         
-        .onduleur-action-name {
+        .onduleur-action-label {
+            font-size: 11px;
             font-weight: 600;
         }
         
-        .onduleur-action-reste {
+        .onduleur-bar-container {
+            background: white;
+            border: 2px solid #000;
+            height: 20px;
+            position: relative;
+        }
+        
+        .onduleur-bar {
+            height: 100%;
+            background: #f4b400;
+            border-right: 2px solid #000;
+            transition: width 0.3s ease;
+        }
+        
+        .onduleur-percentage {
+            font-size: 10px;
             font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 3px;
-        }
-        
-        .onduleur-action-reste.low {
-            background: #ffebee;
-            color: #d32f2f;
-        }
-        
-        .onduleur-action-reste.medium {
-            background: #fff3e0;
-            color: #f57c00;
-        }
-        
-        .onduleur-action-reste.high {
-            background: #e8f5e9;
-            color: #388e3c;
+            text-align: right;
         }
         
         /* Dashboard Financier */
@@ -600,7 +661,226 @@
             font-weight: bold;
             color: #2e7d32;
         }
+        
+        /* Vue Tranchées */
+        .tranchees-view {
+            padding: 20px;
+            border: 1px solid #000;
+        }
+        
+        .tranchees-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .tranchees-subtitle {
+            text-align: center;
+            font-size: 13px;
+            margin-bottom: 30px;
+            color: #666;
+        }
+        
+        .tranchees-grid {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .tranchees-row {
+            display: grid;
+            grid-template-columns: 200px 1fr 80px;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .tranchees-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-align: left;
+        }
+        
+        .tranchees-bar-container {
+            background: white;
+            border: 2px solid #000;
+            height: 24px;
+            position: relative;
+        }
+        
+        .tranchees-bar {
+            height: 100%;
+            background: #FFFF00;
+            border-right: 2px solid #000;
+            transition: width 0.3s ease;
+        }
+        
+        .tranchees-percentage {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: right;
+        }
+        
+        .tranchees-row.general {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #000;
+        }
+        
+        .tranchees-row.general .tranchees-label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .tranchees-row.general .tranchees-percentage {
+            font-size: 14px;
+        }
+        
+        /* Vue principale mécanique - Liste d'avancements */
+        .mechanical-progress-view {
+            padding: 20px;
+            border: 1px solid #000;
+        }
+        
+        .mechanical-progress-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        
+        .mechanical-progress-grid {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .mechanical-progress-row {
+            display: grid;
+            grid-template-columns: 220px 1fr 80px;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .mechanical-progress-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-align: left;
+        }
+        
+        .mechanical-progress-bar-container {
+            background: white;
+            border: 2px solid #000;
+            height: 24px;
+            position: relative;
+        }
+        
+        .mechanical-progress-bar {
+            height: 100%;
+            background: #f4b400;
+            border-right: 2px solid #000;
+            transition: width 0.3s ease;
+        }
+        
+        .mechanical-progress-percentage {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: right;
+        }
+        
+        .mechanical-progress-row.general {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #000;
+        }
+        
+        .mechanical-progress-row.general .mechanical-progress-label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .mechanical-progress-row.general .mechanical-progress-percentage {
+            font-size: 14px;
+        }
+        
+        /* Vue S-Curve */
+        .scurve-view {
+            padding: 20px;
+            border: 1px solid #000;
+        }
+        
+        .scurve-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .scurve-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .scurve-instruction {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .scurve-chart-container {
+            margin: 30px auto;
+            max-width: 1100px;
+            background: white;
+            padding: 20px;
+            border: 1px solid #000;
+        }
+        
+        .scurve-canvas-wrapper {
+            position: relative;
+            height: 450px;
+        }
+        
+        .scurve-legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .scurve-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+        }
+        
+        .scurve-legend-color {
+            width: 30px;
+            height: 3px;
+            border: 1px solid #000;
+        }
+        
+        .scurve-legend-color.line-blue {
+            background: #2563eb;
+        }
+        
+        .scurve-legend-color.line-red {
+            background: #dc2626;
+            border-style: dashed;
+        }
+        
+        .scurve-legend-color.bar-blue {
+            background: #3b82f6;
+            height: 15px;
+        }
+        
+        .scurve-legend-color.bar-red {
+            background: #ef4444;
+            height: 15px;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -645,6 +925,8 @@
                 <button class="tab-button active" data-view="main" data-category="forages">Forages</button>
                 <button class="tab-button" data-view="main" data-category="micropieux">Micropieux</button>
                 <button class="tab-button" data-view="main" data-category="structures">Structures</button>
+                <button class="tab-button" data-view="tranchees">Tranchées</button>
+                <button class="tab-button" data-view="scurve">S-Curve</button>
             </div>
             
             <!-- Menu déroulant des sous-zones -->
@@ -658,53 +940,146 @@
             </select>
             </div>
             
-            <!-- Graphiques mécaniques -->
-            <div class="main-layout">
-                <div class="left-section">
-                    <div class="chart-section">
-                        <div class="chart-title">Affichage sur la zone voulue à date</div>
-                        
-                        <div class="chart-container-wrapper">
-                            <!-- Labels verticaux -->
-                            <div class="chart-labels">
-                                <div class="chart-label rotated">CQ Réel</div>
-                                <div class="chart-label rotated">CQ Prévu</div>
-                                <div class="bar-row" style="height: 8px;"></div>
-                                <div class="chart-label rotated">Réel</div>
-                                <div class="chart-label rotated">Prévu</div>
+            <!-- Vue principale mécanique -->
+            <div class="main-layout" id="mechanical-main-view">
+                <div class="mechanical-progress-view">
+                    <div class="mechanical-progress-grid">
+                        <div class="mechanical-progress-row">
+                            <div class="mechanical-progress-label">Avancement Pieux</div>
+                            <div class="mechanical-progress-bar-container">
+                                <div class="mechanical-progress-bar" id="progress-pieux" style="width: 100%;"></div>
                             </div>
-                            
-                            <!-- Barres horizontales -->
-                            <div class="bars-container">
-                                <div class="bar-row">
-                                    <div class="bar" id="bar1" style="width: 5%;"></div>
-                                </div>
-                                <div class="bar-row">
-                                    <div class="bar" id="bar2" style="width: 12%;"></div>
-                                </div>
-                                <div class="bar-row" style="height: 8px;"></div>
-                                <div class="bar-row">
-                                    <div class="bar" id="bar3" style="width: 65%;"></div>
-                                </div>
-                                <div class="bar-row">
-                                    <div class="bar" id="bar4" style="width: 72%;"></div>
-                                </div>
-                            </div>
+                            <div class="mechanical-progress-percentage">100,0%</div>
                         </div>
                         
-                        <!-- Axe X -->
-                        <div class="x-axis">
-                            <span class="x-axis-label">0%</span>
-                            <span class="x-axis-label">10%</span>
-                            <span class="x-axis-label">20%</span>
-                            <span class="x-axis-label">30%</span>
-                            <span class="x-axis-label">40%</span>
-                            <span class="x-axis-label">50%</span>
-                            <span class="x-axis-label">60%</span>
-                            <span class="x-axis-label">70%</span>
-                            <span class="x-axis-label">80%</span>
-                            <span class="x-axis-label">90%</span>
-                            <span class="x-axis-label">100%</span>
+                        <div class="mechanical-progress-row">
+                            <div class="mechanical-progress-label">Avancement Arbalétriers</div>
+                            <div class="mechanical-progress-bar-container">
+                                <div class="mechanical-progress-bar" id="progress-arbaletriers" style="width: 100%;"></div>
+                            </div>
+                            <div class="mechanical-progress-percentage">100,0%</div>
+                        </div>
+                        
+                        <div class="mechanical-progress-row">
+                            <div class="mechanical-progress-label">Avancement Pannes</div>
+                            <div class="mechanical-progress-bar-container">
+                                <div class="mechanical-progress-bar" id="progress-pannes" style="width: 100%;"></div>
+                            </div>
+                            <div class="mechanical-progress-percentage">100,0%</div>
+                        </div>
+                        
+                        <div class="mechanical-progress-row">
+                            <div class="mechanical-progress-label">Avancement Structures</div>
+                            <div class="mechanical-progress-bar-container">
+                                <div class="mechanical-progress-bar" id="progress-structures" style="width: 100%;"></div>
+                            </div>
+                            <div class="mechanical-progress-percentage">100,0%</div>
+                        </div>
+                        
+                        <div class="mechanical-progress-row">
+                            <div class="mechanical-progress-label">Avancement Modules</div>
+                            <div class="mechanical-progress-bar-container">
+                                <div class="mechanical-progress-bar" id="progress-modules" style="width: 100%;"></div>
+                            </div>
+                            <div class="mechanical-progress-percentage">100,0%</div>
+                        </div>
+                        
+                        <div class="mechanical-progress-row general">
+                            <div class="mechanical-progress-label">Avancement général</div>
+                            <div class="mechanical-progress-bar-container">
+                                <div class="mechanical-progress-bar" id="progress-general" style="width: 100%;"></div>
+                            </div>
+                            <div class="mechanical-progress-percentage">100%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vue Tranchées -->
+            <div class="tranchees-view" id="mechanical-tranchees-view" style="display: none;">
+                <div class="tranchees-title">TRANCHÉES</div>
+                <div class="tranchees-subtitle">Ouverture des sols par onduleur</div>
+                
+                <div class="tranchees-grid">
+                    <div class="tranchees-row">
+                        <div class="tranchees-label">Avancement OND 1</div>
+                        <div class="tranchees-bar-container">
+                            <div class="tranchees-bar" id="tranchees-ond1" style="width: 100%;"></div>
+                        </div>
+                        <div class="tranchees-percentage">100,0%</div>
+                    </div>
+                    
+                    <div class="tranchees-row">
+                        <div class="tranchees-label">Avancement OND 2</div>
+                        <div class="tranchees-bar-container">
+                            <div class="tranchees-bar" id="tranchees-ond2" style="width: 100%;"></div>
+                        </div>
+                        <div class="tranchees-percentage">100,0%</div>
+                    </div>
+                    
+                    <div class="tranchees-row">
+                        <div class="tranchees-label">Avancement OND 3</div>
+                        <div class="tranchees-bar-container">
+                            <div class="tranchees-bar" id="tranchees-ond3" style="width: 100%;"></div>
+                        </div>
+                        <div class="tranchees-percentage">100,0%</div>
+                    </div>
+                    
+                    <div class="tranchees-row">
+                        <div class="tranchees-label">Avancement OND 4</div>
+                        <div class="tranchees-bar-container">
+                            <div class="tranchees-bar" id="tranchees-ond4" style="width: 100%;"></div>
+                        </div>
+                        <div class="tranchees-percentage">100,0%</div>
+                    </div>
+                    
+                    <div class="tranchees-row">
+                        <div class="tranchees-label">Avancement OND 5</div>
+                        <div class="tranchees-bar-container">
+                            <div class="tranchees-bar" id="tranchees-ond5" style="width: 100%;"></div>
+                        </div>
+                        <div class="tranchees-percentage">100,0%</div>
+                    </div>
+                    
+                    <div class="tranchees-row general">
+                        <div class="tranchees-label">Avancement général</div>
+                        <div class="tranchees-bar-container">
+                            <div class="tranchees-bar" id="tranchees-general" style="width: 100%;"></div>
+                        </div>
+                        <div class="tranchees-percentage">100%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vue S-Curve -->
+            <div class="scurve-view" id="mechanical-scurve-view" style="display: none;">
+                <div class="scurve-header">
+                    <div class="scurve-title">MECA</div>
+                    <div class="scurve-instruction">Mettre uniquement les tâches réalisées en barre d'avancement</div>
+                    <div class="scurve-instruction">Rajouter un suivi en S Curve pour vision de la dérive par tâche</div>
+                </div>
+                
+                <div class="scurve-chart-container">
+                    <div class="scurve-canvas-wrapper">
+                        <canvas id="scurveChart"></canvas>
+                    </div>
+                    
+                    <div class="scurve-legend">
+                        <div class="scurve-legend-item">
+                            <div class="scurve-legend-color line-blue"></div>
+                            <span>Cumulé réel</span>
+                        </div>
+                        <div class="scurve-legend-item">
+                            <div class="scurve-legend-color bar-blue"></div>
+                            <span>Réel</span>
+                        </div>
+                        <div class="scurve-legend-item">
+                            <div class="scurve-legend-color line-red"></div>
+                            <span>Cumulé planifié</span>
+                        </div>
+                        <div class="scurve-legend-item">
+                            <div class="scurve-legend-color bar-red"></div>
+                            <span>Planifié</span>
                         </div>
                     </div>
                 </div>
@@ -729,7 +1104,43 @@
                         </select>
                     </div>
                     <div class="electrical-right">
-                        Menu déroulant pour sélectionner une tâche précise ou une autre option
+                        <button class="btn-export" id="btnExportElec">📊 Exporter élec</button>
+                    </div>
+                </div>
+                
+                <!-- Filtres géographiques -->
+                <div class="electrical-filters">
+                    <div class="filter-group">
+                        <label for="filterZone" class="filter-label">Zone :</label>
+                        <select class="filter-select" id="filterZone">
+                            <option value="">Toutes les zones</option>
+                            <option value="zone1">Zone 1</option>
+                            <option value="zone2">Zone 2</option>
+                            <option value="zone3">Zone 3</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterSousZone" class="filter-label">Sous-zone :</label>
+                        <select class="filter-select" id="filterSousZone">
+                            <option value="">Toutes les sous-zones</option>
+                            <option value="1.1">1.1</option>
+                            <option value="1.2">1.2</option>
+                            <option value="2.1">2.1</option>
+                            <option value="2.2">2.2</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterPTR" class="filter-label">PTR :</label>
+                        <select class="filter-select" id="filterPTR">
+                            <option value="">Tous les PTR</option>
+                            <option value="PTR1.1-1">PTR1.1-1</option>
+                            <option value="PTR1.1-2">PTR1.1-2</option>
+                            <option value="PTR1.2-1">PTR1.2-1</option>
+                            <option value="PTR2.1-1">PTR2.1-1</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn-reset-filters" id="btnResetFilters">🔄 Réinitialiser</button>
                     </div>
                 </div>
                 
@@ -873,7 +1284,10 @@
                     ond3: 78,
                     ond4: 95,
                     ond5: 88,
-                    ond6: 90
+                    ond6: 90,
+                    zone: "zone1",
+                    sousZone: "1.1",
+                    ptr: "PTR1.1-1"
                 },
                 {
                     name: "Raccordement",
@@ -882,7 +1296,10 @@
                     ond3: 58,
                     ond4: 80,
                     ond5: 68,
-                    ond6: 75
+                    ond6: 75,
+                    zone: "zone1",
+                    sousZone: "1.2",
+                    ptr: "PTR1.2-1"
                 },
                 {
                     name: "Tests électriques",
@@ -891,7 +1308,10 @@
                     ond3: 38,
                     ond4: 60,
                     ond5: 48,
-                    ond6: 55
+                    ond6: 55,
+                    zone: "zone2",
+                    sousZone: "2.1",
+                    ptr: "PTR2.1-1"
                 },
                 {
                     name: "Mise en service",
@@ -900,7 +1320,10 @@
                     ond3: 18,
                     ond4: 40,
                     ond5: 28,
-                    ond6: 35
+                    ond6: 35,
+                    zone: "zone1",
+                    sousZone: "1.1",
+                    ptr: "PTR1.1-2"
                 },
                 {
                     name: "Contrôle final",
@@ -909,7 +1332,10 @@
                     ond3: 8,
                     ond4: 30,
                     ond5: 18,
-                    ond6: 25
+                    ond6: 25,
+                    zone: "zone2",
+                    sousZone: "2.2",
+                    ptr: "PTR2.2-1"
                 }
             ]
         };
@@ -949,6 +1375,13 @@
         let currentZone = 'all';
         let currentView = 'home';
         let selectedDate = new Date();
+        
+        // Filtres électriques
+        let electricalFilters = {
+            zone: '',
+            sousZone: '',
+            ptr: ''
+        };
         
         // Formater un montant en euros
         function formatAmount(amount) {
@@ -1084,7 +1517,9 @@
                 document.getElementById('home-view').classList.add('active');
             } else if (viewName === 'mechanical') {
                 document.getElementById('mechanical-view').classList.add('active');
-                updateChart(currentCategory, currentZone);
+                // Afficher la vue principale et masquer Tranchées par défaut
+                document.getElementById('mechanical-main-view').style.display = 'block';
+                document.getElementById('mechanical-tranchees-view').style.display = 'none';
             } else if (viewName === 'electrical') {
                 document.getElementById('electrical-view').classList.add('active');
                 renderElectricalTable();
@@ -1122,20 +1557,11 @@
         });
         
         // Mise à jour des barres en fonction de la catégorie et de la zone
+        // Note: Cette fonction n'est plus utilisée avec la nouvelle vue d'avancement
+        // Elle pourra être réactivée si nécessaire pour des données dynamiques
         function updateChart(category, zone = 'all') {
-            const categoryData = projectData ? projectData[category] : demoData[category];
-            
-            if (!categoryData) return;
-            
-            const data = categoryData[zone] || categoryData.all || categoryData;
-            
-            if (!data) return;
-            
-            // Appliquer les largeurs directement en pourcentage
-            document.getElementById('bar1').style.width = data.cqReel + '%';
-            document.getElementById('bar2').style.width = data.cqPrevu + '%';
-            document.getElementById('bar3').style.width = data.reel + '%';
-            document.getElementById('bar4').style.width = data.prevu + '%';
+            // Fonction conservée pour compatibilité future
+            // L'ancienne vue avec graphiques a été remplacée par la vue d'avancement
         }
         
         // Fonction pour obtenir la classe de couleur selon le pourcentage
@@ -1162,6 +1588,25 @@
                     filteredData = [data[actionNumber - 1]];
                 }
             }
+            
+            // Appliquer les filtres géographiques
+            filteredData = filteredData.filter(action => {
+                let match = true;
+                
+                if (electricalFilters.zone && action.zone !== electricalFilters.zone) {
+                    match = false;
+                }
+                
+                if (electricalFilters.sousZone && action.sousZone !== electricalFilters.sousZone) {
+                    match = false;
+                }
+                
+                if (electricalFilters.ptr && action.ptr !== electricalFilters.ptr) {
+                    match = false;
+                }
+                
+                return match;
+            });
             
             let html = '';
             filteredData.forEach(action => {
@@ -1197,19 +1642,16 @@
                 html += `<div class="onduleur-card">`;
                 html += `<div class="onduleur-card-header">OND${ondNum}</div>`;
                 
-                // Pour chaque action, afficher le reste à faire
+                // Pour chaque action, afficher l'avancement avec barre jaune
                 data.forEach(action => {
                     const avancement = action[ond];
-                    const reste = 100 - avancement;
                     
-                    // Déterminer la classe de couleur selon le reste à faire
-                    let colorClass = 'high'; // Peu de reste (vert)
-                    if (reste > 30) colorClass = 'low'; // Beaucoup de reste (rouge)
-                    else if (reste > 10) colorClass = 'medium'; // Moyen (orange)
-                    
-                    html += `<div class="onduleur-action-item">`;
-                    html += `<span class="onduleur-action-name">${action.name}</span>`;
-                    html += `<span class="onduleur-action-reste ${colorClass}">Reste: ${reste}%</span>`;
+                    html += `<div class="onduleur-action-row">`;
+                    html += `<div class="onduleur-action-label">${action.name}</div>`;
+                    html += `<div class="onduleur-bar-container">`;
+                    html += `<div class="onduleur-bar" style="width: ${avancement}%;"></div>`;
+                    html += `</div>`;
+                    html += `<div class="onduleur-percentage">${avancement}%</div>`;
                     html += `</div>`;
                 });
                 
@@ -1217,6 +1659,189 @@
             });
             
             container.innerHTML = html;
+        }
+        
+        // Initialiser le graphique S-Curve
+        function initScurveChart() {
+            const ctx = document.getElementById('scurveChart').getContext('2d');
+            
+            // Données de démonstration - Semaines S1 à S20
+            const weeks = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 
+                          'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19', 'S20'];
+            
+            // Valeurs réelles (barres bleues)
+            const reel = [5, 8, 12, 15, 18, 22, 25, 30, 35, 38, 42, 45, 48, 50, 52, 54, 56, 58, 60, 62];
+            
+            // Valeurs planifiées (barres rouges)
+            const planifie = [6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 66, 68, 70, 72, 74];
+            
+            // Cumul réel (courbe bleue)
+            const cumulReel = [];
+            let sumReel = 0;
+            reel.forEach(val => {
+                sumReel += val;
+                cumulReel.push(sumReel);
+            });
+            
+            // Cumul planifié (courbe rouge)
+            const cumulPlanifie = [];
+            let sumPlanifie = 0;
+            planifie.forEach(val => {
+                sumPlanifie += val;
+                cumulPlanifie.push(sumPlanifie);
+            });
+            
+            window.scurveChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: weeks,
+                    datasets: [
+                        {
+                            label: 'Cumulé réel',
+                            data: cumulReel,
+                            type: 'line',
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: false,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#2563eb',
+                            yAxisID: 'y1',
+                            order: 1
+                        },
+                        {
+                            label: 'Cumulé planifié',
+                            data: cumulPlanifie,
+                            type: 'line',
+                            borderColor: '#dc2626',
+                            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                            borderWidth: 3,
+                            borderDash: [8, 4],
+                            tension: 0.4,
+                            fill: false,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#dc2626',
+                            yAxisID: 'y1',
+                            order: 2
+                        },
+                        {
+                            label: 'Réel',
+                            data: reel,
+                            backgroundColor: '#3b82f6',
+                            borderColor: '#1e40af',
+                            borderWidth: 1,
+                            yAxisID: 'y',
+                            order: 3
+                        },
+                        {
+                            label: 'Planifié',
+                            data: planifie,
+                            backgroundColor: '#ef4444',
+                            borderColor: '#b91c1c',
+                            borderWidth: 1,
+                            yAxisID: 'y',
+                            order: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        if (context.dataset.type === 'line') {
+                                            label += context.parsed.y.toFixed(0) + '%';
+                                        } else {
+                                            label += context.parsed.y.toFixed(0) + '%';
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: true,
+                                color: '#e5e7eb'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Avancement par semaine (%)',
+                                font: {
+                                    size: 11,
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 0,
+                            max: 80,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                },
+                                font: {
+                                    size: 10
+                                }
+                            },
+                            grid: {
+                                color: '#e5e7eb'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Avancement cumulé (%)',
+                                font: {
+                                    size: 11,
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 0,
+                            max: 1600,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                },
+                                font: {
+                                    size: 10
+                                }
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            });
         }
         
         // Gestion des clics sur les onglets de catégorie (Dashboard Mécanique)
@@ -1237,9 +1862,74 @@
                     // Récupérer la catégorie
                     currentCategory = this.getAttribute('data-category');
                     
-                    // Mettre à jour le graphique avec la zone actuelle
-                    updateChart(currentCategory, currentZone);
+                    // Note: Les données par catégorie pourront être intégrées ultérieurement
                 }
+            });
+        });
+        
+        // Gestion du clic sur le bouton Tranchées
+        document.querySelectorAll('.tab-button[data-view="tranchees"]').forEach(button => {
+            button.addEventListener('click', function() {
+                // Retirer la classe active de tous les boutons
+                document.querySelectorAll('.tab-button[data-category], .tab-button[data-view="tranchees"], .tab-button[data-view="scurve"]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Ajouter la classe active au bouton Tranchées
+                this.classList.add('active');
+                
+                // Masquer la vue principale et le menu des zones
+                document.getElementById('mechanical-main-view').style.display = 'none';
+                document.getElementById('zoneSelect').parentElement.style.display = 'none';
+                
+                // Masquer la vue S-Curve
+                document.getElementById('mechanical-scurve-view').style.display = 'none';
+                
+                // Afficher la vue Tranchées
+                document.getElementById('mechanical-tranchees-view').style.display = 'block';
+            });
+        });
+        
+        // Gestion du clic sur le bouton S-Curve
+        document.querySelectorAll('.tab-button[data-view="scurve"]').forEach(button => {
+            button.addEventListener('click', function() {
+                // Retirer la classe active de tous les boutons
+                document.querySelectorAll('.tab-button[data-category], .tab-button[data-view="tranchees"], .tab-button[data-view="scurve"]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Ajouter la classe active au bouton S-Curve
+                this.classList.add('active');
+                
+                // Masquer la vue principale et le menu des zones
+                document.getElementById('mechanical-main-view').style.display = 'none';
+                document.getElementById('zoneSelect').parentElement.style.display = 'none';
+                
+                // Masquer la vue Tranchées
+                document.getElementById('mechanical-tranchees-view').style.display = 'none';
+                
+                // Afficher la vue S-Curve
+                document.getElementById('mechanical-scurve-view').style.display = 'block';
+                
+                // Initialiser le graphique S-Curve si pas déjà fait
+                if (!window.scurveChartInstance) {
+                    initScurveChart();
+                }
+            });
+        });
+        
+        // Gestion du retour à la vue principale depuis Tranchées
+        document.querySelectorAll('.tab-button[data-view="main"]').forEach(button => {
+            button.addEventListener('click', function() {
+                // Afficher la vue principale et le menu des zones
+                document.getElementById('mechanical-main-view').style.display = 'block';
+                document.getElementById('zoneSelect').parentElement.style.display = 'flex';
+                
+                // Masquer la vue Tranchées
+                document.getElementById('mechanical-tranchees-view').style.display = 'none';
+                
+                // Masquer la vue S-Curve
+                document.getElementById('mechanical-scurve-view').style.display = 'none';
             });
         });
         
@@ -1251,10 +1941,7 @@
             // Mettre à jour la zone actuelle
             currentZone = zone || 'all';
             
-            // Mettre à jour le graphique avec la nouvelle zone
-            if (currentView === 'mechanical') {
-                updateChart(currentCategory, currentZone);
-            }
+            // Note: La gestion par zone pourra être intégrée ultérieurement
         });
         
         // Gestion du bouton "Tout voir"
@@ -1284,6 +1971,98 @@
             renderElectricalTable(action);
         });
         
+        // Gestion des filtres géographiques
+        document.getElementById('filterZone').addEventListener('change', function() {
+            electricalFilters.zone = this.value;
+            renderElectricalTable(document.getElementById('selectAction').value);
+        });
+        
+        document.getElementById('filterSousZone').addEventListener('change', function() {
+            electricalFilters.sousZone = this.value;
+            renderElectricalTable(document.getElementById('selectAction').value);
+        });
+        
+        document.getElementById('filterPTR').addEventListener('change', function() {
+            electricalFilters.ptr = this.value;
+            renderElectricalTable(document.getElementById('selectAction').value);
+        });
+        
+        // Gestion du bouton de réinitialisation des filtres
+        document.getElementById('btnResetFilters').addEventListener('click', function() {
+            electricalFilters.zone = '';
+            electricalFilters.sousZone = '';
+            electricalFilters.ptr = '';
+            
+            document.getElementById('filterZone').value = '';
+            document.getElementById('filterSousZone').value = '';
+            document.getElementById('filterPTR').value = '';
+            
+            renderElectricalTable(document.getElementById('selectAction').value);
+        });
+        
+        // Fonction d'export CSV
+        function exportElectricalToCSV() {
+            const data = projectData && projectData.electrical 
+                ? projectData.electrical.actions 
+                : demoElectricalData.actions;
+            
+            // Appliquer les filtres
+            let filteredData = data.filter(action => {
+                let match = true;
+                
+                if (electricalFilters.zone && action.zone !== electricalFilters.zone) {
+                    match = false;
+                }
+                
+                if (electricalFilters.sousZone && action.sousZone !== electricalFilters.sousZone) {
+                    match = false;
+                }
+                
+                if (electricalFilters.ptr && action.ptr !== electricalFilters.ptr) {
+                    match = false;
+                }
+                
+                return match;
+            });
+            
+            // Créer le contenu CSV
+            let csvContent = "Action,OND1,OND2,OND3,OND4,OND5,OND6,Zone,Sous-zone,PTR\n";
+            
+            filteredData.forEach(action => {
+                const row = [
+                    action.name,
+                    action.ond1 + '%',
+                    action.ond2 + '%',
+                    action.ond3 + '%',
+                    action.ond4 + '%',
+                    action.ond5 + '%',
+                    action.ond6 + '%',
+                    action.zone || '',
+                    action.sousZone || '',
+                    action.ptr || ''
+                ].join(',');
+                csvContent += row + "\n";
+            });
+            
+            // Créer le fichier et le télécharger
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'export_electrique_' + new Date().toISOString().slice(0,10) + '.csv');
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Gestion du bouton d'export
+        document.getElementById('btnExportElec').addEventListener('click', function() {
+            exportElectricalToCSV();
+        });
+        
         // Gestion du changement de date
         document.getElementById('dateSelector').addEventListener('change', function() {
             selectedDate = new Date(this.value);
@@ -1295,7 +2074,8 @@
             projectData = data;
             
             if (currentView === 'mechanical') {
-                updateChart(currentCategory, currentZone);
+                // Note: L'intégration des données pourra être ajoutée ici
+                // pour mettre à jour dynamiquement les barres d'avancement
             } else if (currentView === 'electrical') {
                 renderElectricalTable();
             } else if (currentView === 'financial') {
@@ -1317,7 +2097,5 @@
         // Exposition de la fonction pour le chargement futur
         window.loadProjectData = loadProjectData;
     </script>
-</body>
-</html>
 </body>
 </html>
