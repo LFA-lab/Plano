@@ -2,16 +2,16 @@
   "macros": [
     {
       "name": "avancement-physique-vs-heures",
-      "title": "Avancement Physique vs Heures Travaillées",
-      "description": "Compare l'avancement physique constaté vs l'avancement des heures réellement consommées",
+      "title": "Avancement Physique vs Heures TravaillÃ©es",
+      "description": "Compare l'avancement physique constatÃ© vs l'avancement des heures rÃ©ellement consommÃ©es",
       "basFile": "macros/export/AvancementPhysiqueVsHeures.bas",
-      "htmlFile": "macros/Macro MSP/Avancement physique vs heures travaillées/Processus Avancement Physique Vs Heures.html",
+      "htmlFile": "macros/Macro MSP/Avancement physique vs heures travaillÃ©es/Processus Avancement Physique Vs Heures.html",
       "lastUpdated": "12/08/2025"
     },
     {
       "name": "calculatrice-reste-a-faire",
-      "title": "Calculatrice Reste à Faire VE",
-      "description": "Processus de pilotage pour responsables d'affaires BTP/Énergie - 4 chemins de calcul",
+      "title": "Calculatrice Reste Ã  Faire VE",
+      "description": "Processus de pilotage pour responsables d'affaires BTP/Ã‰nergie - 4 chemins de calcul",
       "htmlFile": "macros/Macro MSP/Calculatrice Reste a faire VE/Recalage.html",
       "frmFile": "macros/utils/datecalcul.frm",
       "frxFile": "macros/utils/datecalcul.frx",
@@ -20,26 +20,26 @@
     },
     {
       "name": "creation-ms-project",
-      "title": "Création MS Project - Import Simple",
-      "description": "Import de tâches simples avec titre depuis Excel vers MS Project",
+      "title": "CrÃ©ation MS Project - Import Simple",
+      "description": "Import de tÃ¢ches simples avec titre depuis Excel vers MS Project",
       "basFile": "macros/import/Import_OPTIMISE.vb",
       "htmlFile": "macros/Macro MSP/Explication ImportMacro.html",
       "excelFile": "templates/FichierTypearemplir.xlsx",
-      "mptFile": "templates/ModèleImport.mpt",
+      "mptFile": "templates/ModÃ¨leImport.mpt",
       "lastUpdated": "07/08/2025"
     },
     {
       "name": "ecart-heures",
-      "title": "Écart Heures",
-      "description": "Bilan chiffré des écarts entre heures réellement travaillées et heures de référence",
+      "title": "Ã‰cart Heures",
+      "description": "Bilan chiffrÃ© des Ã©carts entre heures rÃ©ellement travaillÃ©es et heures de rÃ©fÃ©rence",
       "basFile": "macros/export/EcartHeures.bas",
       "htmlFile": "macros/Macro MSP/Ecart Heures/Processus_Ecart_Heures.html",
       "lastUpdated": "12/08/2025"
     },
     {
       "name": "ecart-planning",
-      "title": "Écart Planning",
-      "description": "Tableau de suivi des tâches avec dates prévues/réelles et écarts de planning",
+      "title": "Ã‰cart Planning",
+      "description": "Tableau de suivi des tÃ¢ches avec dates prÃ©vues/rÃ©elles et Ã©carts de planning",
       "basFile": "macros/export/EcartPlanning.bas",
       "htmlFile": "macros/Macro MSP/Ecart Planning/Processus_Ecart_Planning.html",
       "lastUpdated": "12/08/2025"
@@ -54,16 +54,16 @@
     },
     {
       "name": "planning-previsionnel",
-      "title": "Planning Prévisionnel",
-      "description": "Export planning avec unités de pointe (pic d'effectif requis chaque jour)",
+      "title": "Planning PrÃ©visionnel",
+      "description": "Export planning avec unitÃ©s de pointe (pic d'effectif requis chaque jour)",
       "basFile": "macros/export/Planningheures.bas",
-      "htmlFile": "macros/Macro MSP/Planning prévisionnel/Processus_PlanningPrevisionnel.html",
+      "htmlFile": "macros/Macro MSP/Planning prÃ©visionnel/Processus_PlanningPrevisionnel.html",
       "lastUpdated": "27/08/2025"
     },
     {
       "name": "export-heures-sapin",
-      "title": "Export Heures SAPIN - Analyse Hybride Confirmé/Prévisionnel",
-      "description": "Export optimisé pour dirigeants avec distinction gains confirmés vs prévisionnels et analyse temps réel du pilotage projet",
+      "title": "Export Heures SAPIN - Analyse Hybride ConfirmÃ©/PrÃ©visionnel",
+      "description": "Export optimisÃ© pour dirigeants avec distinction gains confirmÃ©s vs prÃ©visionnels et analyse temps rÃ©el du pilotage projet",
       "basFile": "macros/Macro MSP/Optimisation/ExportHeuresSapin.bas",
       "htmlFile": "macros/Macro MSP/Optimisation/Guide_Export_HeuresSapin.html",
       "lastUpdated": "21/08/2025"
