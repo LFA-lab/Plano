@@ -612,18 +612,15 @@ Sub Import_Taches_Simples_AvecTitre()
                     
                     ' Créer une dépendance DÉBUT-DÉBUT : CQ démarre 1 jour après le début de la tâche
                     ' Utiliser LinkSuccessors depuis la tâche principale (plus fiable)
-                    Dim errNum As Long, errDesc As String
                     On Error Resume Next
                     t.LinkSuccessors tCQ, pjStartToStart, "1d"
-                    errNum = Err.Number
-                    errDesc = Err.Description
-                    On Error GoTo 0
-                    
-                    If errNum = 0 Then
-                        logStream.WriteLine "  -> TACHE CQ SST créée (ressource CQ, dépendance DD+1j OK)"
+                    If Err.Number <> 0 Then
+                        logStream.WriteLine "  -> TACHE CQ SST créée (ressource CQ, ERREUR dépendance: " & Err.Number & " - " & Err.Description & ")"
+                        Err.Clear
                     Else
-                        logStream.WriteLine "  -> TACHE CQ SST créée (ressource CQ, ERREUR dépendance: " & errNum & " - " & errDesc & ")"
+                        logStream.WriteLine "  -> TACHE CQ SST créée (ressource CQ, dépendance DD+1j OK)"
                     End If
+                    On Error GoTo 0
                     
                     logStream.WriteLine "     Tags CQ copiés | Tâche CQ - Début: " & Format(tCQ.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(tCQ.Finish, "dd/mm/yyyy hh:nn")
                 End If
@@ -669,18 +666,15 @@ Sub Import_Taches_Simples_AvecTitre()
                 
                 ' Créer une dépendance DÉBUT-DÉBUT +1 jour
                 ' Utiliser LinkSuccessors depuis la tâche principale (plus fiable)
-                Dim errNum2 As Long, errDesc2 As String
                 On Error Resume Next
                 t.LinkSuccessors tCQ, pjStartToStart, "1d"
-                errNum2 = Err.Number
-                errDesc2 = Err.Description
-                On Error GoTo 0
-                
-                If errNum2 = 0 Then
-                    logStream.WriteLine "  -> TACHE CQ explicite créée (ressource CQ, dépendance DD+1j OK)"
+                If Err.Number <> 0 Then
+                    logStream.WriteLine "  -> TACHE CQ explicite créée (ressource CQ, ERREUR dépendance: " & Err.Number & " - " & Err.Description & ")"
+                    Err.Clear
                 Else
-                    logStream.WriteLine "  -> TACHE CQ explicite créée (ressource CQ, ERREUR dépendance: " & errNum2 & " - " & errDesc2 & ")"
+                    logStream.WriteLine "  -> TACHE CQ explicite créée (ressource CQ, dépendance DD+1j OK)"
                 End If
+                On Error GoTo 0
                 
                 logStream.WriteLine "     Tags CQ copiés | Tâche CQ - Début: " & Format(tCQ.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(tCQ.Finish, "dd/mm/yyyy hh:nn")
             End If

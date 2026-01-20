@@ -9,31 +9,27 @@
 <body>
     <div class="container">
         <header>
-            <div class="language-selector" role="group" aria-label="Sélecteur de langue">
-                <button type="button" class="language-btn language-current" data-lang="fr" aria-pressed="true">FR</button>
-                <button type="button" class="language-btn" data-lang="en" aria-pressed="false">EN</button>
-            </div>
-            <h1 data-i18n="title">Parcours Onboarding</h1>
-            <p data-i18n="subtitle">Guide d'intégration pour les nouveaux collaborateurs</p>
+            <h1 id="main-title">Parcours Onboarding</h1>
+            <p id="main-subtitle">Guide d'intégration pour les nouveaux collaborateurs</p>
         </header>
 
         <!-- Accessibilité/UX: Sélecteur de rôle sans dépendance, persistant par langue.
              Conception: Pas de framework. Les éléments restent présents dans le DOM pour éviter des reflows coûteux.
              Politique: Les éléments non ciblés sont repliés plutôt que supprimés pour une UX indulgente. -->
         <div class="role-switch" role="group" aria-label="Sélecteur de rôle">
-            <span class="role-label" data-i18n="roleLabel">Choisissez votre parcours :</span>
-            <button type="button" class="role-btn" data-role-select="arrivee" aria-pressed="true" data-i18n="roleArrivee">Premiers jours dans l'entreprise</button>
-            <button type="button" class="role-btn" data-role-select="nouveau-projet" aria-pressed="false" data-i18n="roleNouveauProjet">Lancement d'un nouveau projet</button>
+            <span>Choisissez votre parcours :</span>
+            <button type="button" class="role-btn" data-role-select="arrivee" aria-pressed="true">Premiers jours dans l'entreprise</button>
+            <button type="button" class="role-btn" data-role-select="nouveau-projet" aria-pressed="false">Lancement d'un nouveau projet</button>
         </div>
 
         <main class="main-content">
             <!-- Vue Arrivée -->
             <div data-view="arrivee" class="view-container">
                 <section class="week-section">
-                    <h2 data-i18n="arriveeTitle">Arrivée — Installation & Formation initiale</h2>
+                    <h2 id="arrivee-title">Arrivée — Installation & Formation initiale</h2>
                     
                     <div class="subsection">
-                        <h3 data-i18n="configuration">Configuration</h3>
+                        <h3>Configuration</h3>
                         <div class="task-list">
                             <div class="task-item" data-role="both" data-duration="5–10 min" data-outcome="Demande envoyée">
                                 <h4>Création compte Sitemark</h4>
@@ -191,14 +187,14 @@
                                         <input type="checkbox" class="task-checkbox">
                                         <span>Excel fichier</span>
                                     </label>
-                                    <a href="./macros/Macro MSP/Création MS Project/ImportSimple/FichierTypearemplir.xlsm" download class="btn btn-success btn-small" style="margin-left: 12px;">📥 Fichier Excel type à remplir</a>
+                                    <a href="./templates/FichierTypearemplir.xlsx" download class="btn btn-success btn-small" style="margin-left: 12px;">📥 Fichier Excel type à remplir</a>
                                 </div>
                                 <div class="task-item">
                                     <label class="task-checkbox-label">
                                         <input type="checkbox" class="task-checkbox">
                                         <span>MS Project</span>
                                     </label>
-                                    <a href="./macros/Macro MSP/Création MS Project/ImportSimple/ModèleImport.mpt" download class="btn btn-secondary btn-small" style="margin-left: 12px;">📦 Modèle MS Project</a>
+                                    <a href="./templates/ModèleImport.mpt" download class="btn btn-secondary btn-small" style="margin-left: 12px;">📦 Modèle MS Project</a>
                                 </div>
                                 <div class="task-item">
                                     <label class="task-checkbox-label">

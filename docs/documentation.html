@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano - Architecture et Flux</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #1a365d;
+            border-bottom: 3px solid #3182ce;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2c5282;
+            margin-top: 40px;
+        }
+        .diagram-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .legend {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .legend-item {
+            display: inline-block;
+            margin-right: 20px;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        .user { background: #c6f6d5; }
+        .file { background: #bee3f8; }
+        .macro { background: #feebc8; }
+        .output { background: #fed7e2; }
+    </style>
+</head>
+<body>
+    <h1>Plano - Architecture et Flux</h1>
+
+    <h2>1. Vue d'ensemble : Flux Utilisateur + Logiciel</h2>
+    
+    <div class="legend">
+        <span class="legend-item user">Vert = Action Utilisateur</span>
+        <span class="legend-item file">Bleu = Fichier</span>
+        <span class="legend-item macro">Orange = Macro VBA</span>
+        <span class="legend-item output">Rose = Output Final</span>
+    </div>
+
+    <div class="diagram-container">
+        <pre class="mermaid">
+flowchart TB
+    subgraph UTILISATEUR["👤 UTILISATEUR (Manuel)"]
+        U1[1. Reçoit lien onboarding]
+        U2[2. Télécharge fichiers]
+        U3[3. Remplit Excel]
+        U4[4. Ouvre MS Project]
+        U5[5. Lance macro import]
+        U6[6. Lance macros export]
+        U7[7. Consulte résultats]
+    end
+
+    subgraph TEMPLATES["📁 /templates"]
+        T1[FichierTypearemplir.xlsx]
+        T2[ModèleImport.mpt]
+    end
+
+    subgraph ONBOARDING["🌐 /onboarding"]
+        O1[index.html]
+        O2[onboarding.js]
+    end
+
+    subgraph IMPORT["⚙️ /macros/import"]
+        M1[Import_OPTIMISE.vb]
+    end
+
+    subgraph EXPORT["⚙️ /macros/export"]
+        E1[ExportPontivaJson.bas]
+        E2[dashboard_chantier.vb]
+        E3[EcartHeures.bas]
+        E4[EcartPlanning.bas]
+        E5[PlanDeCharge.bas]
+        E6[Planningheures.bas]
+        E7[exportmécanique.bas]
+    end
+
+    subgraph REPORTS["⚙️ /macros/reports"]
+        R1[RapportPrevencheres.vb]
+        R2[Ganttfichiermaitre.vb]
+    end
+
+    subgraph OUTPUTS["📊 OUTPUTS"]
+        OUT1[projet.mpp]
+        OUT2[data.json]
+        OUT3[dashboard.html]
+        OUT4[rapport.xlsx]
+        OUT5[rapport.docx]
+        OUT6[gantt.png]
+    end
+
+    U1 --> O1
+    O1 --> U2
+    U2 --> T1
+    U2 --> T2
+    T1 --> U3
+    U3 --> U4
+    T2 --> U4
+    U4 --> U5
+    U5 --> M1
+    M1 -->|Lit Excel| T1
+    M1 -->|Génère| OUT1
+    OUT1 --> U6
+    U6 --> E1
+    U6 --> E2
+    U6 --> E3
+    U6 --> R1
+    E1 -->|Exporte| OUT2
+    E2 -->|Génère| OUT3
+    E3 -->|Exporte| OUT4
+    E4 -->|Exporte| OUT4
+    E5 -->|Exporte| OUT4
+    E6 -->|Exporte| OUT4
+    R1 -->|Génère| OUT5
+    R2 -->|Génère| OUT6
+    OUT2 --> U7
+    OUT3 --> U7
+    OUT4 --> U7
+    OUT5 --> U7
+    OUT6 --> U7
+
+    style U1 fill:#c6f6d5
+    style U2 fill:#c6f6d5
+    style U3 fill:#c6f6d5
+    style U4 fill:#c6f6d5
+    style U5 fill:#c6f6d5
+    style U6 fill:#c6f6d5
+    style U7 fill:#c6f6d5
+    style T1 fill:#bee3f8
+    style T2 fill:#bee3f8
+    style T3 fill:#bee3f8
+    style O1 fill:#bee3f8
+    style M1 fill:#feebc8
+    style M2 fill:#feebc8
+    style E1 fill:#feebc8
+    style E2 fill:#feebc8
+    style E3 fill:#feebc8
+    style E4 fill:#feebc8
+    style E5 fill:#feebc8
+    style E6 fill:#feebc8
+    style E7 fill:#feebc8
+    style R1 fill:#feebc8
+    style R2 fill:#feebc8
+    style OUT1 fill:#fed7e2
+    style OUT2 fill:#fed7e2
+    style OUT3 fill:#fed7e2
+    style OUT4 fill:#fed7e2
+    style OUT5 fill:#fed7e2
+    style OUT6 fill:#fed7e2
+        </pre>
+    </div>
+
+    <h2>2. Arborescence Cible du Repo</h2>
+
+    <div class="diagram-container">
+        <pre class="mermaid">
+flowchart TB
+    ROOT["/plano"]
+    
+    ROOT --> TEMPLATES["/templates"]
+    ROOT --> MACROS["/macros"]
+    ROOT --> DASHBOARD["/dashboard"]
+    ROOT --> ONBOARDING["/onboarding"]
+    ROOT --> DOCS["/docs"]
+    ROOT --> SAMPLES["/samples"]
+    ROOT --> ARCHIVE["/_archive"]
+
+    TEMPLATES --> T1["ModèleImport.mpt<br/><i>Template MS Project avec macros</i>"]
+    TEMPLATES --> T2["FichierTypearemplir.xlsx<br/><i>Excel à remplir par client</i>"]
+
+    MACROS --> IMPORT["/import"]
+    MACROS --> EXPORT["/export"]
+    MACROS --> REPORTS["/reports"]
+    MACROS --> UTILS["/utils"]
+
+    IMPORT --> I1["Import_OPTIMISE.vb<br/><i>Import optimisé (actuel)</i>"]
+
+    EXPORT --> E1["ExportPontivaJson.bas"]
+    EXPORT --> E2["ExportSuiviMecaElecJson.bas"]
+    EXPORT --> E3["dashboard_chantier.vb"]
+    EXPORT --> E4["EcartHeures.bas"]
+    EXPORT --> E5["EcartPlanning.bas"]
+    EXPORT --> E6["PlanDeCharge.bas"]
+    EXPORT --> E7["Planningheures.bas"]
+    EXPORT --> E8["exportmécanique.bas"]
+    EXPORT --> E9["AvancementPhysiqueVsHeures.bas"]
+
+    REPORTS --> R1["RapportPrevencheres.vb<br/><i>Rapport Word</i>"]
+    REPORTS --> R2["Ganttfichiermaitre.vb<br/><i>Export Gantt PNG</i>"]
+
+    UTILS --> U1["datecalcul.frm"]
+    UTILS --> U2["excelvshtml.vb"]
+
+    DASHBOARD --> D1["dashboard.html"]
+    DASHBOARD --> D2["style.css"]
+
+    ONBOARDING --> O1["index.html"]
+    ONBOARDING --> O2["style.css"]
+    ONBOARDING --> O3["manifest.json"]
+    ONBOARDING --> ASSETS["/assets"]
+    ASSETS --> A1["onboarding.js"]
+
+    DOCS --> DOC1["README.md"]
+    DOCS --> DOC2["GUIDE_UTILISATION.md"]
+    DOCS --> DOC3["SCHEMA_JSON.md"]
+    DOCS --> DOC4["ms_project_process.html"]
+
+    ROOT --> SCRIPTS["/scripts"]
+    SCRIPTS --> S_README["README.md"]
+
+    SAMPLES --> S1["Modeledonneesimport.csv"]
+
+    ARCHIVE --> AR1["Importsimple.bas"]
+    ARCHIVE --> AR2["importtaha.bas"]
+    ARCHIVE --> AR3["TemplateProject_v1.mpt"]
+
+    style ROOT fill:#1a365d,color:#fff
+    style TEMPLATES fill:#3182ce,color:#fff
+    style MACROS fill:#3182ce,color:#fff
+    style DASHBOARD fill:#3182ce,color:#fff
+    style ONBOARDING fill:#3182ce,color:#fff
+    style DOCS fill:#3182ce,color:#fff
+    style SAMPLES fill:#3182ce,color:#fff
+    style ARCHIVE fill:#718096,color:#fff
+    style IMPORT fill:#48bb78,color:#fff
+    style EXPORT fill:#ed8936,color:#fff
+    style REPORTS fill:#9f7aea,color:#fff
+    style UTILS fill:#718096,color:#fff
+        </pre>
+    </div>
+
+    <h2>3. Flux de Données Détaillé</h2>
+
+    <div class="diagram-container">
+        <pre class="mermaid">
+flowchart LR
+    subgraph INPUT["📥 ENTRÉE"]
+        XLSX["Excel Client<br/>(.xlsx)"]
+    end
+
+    subgraph COLONNES["Colonnes A:L"]
+        direction TB
+        C1["A: Nom tâche"]
+        C2["B: Quantités"]
+        C3["C: Nb personnes"]
+        C4["D: Heures"]
+        C5["E: Zone"]
+        C6["F: Sous-Zone"]
+        C7["G: Tranche"]
+        C8["H: Lot"]
+        C9["I: Entreprise"]
+        C10["J: Qualité"]
+        C11["K: Niveau"]
+        C12["L: Onduleur"]
+    end
+
+    subgraph IMPORT_MACRO["⚙️ IMPORT"]
+        IM["Importsimple.bas<br/><br/>1. File picker<br/>2. Lit Excel ligne par ligne<br/>3. Crée tâches MSP<br/>4. Mappe vers Text1-Text7<br/>5. Crée ressources<br/>6. Calcule heures"]
+    end
+
+    subgraph MSP["📊 MS PROJECT"]
+        MPP["projet.mpp<br/><br/>- Tâches<br/>- Ressources<br/>- Assignments<br/>- Gantt<br/>- Champs Text1-Text7"]
+    end
+
+    subgraph EXPORTS["⚙️ EXPORTS"]
+        direction TB
+        EX1["ExportPontivaJson.bas"]
+        EX2["dashboard_chantier.vb"]
+        EX3["EcartHeures.bas"]
+        EX4["PlanDeCharge.bas"]
+        EX5["RapportPrevencheres.vb"]
+        EX6["Ganttfichiermaitre.vb"]
+    end
+
+    subgraph OUTPUTS["📤 SORTIES"]
+        direction TB
+        O1["data.json<br/><i>→ Dashboard</i>"]
+        O2["dashboard.html<br/><i>→ Navigateur</i>"]
+        O3["ecart_heures.xlsx<br/><i>→ Analyse</i>"]
+        O4["plan_charge.xlsx<br/><i>→ Ressources</i>"]
+        O5["rapport.docx<br/><i>→ Client</i>"]
+        O6["gantt.png<br/><i>→ Réunion</i>"]
+    end
+
+    XLSX --> COLONNES
+    COLONNES --> IMPORT_MACRO
+    IMPORT_MACRO --> MSP
+    MSP --> EX1 --> O1
+    MSP --> EX2 --> O2
+    MSP --> EX3 --> O3
+    MSP --> EX4 --> O4
+    MSP --> EX5 --> O5
+    MSP --> EX6 --> O6
+
+    style INPUT fill:#bee3f8
+    style MSP fill:#c6f6d5
+    style OUTPUTS fill:#fed7e2
+        </pre>
+    </div>
+
+    <h2>4. Parcours Utilisateur (Séquence)</h2>
+
+    <div class="diagram-container">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant C as 👤 Client
+    participant W as 🌐 Page Onboarding
+    participant E as 📗 Excel
+    participant M as 📊 MS Project
+    participant V as ⚙️ Macro VBA
+    participant O as 📁 Outputs
+
+    Note over C,O: PHASE 1 - ONBOARDING
+    C->>W: Accède au lien onboarding
+    W->>C: Affiche parcours + liens téléchargement
+    C->>W: Télécharge FichierTypearemplir.xlsm
+    C->>W: Télécharge ModèleImport.mpt
+
+    Note over C,O: PHASE 2 - PRÉPARATION DONNÉES
+    C->>E: Ouvre Excel template
+    C->>E: Remplit colonnes A:L avec données projet
+    C->>E: Sauvegarde fichier
+
+    Note over C,O: PHASE 3 - IMPORT
+    C->>M: Ouvre ModèleImport.mpt
+    C->>M: Alt+F8 (menu macros)
+    C->>V: Sélectionne Import_Taches_Simples_AvecTitre
+    V->>E: Lit fichier Excel
+    V->>M: Crée tâches + ressources
+    V->>M: Calcule heures travail
+    M->>C: Affiche Gantt avec planning
+
+    Note over C,O: PHASE 4 - EXPORTS
+    C->>M: Alt+F8 (menu macros)
+    C->>V: Sélectionne export souhaité
+    V->>M: Lit données projet
+    V->>O: Génère fichier (JSON/HTML/Excel/Word)
+    O->>C: Fichier disponible dans Downloads
+
+    Note over C,O: PHASE 5 - CONSULTATION
+    C->>O: Ouvre dashboard.html dans navigateur
+    C->>O: Importe data.json
+    O->>C: Affiche visualisations
+        </pre>
+    </div>
+
+    <h2>5. Mapping Colonnes Excel → Champs MS Project</h2>
+
+    <div class="diagram-container">
+        <pre class="mermaid">
+flowchart LR
+    subgraph EXCEL["📗 EXCEL (Colonnes)"]
+        A["A: Nom"]
+        B["B: Quantités"]
+        C["C: Nb personnes"]
+        D["D: Heures"]
+        E["E: Zone"]
+        F["F: Sous-Zone"]
+        G["G: Tranche"]
+        H["H: Lot"]
+        I["I: Entreprise"]
+        J["J: Qualité"]
+        K["K: Niveau"]
+        L["L: Onduleur"]
+    end
+
+    subgraph MSP["📊 MS PROJECT (Champs)"]
+        N["Name"]
+        T1["Text1"]
+        T2["Text2"]
+        T3["Text3"]
+        T4["Text4"]
+        T5["Text5"]
+        T6["Text6"]
+        T7["Text7"]
+        W["Work<br/>(calculé: D×C)"]
+        R["Resource<br/>(créé auto)"]
+    end
+
+    A -->|direct| N
+    B -->|stocké| T1
+    C -->|utilisé pour| W
+    D -->|utilisé pour| W
+    E -->|mappé| T2
+    F -->|mappé| T3
+    G -->|mappé| T4
+    H -->|mappé| T5
+    I -->|mappé| T6
+    J -->|mappé| T7
+    K -->|info| R
+    L -->|info| R
+
+    style EXCEL fill:#c6f6d5
+    style MSP fill:#bee3f8
+        </pre>
+    </div>
+
+    <h2>6. Problèmes Actuels vs Architecture Cible</h2>
+
+    <div class="diagram-container">
+        <pre class="mermaid">
+flowchart TB
+    subgraph AVANT["❌ ÉTAT ACTUEL"]
+        direction TB
+        P1["5+ versions de macro import<br/>dispersées dans 3 dossiers"]
+        P2["Chemins en dur<br/>C:\\Users\\Antoi\\..."]
+        P3["Fichiers orphelins<br/>puml, Zone.Identifier"]
+        P4["README = guide Git<br/>pas de doc produit"]
+        P5["manifest.json incomplet<br/>8 macros sur 20+"]
+        P6["Pas de structure claire<br/>templates mélangés avec macros"]
+    end
+
+    subgraph APRES["✅ ÉTAT CIBLE"]
+        direction TB
+        S1["1 macro import principale<br/>+ 1 variante si besoin"]
+        S2["File picker systématique<br/>ou chemin configurable"]
+        S3["Repo nettoyé<br/>fichiers utiles uniquement"]
+        S4["README complet<br/>workflow + prérequis + install"]
+        S5["manifest.json à jour<br/>toutes les macros listées"]
+        S6["Structure par fonction<br/>/templates /macros /docs"]
+    end
+
+    P1 --> S1
+    P2 --> S2
+    P3 --> S3
+    P4 --> S4
+    P5 --> S5
+    P6 --> S6
+
+    style AVANT fill:#fed7d7
+    style APRES fill:#c6f6d5
+        </pre>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                showSequenceNumbers: true
+            }
+        });
+    </script>
+</body>
+</html>

@@ -24,7 +24,7 @@
       "description": "Import de tâches simples avec titre depuis Excel vers MS Project",
       "basFile": "Macro MSP/Création MS Project/ImportSimple/Importsimple.bas",
       "htmlFile": "Macro MSP/Création MS Project/ImportSimple/ExplicationCreationGuide.html",
-      "excelFile": "Macro MSP/Création MS Project/ImportSimple/FichierTypearemplir.xlsm",
+      "excelFile": "Macro MSP/Création MS Project/ImportSimple/FichierTypearemplir.xlsx",
       "mptFile": "Macro MSP/Création MS Project/ImportSimple/ModèleImport.mpt",
       "lastUpdated": "07/08/2025"
     },

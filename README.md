@@ -1,47 +1,65 @@
-# 1. Pars propre depuis main
-git checkout main
-git pull origin main
+# Plano - Pilotage Chantier
 
-# 2. Crée ta branche de travail (change le nom évidemment)
-git checkout -b feature-x
+## Qu'est-ce que Plano ?
 
-# 3. Tu fais tes modifs de code...
+Plano transforme des données terrain (tâches, quantités, heures) en tableaux de bord d'avancement financier et physique via Microsoft Project.
 
-# 4. Ajoute et commit tes changements
-git add .
-git commit -m "implémentation de X (décris ce que tu as fait)"
+## Workflow
 
-# 5. Pousse ta branche sur GitHub
-git push origin feature-x
+1. Client télécharge `ModèleImport.mpt` depuis la page d'onboarding
+2. Client ouvre le .mpt dans MS Project
+3. Macro génère le fichier Excel template (ou client utilise `FichierTypearemplir.xlsx`)
+4. Client remplit le Excel avec ses données projet (colonnes A:L)
+5. Client exécute la macro d'import (Alt+F8 → Import_Taches_Simples_AvecTitre_OPTIMISE)
+6. Planning généré automatiquement
+7. Export JSON → Dashboard HTML pour visualisation
 
-# 6. Crée automatiquement la Pull Request vers main
-gh pr create --base main --head feature-x --title "Feature X" --body "Description rapide de ce que fait cette feature."
+## Structure du repo
 
-#   À ce stade :
-#   - La branche feature-x existe sur GitHub
-#   - La PR feature-x → main est ouverte
-#   - Tu peux aller sur GitHub et cliquer "Merge pull request"
-#   (Pas besoin de faire quoi que ce soit d'autre en local pour ouvrir la PR)
-#
-# 7. Après avoir mergé la PR sur GitHub, tu synchronises ton main local
-git checkout main
-git pull origin main
+```
+/templates     - Fichiers template (.mpt, .xlsx)
+/macros        - Macros VBA organisées par fonction
+  /import      - Import Excel → MS Project
+  /export      - Export vers JSON
+  /reports     - Génération rapports Word/PNG
+  /utils       - Utilitaires divers
+/scripts       - Scripts PowerShell (build .mpt)
+/dashboard     - Dashboard HTML
+/onboarding    - Page d'onboarding client
+/docs          - Documentation
+/samples       - Fichiers de test
+/_archive      - Anciennes versions
+```
 
-# 8. Nettoyage local
-git branch -d feature-x
+## Prérequis
 
-# 9. Nettoyage distant (si la branche n'a pas déjà été supprimée par GitHub)
-git push origin --delete feature-x
+- Microsoft Project 2019+
+- Microsoft Excel 2019+
+- Macros VBA activées
 
+## Colonnes Excel attendues (import)
 
-# après tes modifs
-git add .
-git commit -m "description claire de la nouvelle tâche"
+| Colonne | Contenu |
+|---------|---------|
+| A | Nom de la tâche |
+| B | Quantités |
+| C | Nb personnes |
+| D | Heures |
+| E | Zone |
+| F | Sous-Zone |
+| G | Tranche |
+| H | Lot |
+| I | Entreprise |
+| J | Qualité |
+| K | Niveau |
+| L | Onduleur |
 
-# envoie la branche distante
-git push -u origin feature/nouvelle-tache
+## Mise à jour des macros
 
-# ouvre la PR automatiquement
-gh pr create --base main --head feature/nouvelle-tache \
-  --title "Titre de la nouvelle tâche" \
-  --body "Ce que cette branche change, pourquoi, impact."
+Après modification d'un fichier .vb dans `/macros` :
+
+```powershell
+./scripts/build_mpt.ps1
+```
+
+Cela injecte automatiquement les macros dans `ModèleImport.mpt`.
