@@ -1,18 +1,46 @@
 <#
-build_mpt.ps1 (Final Silent Version)
+build_mpt.ps1 — Final (Verbose + Logged Failures)
 
-- Open templates\TemplateBase_WithRibbon.mpt in Microsoft Project (invisible)
-- Import VBA files (.bas/.cls/.frm) from .\macros\production recursively
-- Convert only .vb (VBA saved with wrong extension) to valid .bas:
-    * Adds Attribute VB_Name header + Option Explicit
-    * Normalizes CRLF line endings
-    * Writes ANSI (Default code page) for VBE compatibility
-- Save as templates\ModèleImport.mpt
-- Fail fast for setup/open/save issues
-- SILENTLY SKIP any import failures (no prompts, no error messages)
-- Log successful imports and final macro count
-- Clean close + proper COM release
+Purpose
+-------
+Open templates\TemplateBase_WithRibbon.mpt in Microsoft Project (invisible), 
+import all VBA modules from macros\production (including .vb converted to .bas), 
+and save as templates\ModèleImport.mpt.
+
+Expected Repository Layout (no parameters required)
+---------------------------------------------------
+<repo-root>\
+  scripts\build_mpt.ps1                 # this script (location doesn't matter)
+  templates\
+    TemplateBase_WithRibbon.mpt         # produced by add_ribbon_to_mpt.ps1
+    ModèleImport.mpt                    # output created by this script
+  macros\
+    production\                         # source of .bas/.cls/.frm and convertible .vb
+
+Key Behavior
+------------
+- .vb (actually VBA saved as .vb) are converted to .bas (CRLF + ANSI + Attribute VB_Name + Option Explicit).
+- Native .bas/.cls/.frm are now normalized to CRLF + ANSI before import; .bas gets VB_Name if missing.
+- Non-VBA .vb (likely VB.NET) are silently skipped during conversion (heuristic).
+- Per-file import failures emit Write-Warning with the reason (no longer silent).
+- Fatal errors (template missing / cannot open / cannot save) fail fast.
+- At the end, prints: "Macros imported: X/Y".
+- Use -Verbose for candidate-root probing, file enumeration, conversions, and normalization.
+
+Prerequisites
+-------------
+- Microsoft Project installed.
+- Trust Center: Enable "Trust access to the VBA project object model" in Project.
+
+Usage
+-----
+PS> .\scripts\build_mpt.ps1
+PS> .\scripts\build_mpt.ps1 -Verbose
+
 #>
+
+[CmdletBinding()]
+param()
 
 # Improve console output for Unicode (paths/messages with accents)
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
@@ -30,7 +58,9 @@ function Section {
 
 function Release-ComObject {
     param([Parameter(Mandatory)] $ComObj)
-    try { if ($null -ne $ComObj) { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($ComObj) } } catch { }
+    try {
+        if ($null -ne $ComObj) { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($ComObj) }
+    } catch { }
 }
 
 # Make a valid VBA identifier for module names (letters/digits/_ only; cannot start with digit; avoid spaces/accents)
@@ -45,6 +75,7 @@ function New-VbaIdentifier {
 
 # Convert a .vb (actually VBA) to a valid .bas with header, CRLF, and ANSI encoding
 function Convert-VbToBas {
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$SourcePath,
         [Parameter(Mandatory)][string]$DestPath
@@ -52,7 +83,10 @@ function Convert-VbToBas {
     $base = [System.IO.Path]::GetFileNameWithoutExtension($SourcePath)
     $moduleName = New-VbaIdentifier -BaseName $base
 
+    Write-Verbose ("Converting .vb -> .bas: {0} => {1}" -f (Split-Path -Leaf $SourcePath), (Split-Path -Leaf $DestPath))
+
     $raw  = Get-Content -LiteralPath $SourcePath -Raw -ErrorAction Stop
+    # Normalize endings to CRLF for VBE
     $text = ($raw -replace "`r?`n", "`r`n")
 
     if ($text -notmatch '(?im)^\s*Attribute\s+VB_Name\s*=') {
@@ -83,8 +117,8 @@ $relativeTemplateIn = 'templates\TemplateBase_WithRibbon.mpt'
 $ProjectRoot = $null
 foreach ($c in $candidates) {
     $probe = Join-Path $c $relativeTemplateIn
-    Write-Host "Checking candidate root: $c"
-    Write-Host " -> Looking for: $probe"
+    Write-Verbose "Checking candidate root: $c"
+    Write-Verbose " -> Looking for: $probe"
     if (Test-Path -LiteralPath $probe) { $ProjectRoot = $c; break }
 }
 if (-not $ProjectRoot) {
@@ -93,7 +127,6 @@ if (-not $ProjectRoot) {
 }
 
 $TemplateIn  = Join-Path $ProjectRoot 'templates\TemplateBase_WithRibbon.mpt'
-# ✅ Use macros\production as requested
 $MacrosRoot  = Join-Path $ProjectRoot 'macros\production'
 $TemplateOut = Join-Path $ProjectRoot 'templates\ModèleImport.mpt'
 $TempImport  = Join-Path $ScriptDir  '_temp_import_vba'
@@ -116,7 +149,57 @@ $vbaFilesNative = Get-ChildItem -Path $MacrosRoot -Recurse -File |
 $vbCandidates = Get-ChildItem -Path $MacrosRoot -Recurse -File |
     Where-Object { $_.Extension -ieq '.vb' }
 
-# Convert .vb -> .bas with proper header/encoding
+Write-Verbose ("Found native VBA files (.bas/.cls/.frm): {0}" -f (@($vbaFilesNative).Count))
+Write-Verbose ("Found .vb candidates: {0}" -f (@($vbCandidates).Count))
+
+# ---------- Normalize native files to ANSI + CRLF (and ensure VB_Name for .bas) ----------
+$TempImportNative = Join-Path $ScriptDir '_temp_import_native'
+if (Test-Path -LiteralPath $TempImportNative) { Remove-Item -LiteralPath $TempImportNative -Recurse -Force }
+$null = New-Item -ItemType Directory -Force -Path $TempImportNative
+
+$normalizedNative = @()
+
+foreach ($src in $vbaFilesNative) {
+    try {
+        $dest = Join-Path $TempImportNative $src.Name
+        Write-Verbose ("Normalizing native VBA file: {0} -> {1}" -f $src.FullName, $dest)
+
+        $raw  = Get-Content -LiteralPath $src.FullName -Raw -ErrorAction Stop
+
+        # Normalize to CRLF
+        $text = ($raw -replace "`r?`n", "`r`n")
+
+        if ($src.Extension -ieq '.bas') {
+            # Ensure Attribute VB_Name exists
+            if ($text -notmatch '(?im)^\s*Attribute\s+VB_Name\s*=') {
+                $baseName   = [System.IO.Path]::GetFileNameWithoutExtension($src.Name)
+                $moduleName = New-VbaIdentifier -BaseName $baseName
+                $headerLines = @(
+                    ('Attribute VB_Name = "{0}"' -f $moduleName)
+                    'Attribute VB_GlobalNameSpace = False'
+                    'Attribute VB_Creatable = False'
+                    'Attribute VB_PredeclaredId = False'
+                    'Attribute VB_Exposed = False'
+                    'Option Explicit'
+                    ''
+                )
+                $header = ($headerLines -join "`r`n")
+                $text = $header + $text
+            }
+        }
+
+        # Save with ANSI for VBE compatibility
+        Set-Content -LiteralPath $dest -Value $text -Encoding Default
+        $normalizedNative += Get-Item -LiteralPath $dest
+    }
+    catch {
+        Write-Warning ("Failed to normalize native VBA file: {0} - {1}" -f $src.FullName, $_.Exception.Message)
+        # Skip this file; it will not be imported
+        continue
+    }
+}
+
+# ---------- Convert .vb -> .bas with proper header/encoding ----------
 $convertedBas = @()
 if ($vbCandidates -and @($vbCandidates).Count -gt 0) {
     Section "Pre-processing .vb files (copy as .bas)"
@@ -134,7 +217,7 @@ if ($vbCandidates -and @($vbCandidates).Count -gt 0) {
         } catch { }
 
         if ($looksDotNet) {
-            # Silent skip of non-VBA .vb
+            Write-Verbose ("Skipping non-VBA .vb (looks like .NET): {0}" -f $vb.FullName)
             continue
         }
 
@@ -145,18 +228,19 @@ if ($vbCandidates -and @($vbCandidates).Count -gt 0) {
             $convertedBas += Get-Item -LiteralPath $destBas
         }
         catch {
-            # Silent skip on conversion failure (no prompt, no error)
+            # Log and skip conversion failure (file-specific; does not stop the build)
+            Write-Warning ("Failed to convert .vb to .bas: {0} - {1}" -f $vb.FullName, $_.Exception.Message)
             continue
         }
     }
 }
 
-# Final import set = native (.bas/.cls/.frm) + converted .bas (UNIQUE; never any .vb)
-# ✅ Force arrays in concatenation and in count check to avoid 'op_Addition' / 'Count' issues
-$filesToImport = @($vbaFilesNative) + @($convertedBas)
+# Final import set = normalized native (.bas/.cls/.frm) + converted .bas (UNIQUE; never any .vb)
+$filesToImport = @($normalizedNative) + @($convertedBas)
 $filesToImport = $filesToImport | Sort-Object -Property FullName -Unique
+$totalExpected = @($filesToImport).Count
 
-if (@($filesToImport).Count -eq 0) {
+if ($totalExpected -eq 0) {
     throw "No VBA files to import. Expected .bas/.cls/.frm or convertible .vb under: $MacrosRoot"
 }
 
@@ -167,11 +251,12 @@ if (Test-Path -LiteralPath $TemplateOut) {
     Remove-Item -LiteralPath $TemplateOut -Force
 }
 
-# ---------- Launch MS Project ----------
+# ---------- Launch Microsoft Project ----------
 Section "Launching Microsoft Project (invisible)"
 $projApp  = $null
 $vbProj   = $null
 $imported = 0
+$failedImports = New-Object System.Collections.Generic.List[object]
 
 try {
     $projApp = New-Object -ComObject 'MSProject.Application'
@@ -189,8 +274,8 @@ try {
         throw "Cannot access the VBA project. Enable 'Trust access to the VBA project object model' in Project Trust Center."
     }
 
-    # ---------- Import macros (SILENT SKIP on errors) ----------
-    Section ("Importing macros (count: {0})" -f (@($filesToImport).Count))
+    # ---------- Import macros (LOG WARNINGS on errors) ----------
+    Section ("Importing macros (count: {0})" -f $totalExpected)
     foreach ($file in $filesToImport) {
         try {
             [void]$vbProj.VBComponents.Import($file.FullName)
@@ -198,7 +283,9 @@ try {
             Write-Host ("Imported: {0}" -f $file.Name)
         }
         catch {
-            # Silent skip: no prompt, no error output
+            $msg = $_.Exception.Message
+            Write-Warning ("Failed to import: {0} - {1}" -f $file.FullName, $msg)
+            $failedImports.Add([pscustomobject]@{ File=$file.FullName; Error=$msg }) | Out-Null
             continue
         }
     }
@@ -218,11 +305,20 @@ try {
     [void]$projApp.FileCloseAll()
 
     Section "Success"
-    Write-Host ("Macros imported: {0}" -f $imported)
+    Write-Host ("Macros imported: {0}/{1}" -f $imported, $totalExpected)
+
+    if ($failedImports.Count -gt 0) {
+        Write-Host ""
+        Write-Host "Import failures (details already logged as warnings):"
+        foreach ($f in $failedImports) {
+            Write-Host (" - {0}" -f $f.File)
+        }
+    }
+
     Write-Host ("Output file   : {0}" -f $TemplateOut)
 }
 catch {
-    # Only fatal errors (open/save/close) are surfaced; per-file import errors are silent
+    # Only fatal errors (open/save/close/VBE) are surfaced; per-file import errors are warnings
     Write-Error $_
     throw
 }
@@ -233,7 +329,10 @@ finally {
     [GC]::Collect(); [GC]::WaitForPendingFinalizers()
     [GC]::Collect(); [GC]::WaitForPendingFinalizers()
 
-    if (Test-Path -LiteralPath $TempImport) {
-        try { Remove-Item -LiteralPath $TempImport -Recurse -Force } catch { }
+    # Cleanup temp folders
+    foreach ($tmp in @($TempImport, $TempImportNative)) {
+        if ($tmp -and (Test-Path -LiteralPath $tmp)) {
+            try { Remove-Item -LiteralPath $tmp -Recurse -Force } catch { }
+        }
     }
 }

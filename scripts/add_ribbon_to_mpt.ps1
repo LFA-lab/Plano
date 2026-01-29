@@ -8,8 +8,8 @@
   - Downloads OpenMcdf 2.3.0 (contains .NET Framework net40 build).
   - Compiles a tiny C# helper against OpenMcdf.dll (opens in Update mode and uses cf.Commit()).
   - Safely overwrites output with retry-based file unlock handling.
-  - Reads input TemplateBase.mpt (one folder above /scripts by default).
-  - Writes output TemplateBase_WithRibbon.mpt with the Ribbon embedded.
+  - Reads input templates\TemplateBase.mpt (one folder above /scripts by default).
+  - Writes output templates\TemplateBase_WithRibbon.mpt with the Ribbon embedded.
   - Uses CustomUI14 (2009/07) schema and verifies success.
 
 .EXAMPLE
@@ -19,8 +19,9 @@
 
 [CmdletBinding()]
 param(
-    [string]$InputPath  = (Join-Path (Join-Path $PSScriptRoot "..") "TemplateBase.mpt"),
-    [string]$OutputPath = (Join-Path (Join-Path $PSScriptRoot "..") "TemplateBase_WithRibbon.mpt"),
+    # ALIGNED DEFAULTS: read/write under /templates (sibling of /scripts)
+    [string]$InputPath  = (Join-Path (Join-Path $PSScriptRoot "..\templates") "TemplateBase.mpt"),
+    [string]$OutputPath = (Join-Path (Join-Path $PSScriptRoot "..\templates") "TemplateBase_WithRibbon.mpt"),
 
     [string]$TabLabel   = "Plano",
     [string]$OnAction   = "GenerateDashboard",
@@ -201,25 +202,21 @@ namespace MptRuntime
     {
         public static void Inject(string path, byte[] data)
         {
-            // Open in Update mode so we can commit in-place
             using (var cf = new CompoundFile(path, CFSUpdateMode.Update, CFSConfiguration.Default))
             {
                 var root = cf.RootStorage;
 
-                // Replace existing customUI14 stream if present
                 try { root.Delete("customUI14"); } catch {}
 
                 var s = root.AddStream("customUI14");
                 s.SetData(data);
 
-                // Persist changes to the same file
                 cf.Commit();
             }
         }
 
         public static bool Verify(string path)
         {
-            // Read-only is fine for verification
             using (var cf = new CompoundFile(path, CFSUpdateMode.ReadOnly, CFSConfiguration.Default))
             {
                 try
@@ -298,7 +295,7 @@ try {
     Verify-CustomUI14 -TargetPath $OutputPath | Out-Null
     Write-OK "Ribbon (customUI14) embedded successfully."
 
-    # Automatically open the output template in Microsoft Project
+    # Optionally open the output template in Microsoft Project (kept as-is)
     try {
         Write-Info "Opening output template in Microsoft Project..."
         Start-Process -FilePath $OutputPath | Out-Null
