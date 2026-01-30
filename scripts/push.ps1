@@ -186,10 +186,16 @@ try {
         }
     }
     catch {
-        Write-Error $_
-        Write-Host "Build failed. Not pushing changes." -ForegroundColor Yellow
-        exit 1
-    }
+    Write-Host ""
+    Write-Host "❌ Build failed. Not pushing changes." -ForegroundColor Red
+    # Show only the essential error message (avoid overwhelming error records)
+    $msg = if ($_.Exception) { $_.Exception.Message } else { $_.ToString() }
+    Write-Host ("Reason: {0}" -f $msg) -ForegroundColor Yellow
+    Write-Host ""
+    # If you still want the full error for diagnostics, keep it under -Verbose:
+    Write-Verbose ("Full error record:`n{0}" -f $_)
+    exit 1
+}
 
     # Verify output exists
     if (-not (Test-Path -LiteralPath $MptPath)) {
@@ -221,48 +227,79 @@ try {
         (Invoke-Git @("diff", "--cached", "--name-only")).Out.Trim()
     }
 
-    # ---------- Commit or amend ----------
-    Section "Committing"
-    if ([string]::IsNullOrWhiteSpace($diffIndex)) {
-        Write-Host "No staged changes (template unchanged). Skipping commit step."
-    } else {
-        if ($NoAmend) {
-            $msg = "Add ModèleImport.mpt (auto build)"
-            if ($script:DryRunMode) {
-                Write-Host ("[DRYRUN] Would commit with message: {0}" -f $msg)
+    # Prepare flag for commit logic
+    $hasChanges = -not [string]::IsNullOrWhiteSpace($diffIndex)
+
+    # ---------- Commit & Push with user-friendly error handling ----------
+    Section "Committing & Pushing"
+    try {
+        # Commit (only if there are staged changes)
+        if ($hasChanges) {
+            if ($NoAmend) {
+                $msg = "Add ModèleImport.mpt (auto build)"
+                if ($script:DryRunMode) {
+                    Write-Host ("[DRYRUN] Would commit with message: {0}" -f $msg)
+                } else {
+                    Invoke-Git @("commit", "-m", $msg)
+                    Write-Host "Created a new commit for the updated template."
+                }
             } else {
-                Invoke-Git @("commit", "-m", $msg)
-                Write-Host "Created a new commit for the updated template."
+                if ($script:DryRunMode) {
+                    Write-Host "[DRYRUN] Would amend the last commit to include the built template."
+                } else {
+                    $hasHead = (Invoke-Git @("rev-parse", "--verify", "HEAD") -IgnoreErrors).Code -eq 0
+                    if ($hasHead) {
+                        Invoke-Git @("commit", "--amend", "--no-edit")
+                        Write-Host "Amended the last commit to include the built template."
+                    } else {
+                        $msg = "Initial commit with ModèleImport.mpt (auto build)"
+                        Invoke-Git @("commit", "-m", $msg)
+                        Write-Host "Created initial commit."
+                    }
+                }
             }
         } else {
-            if ($script:DryRunMode) {
-                Write-Host "[DRYRUN] Would amend the last commit to include the built template."
+            Write-Host "No staged changes (template unchanged). Skipping commit step."
+        }
+
+        # Validation of 'origin' remote before pushing (skipped in DryRun)
+        if ($script:DryRunMode) {
+            Write-Host "[DRYRUN] Would validate that 'origin' remote is configured."
+        } else {
+            $remotesRaw = (Invoke-Git @("remote")).Out
+            $remotes = $remotesRaw -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+            if ($remotes -notcontains 'origin') {
+                Write-Host "❌ No 'origin' remote configured." -ForegroundColor Red
+                Write-Host "Add remote with: git remote add origin <repository-url>" -ForegroundColor Yellow
+                exit 1
+            }
+        }
+
+        # Push
+        if ($script:DryRunMode) {
+            Write-Host "[DRYRUN] Would push to upstream."
+        } else {
+            $hasUpstream = (Invoke-Git @("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}") -IgnoreErrors).Code -eq 0
+            if ($hasUpstream) {
+                Invoke-Git @("push")
             } else {
-                $hasHead = (Invoke-Git @("rev-parse", "--verify", "HEAD") -IgnoreErrors).Code -eq 0
-                if ($hasHead) {
-                    Invoke-Git @("commit", "--amend", "--no-edit")
-                    Write-Host "Amended the last commit to include the built template."
-                } else {
-                    $msg = "Initial commit with ModèleImport.mpt (auto build)"
-                    Invoke-Git @("commit", "-m", $msg)
-                    Write-Host "Created initial commit."
-                }
+                Write-Host ("No upstream configured. Setting upstream to origin/{0} ..." -f $currentBranch)
+                Invoke-Git @("push", "-u", "origin", $currentBranch)
             }
         }
     }
-
-    # ---------- Push ----------
-    Section "Pushing"
-    if ($script:DryRunMode) {
-        Write-Host "[DRYRUN] Would push to upstream."
-    } else {
-        $hasUpstream = (Invoke-Git @("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}") -IgnoreErrors).Code -eq 0
-        if ($hasUpstream) {
-            Invoke-Git @("push")
-        } else {
-            Write-Host ("No upstream configured. Setting upstream to origin/{0} ..." -f $currentBranch)
-            Invoke-Git @("push", "-u", "origin", $currentBranch)
-        }
+    catch {
+        Write-Host ""
+        Write-Host "❌ Git operation failed." -ForegroundColor Red
+        Write-Host ""
+        Write-Host "Common causes:" -ForegroundColor Yellow
+        Write-Host " • Authentication failed (check GitHub token or SSH key)"
+        Write-Host " • Merge conflict (pull first and resolve conflicts)"
+        Write-Host " • Remote not configured (run: git remote -v)"
+        Write-Host " • Network issue (check connection)"
+        Write-Host ""
+        Write-Host ("Error details: {0}" -f $_) -ForegroundColor Gray
+        exit 1
     }
 
     Section "Done"
