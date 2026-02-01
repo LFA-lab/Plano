@@ -8,8 +8,8 @@
   - Downloads OpenMcdf 2.3.0 (contains .NET Framework net40 build).
   - Compiles a tiny C# helper against OpenMcdf.dll (opens in Update mode and uses cf.Commit()).
   - Safely overwrites output with retry-based file unlock handling.
-  - Reads input templates\TemplateBase.mpt (one folder above /scripts by default).
-  - Writes output templates\TemplateBase_WithRibbon.mpt with the Ribbon embedded.
+  - Reads input TemplateBase.mpt (one folder above /scripts by default).
+  - Writes output TemplateBase_WithRibbon.mpt with the Ribbon embedded.
   - Uses CustomUI14 (2009/07) schema and verifies success.
 
 .EXAMPLE
@@ -19,18 +19,30 @@
 
 [CmdletBinding()]
 param(
-    # ALIGNED DEFAULTS: read/write under /templates (sibling of /scripts)
-    [string]$InputPath  = (Join-Path (Join-Path $PSScriptRoot "..\templates") "TemplateBase.mpt"),
-    [string]$OutputPath = (Join-Path (Join-Path $PSScriptRoot "..\templates") "TemplateBase_WithRibbon.mpt"),
+    # NOTE: Do NOT reference $PSScriptRoot in defaults; it may be empty at binding time.
+    [string]$InputPath,
+    [string]$OutputPath,
 
-    [string]$TabLabel   = "Plano",
-    [string]$OnAction   = "GenerateDashboard",
-    [string]$OnLoad     = "OnRibbonLoad",
+    [string]$TabLabel = "Plano",
+    [string]$OnAction = "GenerateDashboard",
+    [string]$OnLoad   = "OnRibbonLoad",
 
     [switch]$Force
 )
 
+# --- Only code AFTER param() ---
+
 $ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+
+# Robust fallback in case $PSScriptRoot is empty (some hosts / invocations)
+if (-not $PSScriptRoot) {
+    $PSScriptRoot = Split-Path -Parent -LiteralPath $MyInvocation.MyCommand.Path
+}
+
+# Default paths if caller didn’t pass them
+if (-not $InputPath)  { $InputPath  = Join-Path (Join-Path $PSScriptRoot "..") "TemplateBase.mpt" }
+if (-not $OutputPath) { $OutputPath = Join-Path (Join-Path $PSScriptRoot "..") "TemplateBase_WithRibbon.mpt" }
 
 function Write-Info($msg)  { Write-Host "[INFO]  $msg" -ForegroundColor Cyan }
 function Write-OK($msg)    { Write-Host "[OK]    $msg" -ForegroundColor Green }
@@ -186,7 +198,7 @@ function Ensure-OpenMcdfLoaded {
     Write-OK ("OpenMcdf loaded: " + $script:OpenMcdfAssembly.FullName)
 }
 
-# ---------------- C# helper (use single-quoted here-string) ----------------
+# ---------------- C# helper (single-quoted here-string) ----------------
 function Ensure-CSharpInjector {
     $typeExists = [Type]::GetType('MptRuntime.MptRibbonWriter')
     if ($typeExists) { return }
@@ -202,21 +214,25 @@ namespace MptRuntime
     {
         public static void Inject(string path, byte[] data)
         {
+            // Open in Update mode so we can commit in-place
             using (var cf = new CompoundFile(path, CFSUpdateMode.Update, CFSConfiguration.Default))
             {
                 var root = cf.RootStorage;
 
+                // Replace existing customUI14 stream if present
                 try { root.Delete("customUI14"); } catch {}
 
                 var s = root.AddStream("customUI14");
                 s.SetData(data);
 
+                // Persist changes to the same file
                 cf.Commit();
             }
         }
 
         public static bool Verify(string path)
         {
+            // Read-only is fine for verification
             using (var cf = new CompoundFile(path, CFSUpdateMode.ReadOnly, CFSConfiguration.Default))
             {
                 try
@@ -295,7 +311,7 @@ try {
     Verify-CustomUI14 -TargetPath $OutputPath | Out-Null
     Write-OK "Ribbon (customUI14) embedded successfully."
 
-    # Optionally open the output template in Microsoft Project (kept as-is)
+    # Optionally open the output template in Microsoft Project (best-effort)
     try {
         Write-Info "Opening output template in Microsoft Project..."
         Start-Process -FilePath $OutputPath | Out-Null

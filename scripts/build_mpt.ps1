@@ -290,6 +290,13 @@ try {
         }
     }
 
+    # 🔴 CRITICAL: Fail the build if nothing imported
+    if ($imported -eq 0 -and $totalExpected -gt 0) {
+        Write-Host "[FAIL] CRITICAL: No macros imported ($totalExpected expected)" -ForegroundColor Red
+        Write-Host "Check macro files in /macros/production/" -ForegroundColor Yellow
+        exit 1
+    }
+
     # ---------- Save ----------
     Section "Saving output"
     Write-Host "Saving as: $TemplateOut"

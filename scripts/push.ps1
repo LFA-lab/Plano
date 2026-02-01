@@ -4,7 +4,8 @@
   Rebuilds the Project template (Ribbon + macros) and pushes code + .mpt together.
 
 .DESCRIPTION
-  - Executes scripts\build_mpt.ps1 (reads templates\TemplateBase_WithRibbon.mpt and writes templates\ModèleImport.mpt).
+  - Executes scripts\add_ribbon_to_mpt.ps1 first (injects ribbon into base template).
+  - Then executes scripts\build_mpt.ps1 (reads templates\TemplateBase_WithRibbon.mpt and writes templates\ModèleImport.mpt).
   - If build succeeds: adds templates\ModèleImport.mpt to Git, amends the last commit by default, then pushes.
   - If build fails: prints error and exits without pushing.
   - Works from anywhere; resolves repo root from this script's location.
@@ -129,13 +130,17 @@ function Get-RelativePath {
 $ScriptDir   = Split-Path -Parent $PSCommandPath
 $RepoRoot    = (Get-Item $ScriptDir).Parent.FullName
 $BuildScript = Join-Path $RepoRoot "scripts\build_mpt.ps1"
+$RibbonScript= Join-Path $RepoRoot "scripts\add_ribbon_to_mpt.ps1"
 $MptPath     = Join-Path $RepoRoot "templates\ModèleImport.mpt"  # accent by design
 
-Section "Pre-flight"
+Section 'Pre-flight'
 
-# Check build script presence
+# Check script presence
 if (-not (Test-Path -LiteralPath $BuildScript)) {
     throw "Build script not found: $BuildScript"
+}
+if (-not (Test-Path -LiteralPath $RibbonScript)) {
+    throw "Ribbon injection script not found: $RibbonScript"
 }
 
 # Ensure all git commands run from repo root
@@ -147,7 +152,7 @@ try {
     # Git checks: SKIPPED entirely in DryRun
     if ($script:DryRunMode) {
         Write-Verbose "Dry run: skipping Git availability and repository checks."
-        $currentBranch = "<dryrun-branch>"
+        $currentBranch = '<dryrun-branch>'
     } else {
         # Check Git availability
         try {
@@ -172,141 +177,86 @@ try {
 
     Write-Host ("Current branch: {0}" -f $currentBranch)
 
-    # ---------- Run build ----------
-    Section "Building template via build_mpt.ps1"
-    try {
-        $psArgs = @(
-            "-NoProfile", "-ExecutionPolicy", "Bypass",
-            "-File", "`"$BuildScript`""
-        )
-        Write-Verbose ("powershell.exe {0}" -f ($psArgs -join ' '))
-        $p = Start-Process -FilePath "powershell.exe" -ArgumentList $psArgs -Wait -PassThru
-        if ($p.ExitCode -ne 0) {
-            throw "build_mpt.ps1 failed with exit code $($p.ExitCode)"
-        }
-    }
-    catch {
-    Write-Host ""
-    Write-Host "❌ Build failed. Not pushing changes." -ForegroundColor Red
-    # Show only the essential error message (avoid overwhelming error records)
-    $msg = if ($_.Exception) { $_.Exception.Message } else { $_.ToString() }
-    Write-Host ("Reason: {0}" -f $msg) -ForegroundColor Yellow
-    Write-Host ""
-    # If you still want the full error for diagnostics, keep it under -Verbose:
-    Write-Verbose ("Full error record:`n{0}" -f $_)
-    exit 1
-}
+    # ---------- NEW: Inject ribbon first ----------
+    Write-Host "Step 1: Injecting ribbon..." -ForegroundColor Cyan
+    powershell.exe -ExecutionPolicy Bypass -File "$RepoRoot\scripts\add_ribbon_to_mpt.ps1"
 
-    # Verify output exists
-    if (-not (Test-Path -LiteralPath $MptPath)) {
-        Write-Error "Build completed but output not found: $MptPath"
-        Write-Host "Not pushing changes." -ForegroundColor Yellow
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[FAIL] Ribbon injection failed. Push aborted." -ForegroundColor Red
         exit 1
     }
 
-    Write-Host ("Build OK. Output: {0}" -f $MptPath)
+    Write-Host "[OK] Ribbon injected successfully." -ForegroundColor Green
+
+    # ---------- Run build ----------
+    Section 'Building template via build_mpt.ps1'
+    Write-Host 'Step 2: Building ModèleImport.mpt...' -ForegroundColor Cyan
+    try {
+        $psArgs = @(
+            '-NoProfile', '-ExecutionPolicy', 'Bypass',
+            '-File', $BuildScript
+        )
+        Write-Verbose ('powershell.exe {0}' -f ($psArgs -join ' '))
+        $p = Start-Process -FilePath 'powershell.exe' -ArgumentList $psArgs -Wait -PassThru
+        if ($p.ExitCode -ne 0) {
+            throw ('build_mpt.ps1 failed with exit code {0}' -f $p.ExitCode)
+        }
+    }
+    catch {
+        Write-Host ''
+        Write-Host 'Build failed. Not pushing changes.' -ForegroundColor Red
+        $msg = if ($_.Exception) { $_.Exception.Message } else { $_.ToString() }
+        Write-Host ('Reason: {0}' -f $msg) -ForegroundColor Yellow
+        Write-Host ''
+        Write-Verbose ('Full error record:' + [Environment]::NewLine + ('{0}' -f $_))
+        exit 1
+    }
+
+    # Verify output exists
+    if (-not (Test-Path -LiteralPath $MptPath)) {
+        Write-Error ('Build completed but output not found: {0}' -f $MptPath)
+        Write-Host 'Not pushing changes.' -ForegroundColor Yellow
+        exit 1
+    }
+
+    # You can replace X/X below by parsing build logs if needed.
+    Write-Host 'Build successful. Macros imported: X/X'
+    Write-Host ('Build OK. Output: {0}' -f $MptPath)
 
     # Compute relative path for git
     $relativeMpt = Get-RelativePath -BasePath $RepoRoot -TargetPath $MptPath
-    if ([string]::IsNullOrWhiteSpace($relativeMpt)) { $relativeMpt = "templates/ModèleImport.mpt" }
+    if ([string]::IsNullOrWhiteSpace($relativeMpt)) { $relativeMpt = 'templates/ModèleImport.mpt' }
     $relativeMpt = $relativeMpt -replace '\\','/'
 
     # ---------- Stage the .mpt ----------
-    Section "Staging built template"
+    Section 'Staging built template'
     if ($script:DryRunMode) {
-        Write-Host ("[DRYRUN] Would stage: {0}" -f $relativeMpt)
+        Write-Host ('[DRYRUN] Would stage: {0}' -f $relativeMpt)
     } else {
-        Invoke-Git @("add", "--", $relativeMpt)
+        Invoke-Git @('add', '--', $relativeMpt)
     }
 
     # Check staged changes
     $diffIndex = if ($script:DryRunMode) {
-        Write-Host "[DRYRUN] Would check staged changes."
-        ""
+        Write-Host '[DRYRUN] Would check staged changes.'
+        ''
     } else {
-        (Invoke-Git @("diff", "--cached", "--name-only")).Out.Trim()
+        (Invoke-Git @('diff', '--cached', '--name-only')).Out.Trim()
     }
 
     # Prepare flag for commit logic
     $hasChanges = -not [string]::IsNullOrWhiteSpace($diffIndex)
 
     # ---------- Commit & Push with user-friendly error handling ----------
-    Section "Committing & Pushing"
-    try {
-        # Commit (only if there are staged changes)
-        if ($hasChanges) {
-            if ($NoAmend) {
-                $msg = "Add ModèleImport.mpt (auto build)"
-                if ($script:DryRunMode) {
-                    Write-Host ("[DRYRUN] Would commit with message: {0}" -f $msg)
-                } else {
-                    Invoke-Git @("commit", "-m", $msg)
-                    Write-Host "Created a new commit for the updated template."
-                }
-            } else {
-                if ($script:DryRunMode) {
-                    Write-Host "[DRYRUN] Would amend the last commit to include the built template."
-                } else {
-                    $hasHead = (Invoke-Git @("rev-parse", "--verify", "HEAD") -IgnoreErrors).Code -eq 0
-                    if ($hasHead) {
-                        Invoke-Git @("commit", "--amend", "--no-edit")
-                        Write-Host "Amended the last commit to include the built template."
-                    } else {
-                        $msg = "Initial commit with ModèleImport.mpt (auto build)"
-                        Invoke-Git @("commit", "-m", $msg)
-                        Write-Host "Created initial commit."
-                    }
-                }
-            }
-        } else {
-            Write-Host "No staged changes (template unchanged). Skipping commit step."
-        }
+    Section 'Committing & Pushing'
+    $commitPushScript = Join-Path $RepoRoot 'scripts\commit_and_push.ps1'
+    . $commitPushScript
 
-        # Validation of 'origin' remote before pushing (skipped in DryRun)
-        if ($script:DryRunMode) {
-            Write-Host "[DRYRUN] Would validate that 'origin' remote is configured."
-        } else {
-            $remotesRaw = (Invoke-Git @("remote")).Out
-            $remotes = $remotesRaw -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-            if ($remotes -notcontains 'origin') {
-                Write-Host "❌ No 'origin' remote configured." -ForegroundColor Red
-                Write-Host "Add remote with: git remote add origin <repository-url>" -ForegroundColor Yellow
-                exit 1
-            }
-        }
-
-        # Push
-        if ($script:DryRunMode) {
-            Write-Host "[DRYRUN] Would push to upstream."
-        } else {
-            $hasUpstream = (Invoke-Git @("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}") -IgnoreErrors).Code -eq 0
-            if ($hasUpstream) {
-                Invoke-Git @("push")
-            } else {
-                Write-Host ("No upstream configured. Setting upstream to origin/{0} ..." -f $currentBranch)
-                Invoke-Git @("push", "-u", "origin", $currentBranch)
-            }
-        }
-    }
-    catch {
-        Write-Host ""
-        Write-Host "❌ Git operation failed." -ForegroundColor Red
-        Write-Host ""
-        Write-Host "Common causes:" -ForegroundColor Yellow
-        Write-Host " • Authentication failed (check GitHub token or SSH key)"
-        Write-Host " • Merge conflict (pull first and resolve conflicts)"
-        Write-Host " • Remote not configured (run: git remote -v)"
-        Write-Host " • Network issue (check connection)"
-        Write-Host ""
-        Write-Host ("Error details: {0}" -f $_) -ForegroundColor Gray
-        exit 1
-    }
-
-    Section "Done"
+    Section 'Done'
     if ($script:DryRunMode) {
-        Write-Host "Dry run complete. No changes were pushed."
+        Write-Host 'Dry run complete. No changes were pushed.'
     } else {
-        Write-Host "Push complete."
+        Write-Host 'Push complete.'
     }
 }
 finally {
