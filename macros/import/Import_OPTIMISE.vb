@@ -427,7 +427,7 @@ Sub Import_Taches_Simples_AvecTitre()
             t.Text7 = onduleur
             t.Text8 = ptr
 
-            ' ✅ DÉFINIR LE TRAVAIL DE LA TÂCHE EN PREMIER (avant les assignments)
+            ' ? DÉFINIR LE TRAVAIL DE LA TÂCHE EN PREMIER (avant les assignments)
             ' Cela permet à MS Project de calculer correctement la durée
             If IsNumeric(h) And h > 0 Then
                 Dim workMinutes As Long
@@ -437,7 +437,7 @@ Sub Import_Taches_Simples_AvecTitre()
                 logStream.WriteLine "  -> Travail de la tâche défini: " & workMinutes & " minutes (" & CDbl(h) & "h)"
             End If
 
-            ' ✅ ORDRE CRITIQUE : d'abord TRAVAIL (pour calculer Duration), puis matériau et CQ
+            ' ? ORDRE CRITIQUE : d'abord TRAVAIL (pour calculer Duration), puis matériau et CQ
             
             ' Travail (Monteurs) - EN PREMIER pour que MS Project calcule t.Duration correctement
             If IsNumeric(h) And h > 0 Then
@@ -487,7 +487,7 @@ Sub Import_Taches_Simples_AvecTitre()
             
             ' Quantité (matériau) - APRÈS le travail pour avoir la vraie durée
             If IsNumeric(qte) And qte > 0 Then
-                ' LOGIQUE HYBRIDE : 
+                ' LOGIQUE HYBRIDE :
                 ' Si c'est un niveau Onduleur, on agrège par le titre du groupe
                 ' Sinon, on prend le nom propre de la tâche
                 Dim nomRessource As String
@@ -508,11 +508,11 @@ Sub Import_Taches_Simples_AvecTitre()
                 Dim qteTotal As Double
                 qteTotal = CDbl(qte)  ' Valeur Excel conservée
                 
-                ' ✅ Injecter simplement la quantité
+                ' ? Injecter simplement la quantité
                 a.Units = qteTotal  ' La quantité Excel affichée dans MS Project
                 a.WorkContour = pjFlat  ' Répartition régulière sur la durée
                 
-                ' ✅ FORCER les dates pour correspondre aux Monteurs si présents
+                ' ? FORCER les dates pour correspondre aux Monteurs si présents
                 If hasMonteursAssignment Then
                     a.Start = dateDebutMonteurs
                     a.Finish = dateFinMonteurs
@@ -782,6 +782,24 @@ ContinueCheck:
     logStream.WriteLine ""
 
     ' ==== FERMETURE LOG ====
+    
+    ' ==== RÉACTIVER L'AFFICHAGE ====
+    On Error Resume Next
+    pjApp.ScreenUpdating = oldScreenUpdating
+    On Error GoTo 0
+    
+    ' ==== ENLEVER LES DURÉES ESTIMÉES (?) ====
+    On Error Resume Next
+    pjApp.SelectAll
+    SetTaskField Field:="Estimée", Value:="Non", AllSelectedTasks:=True
+    pjApp.SelectTaskField Row:=1, Column:="Name"  ' Désélectionner
+    On Error GoTo 0
+    
+    ' ==== RAFRAÎCHIR L'AFFICHAGE ====
+    On Error Resume Next
+    pjApp.ScreenRefresh
+    On Error GoTo 0
+
     logStream.WriteLine "===== FIN IMPORT - " & Now & " ====="
     logStream.Close
     Set logStream = Nothing
@@ -800,14 +818,13 @@ ContinueCheck:
     xlApp.Quit
     Set xlApp = Nothing
     
-    ' ========== RESTAURATION SCREENUPDATING ==========
-    On Error Resume Next
-    pjApp.ScreenUpdating = oldScreenUpdating
-    On Error GoTo 0
-    ' =================================================
-    
     ' Nettoyage cache ressources
     Set resourceCache = Nothing
+
+    ' ==== RAFRAÎCHIR LA VUE FINALE ====
+    On Error Resume Next
+    pjApp.ViewReset
+    On Error GoTo 0
 
     pjApp.DisplayAlerts = True ' Réactive les alertes pour l'utilisateur
     MsgBox "Import terminé: tâches, ressources, tags (Zone/Sous-zone/Tranche/Type/Entreprise/Niveau/Onduleur/PTR) et Qualité hybride." & vbCrLf & vbCrLf & "Fichier log créé: " & logFile, vbInformation
@@ -1071,3 +1088,4 @@ Function GetOrCreateMaterialResource(nom As String) As Resource
     End If
     Set GetOrCreateMaterialResource = r
 End Function
+
