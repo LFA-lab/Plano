@@ -1,10 +1,14 @@
 /*
 Conception (Github Pages, sans dépendances):
-- Persistance via localStorage, namespacée par (hostname + pathname) pour FR/EN/HI.
+- Persistance via localStorage, namespacée par (hostname + pathname).
 - Accessibilité: boutons ARIA pour le switch, aria-expanded pour les bandeaux Plan B, libellés checkbox basés sur le titre.
 - Performance: aucun recalcul massif; on toggle par classes/attributs.
 - Sécurité: tous les liens target="_blank" reçoivent rel="noopener noreferrer".
 - Politique Macros: tous les nouveaux chemins doivent être ASCII/slug (sans accents/espaces) à l'avenir.
+
+NOTE: i18n désactivé côté HTML (boutons FR/EN commentés). 
+Le code de traduction interne (labels badges, progression) reste actif en français.
+Pour réactiver l'i18n, décommenter le bloc .language-selector dans index.html.
 */
 
 (function() {
@@ -216,22 +220,15 @@ Conception (Github Pages, sans dépendances):
     const roleButtons = document.querySelectorAll('.role-btn');
     const views = document.querySelectorAll('[data-view]');
 
-    console.log('initRoleSwitch - boutons trouvés:', roleButtons.length);
-    console.log('initRoleSwitch - vues trouvées:', views.length);
-
     if (roleButtons.length === 0 || views.length === 0) {
-      console.error('Éléments manquants pour le switch de rôle');
       return;
     }
 
     function setActiveRole(roleName) {
-      console.log('setActiveRole appelé avec:', roleName);
-      
       views.forEach(view => {
         const viewName = view.getAttribute('data-view');
         const shouldShow = viewName === roleName;
         view.style.display = shouldShow ? 'block' : 'none';
-        console.log(`Vue ${viewName}: ${shouldShow ? 'visible' : 'cachée'}`);
       });
 
       roleButtons.forEach(btn => {
@@ -244,11 +241,9 @@ Conception (Github Pages, sans dépendances):
       saveRole(roleName);
     }
 
-    roleButtons.forEach((btn, index) => {
+    roleButtons.forEach((btn) => {
       const roleValue = btn.getAttribute('data-role-select');
-      console.log(`Ajout listener sur bouton ${index}: ${roleValue}`);
       btn.addEventListener('click', (e) => {
-        console.log('Clic détecté sur bouton:', roleValue);
         e.preventDefault();
         e.stopPropagation();
         setActiveRole(roleValue);
@@ -258,13 +253,11 @@ Conception (Github Pages, sans dépendances):
     // Initialiser avec la valeur sauvegardée ou le bouton actif par défaut
     const saved = loadRole();
     if (saved === 'arrivee' || saved === 'nouveau-projet') {
-      console.log('Utilisation de la valeur sauvegardée:', saved);
       setActiveRole(saved);
     } else {
       const active = document.querySelector('.role-btn[aria-pressed="true"]') || roleButtons[0];
       if (active) {
         const defaultRole = active.getAttribute('data-role-select');
-        console.log('Utilisation de la valeur par défaut:', defaultRole);
         setActiveRole(defaultRole);
       }
     }

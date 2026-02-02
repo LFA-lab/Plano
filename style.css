@@ -269,6 +269,11 @@ header p {
     color: white;
 }
 
+/* Espacement pour boutons alignés avec checkboxes */
+.btn-spaced {
+    margin-left: 12px;
+}
+
 .btn-contact {
     background: var(--light-blue);
     color: var(--primary-blue);

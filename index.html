@@ -9,34 +9,36 @@
 <body>
     <div class="container">
         <header>
+            <!-- Sélecteur de langue désactivé (i18n non implémenté)
             <div class="language-selector" role="group" aria-label="Sélecteur de langue">
                 <button type="button" class="language-btn language-current" data-lang="fr" aria-pressed="true">FR</button>
                 <button type="button" class="language-btn" data-lang="en" aria-pressed="false">EN</button>
             </div>
-            <h1 data-i18n="title">Parcours Onboarding</h1>
-            <p data-i18n="subtitle">Guide d'intégration pour les nouveaux collaborateurs</p>
+            -->
+            <h1>Parcours Onboarding</h1>
+            <p>Guide d'intégration pour les nouveaux collaborateurs</p>
         </header>
 
         <div class="role-switch" role="group" aria-label="Sélecteur de rôle">
-            <span class="role-label" data-i18n="roleLabel">Choisissez votre parcours :</span>
-            <button type="button" class="role-btn" data-role-select="arrivee" aria-pressed="true" data-i18n="roleArrivee">Premiers jours dans l'entreprise</button>
-            <button type="button" class="role-btn" data-role-select="nouveau-projet" aria-pressed="false" data-i18n="roleNouveauProjet">Lancement d'un nouveau projet</button>
+            <span class="role-label">Choisissez votre parcours :</span>
+            <button type="button" class="role-btn" data-role-select="arrivee" aria-pressed="true">Premiers jours dans l'entreprise</button>
+            <button type="button" class="role-btn" data-role-select="nouveau-projet" aria-pressed="false">Lancement d'un nouveau projet</button>
         </div>
 
         <main class="main-content">
             <!-- Vue Arrivée -->
             <div data-view="arrivee" class="view-container">
                 <section class="week-section">
-                    <h2 data-i18n="arriveeTitle">Arrivée - Installation & Formation initiale</h2>
+                    <h2>Arrivée - Installation & Formation initiale</h2>
                     
                     <div class="subsection">
-                        <h3 data-i18n="configuration">Configuration</h3>
+                        <h3>Configuration</h3>
                         <div class="task-list">
                             <div class="task-item" data-role="both" data-duration="5-10 min" data-outcome="Demande envoyée">
                                 <h4>Création compte Sitemark</h4>
                                 <p>Demander la création de votre compte auprès de Antoine LE FRAPPER</p>
-                                <a href="mailto:antoine.lefrapper@omexom.com?subject=Demande création compte Sitemark&body=Bonjour,%0D%0A%0D%0AJe souhaite demander la création de mon compte Sitemark.%0D%0ACordialement" class="btn btn-primary">
-                                    Envoyer un mail
+                                <a href="mailto:antoine.lefrapper@omexom.com?subject=Demande%20accès%20Sitemark%20-%20[Votre%20Nom]&body=Bonjour%20Antoine,%20%0D%0A%0D%0AJe%20souhaite%20demander%20la%20création%20de%20mon%20compte%20Sitemark.%20%0D%0A%0D%0ACordialement." class="btn btn-primary">
+                                    Demander mon accès Sitemark
                                 </a>
                             </div>
                             
@@ -67,7 +69,7 @@
                                 <a href="https://pontiva.thinkific.com/courses/PlanificateurTeams" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Commencer la formation</a>
                             </div>
                             
-                            <div class="task-item" data-role="apprenant" data-duration="20-30 min" data-outcome="Compte Sitemark actif">
+                            <div class="task-item" data-role="apprenant" data-duration="20-30 min" data-outcome="Formation complétée">
                                 <h4>Formation Sitemark</h4>
                                 <p>Formation sur l'outil de collecte de données terrain</p>
                                 <a href="https://pontiva.thinkific.com/courses/Sitemark" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Commencer la formation</a>
@@ -86,11 +88,19 @@
                         <h3>Sitemark</h3>
                         <div class="task-list">
                             <div class="task-item">
-                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>Création du site</span></label>
+                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>Créer le site projet dans Sitemark</span></label>
+                                <p>Suivez le guide pour configurer votre espace projet et importer vos plans.</p>
+                                <a href="#TODO-URL-GUIDE" target="_blank" class="btn btn-primary btn-small btn-spaced">Ouvrir le guide</a>
                             </div>
                             <div class="task-item">
-                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>Création du devis</span></label>
-                                <a href="mailto:charles.andredumont@sitemark.com" class="btn btn-primary btn-small" style="margin-left: 12px;">Envoyer un mail</a>
+                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>Demander un devis</span></label>
+                                <p>Contactez Charles pour votre demande de devis.</p>
+                                <a href="mailto:charles.andredumont@sitemark.com?subject=Demande%20de%20devis%20–%20Projet%20[Nom%20du%20Projet]%20([Puissance]%20MWc)%20–%20N°%20[A%20COMPLETER]&body=Bonjour%20Charles,%20%0D%0A%0D%0AJe%20souhaiterais%20obtenir%20un%20devis%20pour%20le%20projet%20:%20[Nom%20du%20Projet]%20([Puissance]%20MWc).%20%0D%0A%0D%0AEn%20plus%20de%20la%20demande%20habituelle,%20nous%20souhaitons%20une%20prestation%20supplémentaire%20en%20sous-traitance%20incluant%20:%20%0D%0A%0D%0A-%20Digital%20Twin%20:%20Solar%20Site%20Advanced%20(392-SUB)%20:%20Licence%20plateforme%20(utilisateurs%20illimités)%20et%20stockage%20illimité,%20Analyse%20historique%20(digital%20thread%20/%20swipe%20compare)%20et%20intégration%20météo,%20Reporting%20PDF,%20superposition%20plans%20PDF/DXF%20et%20digitalisation%20des%20composants,%20Filtrage,%20segmentation%20et%20export%20des%20données%20brutes.%20%0D%0A%0D%0A-%20Digital%20Twin%20:%20Field%20Link%20Addon%20(391-SUB)%20:%20Application%20mobile%20Field%20Link%20(version%20complète).%20%0D%0A%0D%0A-%20Video%20marketing%20:%20Photos%20et%20vidéos%20aériennes%20du%20site%20pour%20mise%20en%20valeur%20et%20supports%20de%20communication.%20%0D%0A%0D%0AMerci%20d'avance%20pour%20ton%20retour." class="btn btn-primary btn-small btn-spaced">Envoyer la demande</a>
+                            </div>
+                            <div class="task-item">
+                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>Demander les plans au Bureau d'études</span></label>
+                                <p>Récupérez les fichiers PDF et DXF nécessaires pour Sitemark et la tablette terrain.</p>
+                                <a href="mailto:?subject=Demande%20d'exports%20PDF%20et%20DXF%20–%20Projet%20[Nom%20du%20Projet]%20[Puissance]MWc%20–%20N°%20[A%20COMPLETER]&body=Bonjour,%20%0D%0A%0D%0ADans%20le%20cadre%20du%20projet%20[Nom%20du%20Projet],%20nous%20aurions%20besoin%20de%20deux%20exports%20spécifiques.%20À%20noter%20que%20le%20PDF%20est%20ici%20essentiel%20pour%20l'usage%20sur%20tablette%20et%20mobile,%20car%20il%20est%20beaucoup%20plus%20rapide%20à%20charger%20que%20le%20DXF%20sur%20le%20terrain.%20%0D%0A%0D%0A1.%20Pour%20le%20PDF%20:%20%0D%0A-%20Afficher%20uniquement%20:%20les%20pistes,%20les%20numéros%20de%20rangées,%20les%20numéros%20de%20tables%20et%20les%20zones%20onduleurs.%20%0D%0A-%20Mise%20en%20forme%20:%20Pas%20de%20cartouche,%20pas%20de%20fond%20de%20plan.%20%0D%0A%0D%0A2.%20Pour%20le%20DXF%20:%20%0D%0A-%20Inclure%20uniquement%20:%20les%20chemins%20de%20câbles%20(CDC),%20les%20longrines,%20les%20structures,%20les%20pieux%20et%20les%20onduleurs%20en%20composants.%20%0D%0A%0D%0AMerci%20de%20nous%20faire%20signe%20quand%20les%20fichiers%20sont%20prêts%20ou%20si%20tu%20as%20besoin%20d'infos.%20%0D%0A%0D%0ACordialement,%20%0D%0AAntoine%20Le%20Frapper" class="btn btn-primary btn-small btn-spaced">Demande PDF/DXF Bureau d'études</a>
                             </div>
                         </div>
                     </div>
@@ -99,36 +109,24 @@
                         <h3>MS Project</h3>
                         <div class="task-list">
                             <div class="task-item">
-                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>Excel fichier</span></label>
-                                <a href="./templates/FichierTypearemplir.xlsx" download class="btn btn-success btn-small" style="margin-left: 12px;">Fichier Excel type à remplir</a>
+                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>Remplir le fichier de données projet</span></label>
+                                <p>Saisissez les tâches et jalons du projet dans le modèle Excel avant import.</p>
+                                <a href="./templates/FichierTypearemplir.xlsx" download class="btn btn-secondary btn-small btn-spaced">Télécharger le modèle Excel</a>
                             </div>
                             <div class="task-item">
-                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>MS Project</span></label>
-                                <a href="./templates/ModèleImport.mpt" download class="btn btn-secondary btn-small" style="margin-left: 12px;">Modèle MS Project</a>
+                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>Créer le projet MS Project</span></label>
+                                <p>Importez le fichier Excel pour générer votre planning de chantier.</p>
+                                <a href="./templates/ModèleImport.mpt" download class="btn btn-secondary btn-small btn-spaced">Télécharger le modèle MS Project</a>
                             </div>
                             <div class="task-item">
-                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>Utiliser la calculatrice Pontiva</span></label>
-                                <a href="./dashboard/calculatrice-travail-restant.html" target="_blank" class="btn btn-secondary btn-small" style="margin-left: 12px;">Ouvrir la calculatrice</a>
+                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>Calculatrice Pontiva</span></label>
+                                <p>Outil de calcul du travail restant (optionnel).</p>
+                                <a href="./dashboard/calculatrice-travail-restant.html" target="_blank" class="btn btn-secondary btn-small btn-spaced">Ouvrir la calculatrice</a>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="subsection">
-                        <h3>Pontiva - Analyse & Pilotage</h3>
-                        <div class="task-list">
-                            <div class="task-item">
-                                <label class="task-checkbox-label"><input type="checkbox" class="task-checkbox"> <span>Ouvrir le Dashboard</span></label>
-                                <a href="./dashboard/dashboard.html" target="_blank" class="btn btn-primary btn-small" style="margin-left: 12px;">Ouvrir le Dashboard</a>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="subsection">
-                        <h3>Macros VBA (Catalogue)</h3>
-                        <div id="macros-list" class="macros-grid">
-                            <!-- Chargé dynamiquement -->
-                        </div>
-                    </div>
                 </section>
             </div>
         </main>
@@ -141,47 +139,7 @@
     </div>
 
     <script>
-        function encodePath(path) {
-            if (!path) return '';
-            return path.split('/').map(segment => encodeURIComponent(segment)).join('/');
-        }
-
-        async function loadMacros() {
-            const container = document.getElementById('macros-list');
-            try {
-                const response = await fetch('./manifest.json');
-                const data = await response.json();
-                container.innerHTML = '';
-                
-                data.macros.forEach(macro => {
-                    const card = document.createElement('div');
-                    card.className = 'macro-card';
-                    
-                    const htmlUrl = encodePath(macro.htmlFile);
-                    const basUrl = encodePath(macro.basFile);
-                    
-                    card.innerHTML = `
-                        <div class="macro-header">
-                            <h5 class="macro-title">${macro.title}</h5>
-                            <span class="macro-date">${macro.lastUpdated || ''}</span>
-                        </div>
-                        <p class="macro-description">${macro.description}</p>
-                        <div class="macro-actions">
-                            <a href="./${htmlUrl}" target="_blank" class="btn btn-secondary btn-small">Documentation</a>
-                            <a href="./${basUrl}" download class="btn btn-primary btn-small">Télécharger</a>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-            } catch (e) {
-                console.error(e);
-                container.innerHTML = '<p class="error">Erreur lors du chargement des macros.</p>';
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            loadMacros();
-            
             // Switch de rôles
             document.querySelectorAll('.role-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
