@@ -1,0 +1,112 @@
+﻿Nom;Quantites;Nb personnes;Heures;Zone;Sous-Zone;Tranche;Lot;Entreprise;Qualite;Niveau;Onduleur;PTR
+;;;;;;;;;;;;
+ZONE 1 (MECA);;;;;;;;;;;;
+;;;;;;;;;;;;
+Implantation;2410;;;1;1.1;1;MECA;SST;TACHE;;;PTR1.1-1
+Forages;2410;;;1;1.1;1;MECA;SST;TACHE;;;PTR1.1-1
+Pieux;2410;;;1;1.1;1;MECA;OMX;CQ;;;PTR1.1-1
+Arbaletriers;1205;;;1;1.1;1;MECA;OMX;CQ;;;PTR1.1-1
+Pannes;1205;;;1;1.1;1;MECA;OMX;CQ;;;PTR1.1-1
+Structures;106;;;1;1.1;1;MECA;SST;TACHE;;;PTR1.1-1
+Modules;6912;;;1;1.1;1;MECA;SST;TACHE;;;PTR1.1-1
+Implantation;1032;;;1;1.2;1;MECA;SST;TACHE;;;PTR1.1-1
+Forages;1032;;;1;1.2;1;MECA;SST;TACHE;;;PTR1.1-1
+Pieux;1032;;;1;1.2;1;MECA;SST;TACHE;;;PTR1.1-1
+Arbaletriers;516;;;1;1.2;1;MECA;SST;TACHE;;;PTR1.1-1
+Pannes;258;;;1;1.2;1;MECA;SST;TACHE;;;PTR1.1-1
+Structures;51;;;1;1.2;1;MECA;SST;TACHE;;;PTR1.1-1
+Modules;2943;;;1;1.2;1;MECA;SST;TACHE;;;PTR1.1-1
+;;;;;;;;;;;;
+ZONE 1 (VRD);;;;;;;;;;;;
+Tranchées;1 070;;;1;1.1;1;VRD;SST;;;15;PTR1.1-1
+Tranchées;561;;;1;1.2;1;VRD;SST;;;7;PTR1.1-1
+Passages bétonnés sous piste: 30cm de béton sur fourreaux;28;2;10,08;1;;1;VRD;SST;TACHE;;;PTR1.1-1
+;;;;;;;;;;;;
+ZONE 1 (ELEC);;;;;;;;;;;;
+;;;;;;;;;;;;
+Fourniture de câble solaire 1x6mm² - rallonge 3V9;220;3;1,170287544;1;;1;ELEC;OMX;CQ;;;PTR1.1-1
+;;;;;;;;;;;;
+Assistance à la pose d'un PTR ou PDL;1;1;4,5;1;1.1;1;ELEC;OMX;CQ;;;PTR1.1-1
+Pénétration des câbles dans PTR et PDL;1;2;18;1;1.1;1;ELEC;OMX;CQ;;;PTR1.1-1
+Raccordement des câbles alu dans PTR y compris fourniture des cosses 400mm²;22;2;33;1;1.1;1;ELEC;OMX;CQ;;;PTR1.1-1
+;;;;;;;;;;;;
+1.1 CABLAGE BT;;;;;;;;;;;;
+Fourniture de câble solaire 1x6mm²;14056,12238;3;74,77138607;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Fourniture de câble solaire 1x10mm²;29527,81881;3;157,0729025;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Travaux de finitions de cablage (cheminements des câbles…);0,681818182;2;68,526;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Mise en place de gaine anti-UV;214,8414545;1;10,74207273;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+;;;;;;;;;;;;
+Raccordement des modules entre eux;6921,818182;1;88,99480519;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Colsonnage des câbles de modules et des câbles;10382,72727;1;103,8272727;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Joint de carrossier protection;110,4545455;1;1,104545455;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Pose de connecteurs type MC4 (pour 100% du parc);1325,454545;1;99,40909091;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Mise à la terre des structures une à une;66,13636364;1;4,960227273;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Mise à la terre des pieds de poteaux;44,31818182;1;12,46448864;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Mise à la terre des onduleurs;15;1;1,6875;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Mise à la terre des fouilles de postes;0,681818182;1;1,534090909;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Interconnexion des terres dans les postes;0,681818182;1;0,383522727;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Etiquettage des onduleurs;15;1;0,9;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Etiquettage des tables ;110,4545455;1;6,627272727;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Etiquettage des rangées;88,63636364;1;5,318181818;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Etiquettage électrique complet de la centrale ;1260;1;18,9;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+;;;;;;;;;;;;
+Fixation et pose de l'onduleur décentralisé type HUAWEI 330KTL;15;2;30;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Protection onduleur écopaturage;15;1;11,25;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Raccordement de l'onduleur côté AC 300mm²;0;1;0;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Raccordement de l'onduleur côté AC 400mm²;15;1;15;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Raccordement de l'onduleur côté solaire y compris arrivée des câbles et remontées;15;1;11,25;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+Fourniture et pose de remontées de CDC pour BJ/OND et fixation des câbles;44,31818182;1;7,977272727;1;1.1;1;ELEC;OMX;CQ;;15;PTR1.1-1
+;;;;;;;;;;;;
+;;;;;;;;;;;;
+1.2 CABLAGE BT;;;;;;;;;;;;
+Fourniture de câble solaire 1x6mm²;6559,523776;3;34,8933135;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Fourniture de câble solaire 1x10mm²;13779,64878;3;73,30068784;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Travaux de finitions de cablage (cheminements des câbles…);0,318181818;2;31,9788;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Mise en place de gaine anti-UV;100,2593455;1;5,012967273;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+;;;;;;;;;;;;
+Raccordement des modules entre eux;3230,181818;1;41,53090909;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Colsonnage des câbles de modules et des câbles;4845,272727;1;48,45272727;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Joint de carrossier protection;51,54545455;1;0,515454545;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Pose de connecteurs type MC4 (pour 100% du parc);618,5454545;1;46,39090909;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Mise à la terre des structures une à une;30,86363636;1;2,314772727;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Mise à la terre des pieds de poteaux;20,68181818;1;5,816761364;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Mise à la terre des onduleurs;7;1;0,7875;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Mise à la terre des fouilles de postes;0,318181818;1;0,715909091;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Interconnexion des terres dans les postes;0,318181818;1;0,178977273;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Etiquettage des onduleurs;7;1;0,42;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Etiquettage des tables ;51,54545455;1;3,092727273;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Etiquettage des rangées;41,36363636;1;2,481818182;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Etiquettage électrique complet de la centrale ;588;1;8,82;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+;;;;;;;;;;;;
+Fixation et pose de l'onduleur décentralisé type HUAWEI 330KTL;7;2;14;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Protection onduleur écopaturage;7;1;5,25;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Raccordement de l'onduleur côté AC 300mm²;0;1;0;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Raccordement de l'onduleur côté AC 400mm²;7;1;7;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Raccordement de l'onduleur côté solaire y compris arrivée des câbles et remontées;7;1;5,25;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+Fourniture et pose de remontées de CDC pour BJ/OND et fixation des câbles;20,68181818;1;3,722727273;1;1.2;1;ELEC;OMX;CQ;;7;PTR1.1-1
+;;;;;;;;;;;;
+;;;;;;;;;;;;
+TRAVAUX LOT MODULES POSTES & ONDULEURS;;;;;;;;;;;;
+Fourniture et raccordement d'un bouton d'arrêt d'urgence;2;1;1,8;1;;1;ELEC;OMX;CQ;;;PTR1.1-1
+Pose et déroulage câble du bouton d'arrêt d'urgence;465;2;10,4625;1;;1;ELEC;OMX;CQ;;;PTR1.1-1
+Pose et raccordement du monitoring;1;1;4,5;1;;1;ELEC;OMX;CQ;;;PTR1.1-1
+;;;;;;;;;;;;
+STATION METEO ET SECURITE ACTIVE;;;;;;;;;;;;
+Fourniture et pose de fibre optique 4FO MM;425,466;2;5,105592;1;;1;ELEC;OMX;CQ;;;
+Fourniture et tirage de câble alimentation petits auxiliaires 3G2,5;425,466;1;15,316776;1;;1;ELEC;OMX;CQ;;;
+Fourniture et tirage de câble communication 4P blindé;527,7315;2;18,998334;1;;1;ELEC;OMX;CQ;;;
+Fourniture et pose d'un pyranomètre SMP10;1;1;1;1;;1;ELEC;OMX;CQ;;;
+Fourniture et pose d'une ventilation;1;1;1;1;;1;ELEC;OMX;CQ;;;
+Fourniture et pose d'une sonde de temp ambiante (PT100);1;1;1;1;;1;ELEC;OMX;CQ;;;
+Fourniture et pose d'une sonde de temp sous module (PT1000);4;1;4;1;;1;ELEC;OMX;CQ;;;
+Fourniture et pose d'une cellule de référence avec T° cellule dans le plan incliné;2;1;2;1;;1;ELEC;OMX;CQ;;;
+Fourniture et pose de support pour station météo y compris coffret pour station météo;1;1;1;1;;1;ELEC;OMX;CQ;;;
+Fourniture et pose de caméra - Poujon;1;2;4,5;1;;1;ELEC;OMX;CQ;;;
+Fourniture et pose de caméra FO - Poujon;1;2;4,5;1;;1;ELEC;OMX;CQ;;;
+Fourniture et pose de mât;2;2;9;1;;1;ELEC;OMX;CQ;;;
+;;;;;;;;;;;;
+MISE EN SERVICE et ESSAIS;;;;;;;;;;;;
+Tests isolement et continuité DC strings CEI EN62446;22;2;66;1;;1;ELEC;OMX;CQ;;22;PTR1.1-1
+Tests isolement et continuité AC OND/TGBT;22;2;22;1;;1;ELEC;OMX;CQ;;22;PTR1.1-1
+Vérification de la continuité de terre des structures ligne à ligne;7,25868;2;13,065624;1;;1;ELEC;OMX;CQ;;22;PTR1.1-1
+Mise en service de la centrale;1;2;72;1;;1;ELEC;OMX;CQ;;22;PTR1.1-1

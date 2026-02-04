@@ -79,7 +79,7 @@ Sub Import_Taches_Simples_AvecTitre()
     pjApp.CustomFieldRename pjCustomTaskText4, "Metier"
     pjApp.CustomFieldRename pjCustomTaskText5, "Entreprise"
     pjApp.CustomFieldRename pjCustomTaskText6, "Niveau"
-    pjApp.CustomFieldRename pjCustomTaskText7, "Onduleur"
+    pjApp.CustomFieldRename pjCustomTaskNumber5, "Qté Onduleurs"
     pjApp.CustomFieldRename pjCustomTaskText8, "PTR"
     
     ' NOTE: Les champs d'assignments (Text1-Text7) ne peuvent pas être renommés via CustomFieldRename
@@ -169,7 +169,7 @@ Sub Import_Taches_Simples_AvecTitre()
     logStream.WriteLine "===== APERCU FICHIER EXCEL (COLONNES A, K, L) ====="
     Dim iPreview As Long
     For iPreview = 2 To lastRow
-        Dim nomPreview As String, niveauPreview As String, onduleurPreview As String
+        Dim nomPreview As String, niveauPreview As String, qteOnduPreview As Double
         Dim qtePreview As Variant, persPreview As Variant, hPreview As Variant
         
         ' OPTIMISATION: Lecture depuis Array au lieu de xlSheet.Cells
@@ -178,7 +178,14 @@ Sub Import_Taches_Simples_AvecTitre()
         persPreview = dataArr(iPreview, 3)
         hPreview = dataArr(iPreview, 4)
         niveauPreview = Trim(CStr(dataArr(iPreview, 11)))
-        onduleurPreview = Trim(CStr(dataArr(iPreview, 12)))
+        
+        ' Lecture quantité onduleurs (colonne L)
+        qteOnduPreview = 0
+        On Error Resume Next
+        If Len(Trim(CStr(dataArr(iPreview, 12)))) > 0 Then
+            qteOnduPreview = CDbl(dataArr(iPreview, 12))
+        End If
+        On Error GoTo 0
         
         Dim typePreview As String
         Dim hasData As Boolean
@@ -215,7 +222,7 @@ Sub Import_Taches_Simples_AvecTitre()
         
         logStream.WriteLine "Ligne " & Format(iPreview, "00") & " " & typePreview & niveauDetecte & " | " & nomPreview & _
             IIf(niveauPreview <> "", " | K=" & niveauPreview, "") & _
-            IIf(onduleurPreview <> "", " | L=" & onduleurPreview, "")
+            IIf(qteOnduPreview > 0, " | L=" & qteOnduPreview, "")
     Next iPreview
     logStream.WriteLine ""
     logStream.WriteLine "===== FIN APERCU EXCEL ====="
@@ -268,7 +275,16 @@ Sub Import_Taches_Simples_AvecTitre()
         entreprise = Trim(CStr(dataArr(i, 9)))  ' I
         qualite = UCase$(Trim(CStr(dataArr(i, 10)))) ' J : CQ / TACHE / vide
         niveau = UCase$(Trim(CStr(dataArr(i, 11))))  ' K : SZ / OND / vide
-        onduleur = UCase$(Trim(CStr(dataArr(i, 12)))) ' L : OND1, OND2...
+        
+        ' L : Quantité d'onduleurs (nombre décimal)
+        Dim qteOnduleurs As Double
+        qteOnduleurs = 0
+        On Error Resume Next
+        If Len(Trim(CStr(dataArr(i, 12)))) > 0 Then
+            qteOnduleurs = CDbl(dataArr(i, 12))
+        End If
+        If Err.Number <> 0 Then qteOnduleurs = 0 ' Si erreur de conversion, quantité = 0
+        On Error GoTo 0
         
         ' Lecture PTR (colonne 13 / M) - Rétrocompatible si absente
         On Error Resume Next
@@ -282,7 +298,7 @@ Sub Import_Taches_Simples_AvecTitre()
         logStream.WriteLine "  Heures (col D): " & h & " | Type: " & TypeName(h)
         logStream.WriteLine "  Zone: " & zone & " | Tranche: " & tranche
         logStream.WriteLine "  Type: " & typ & " | Entreprise: " & entreprise
-        logStream.WriteLine "  Qualité: " & qualite & " | Niveau: " & niveau & " | Onduleur: " & onduleur & " | PTR: " & ptr
+        logStream.WriteLine "  Qualité: " & qualite & " | Niveau: " & niveau & " | Qté Onduleurs: " & qteOnduleurs & " | PTR: " & ptr
 
         If nom = "" Then
             logStream.WriteLine "  -> Ligne ignorée (nom vide)"
@@ -341,8 +357,8 @@ Sub Import_Taches_Simples_AvecTitre()
         End If
         
         ' ==== VALIDATION Niveau/Onduleur ====
-        If niveau = "OND" And onduleur = "" Then
-            logStream.WriteLine "  -> ATTENTION: Niveau=OND mais Onduleur vide!"
+        If niveau = "OND" And qteOnduleurs = 0 Then
+            logStream.WriteLine "  -> ATTENTION: Niveau=OND mais Quantité Onduleurs = 0!"
         End If
 
         If nom <> "" Then
@@ -417,14 +433,14 @@ Sub Import_Taches_Simples_AvecTitre()
             ' Tags dans champs texte
             ' Convention proposée:
             ' Text1 = Tranche, Text2 = Zone, Text3 = Sous-zone, Text4 = Type, Text5 = Entreprise
-            ' Text6 = Niveau, Text7 = Onduleur, Text8 = PTR
+            ' Text6 = Niveau, Number5 = Qté Onduleurs, Text8 = PTR
             t.Text1 = tranche
             t.Text2 = zone
             t.Text3 = sousZone
             t.Text4 = typ
             t.Text5 = entreprise
             t.Text6 = niveau
-            t.Text7 = onduleur
+            t.Number5 = qteOnduleurs
             t.Text8 = ptr
 
             ' ? DÉFINIR LE TRAVAIL DE LA TÂCHE EN PREMIER (avant les assignments)
@@ -474,7 +490,7 @@ Sub Import_Taches_Simples_AvecTitre()
                 a.Text4 = typ
                 a.Text5 = entreprise
                 a.Text6 = niveau
-                a.Text7 = onduleur
+                a.Number5 = qteOnduleurs
                 a.Text8 = ptr
                 
                 logStream.WriteLine "     Assignment.Units = " & a.Units
@@ -528,12 +544,44 @@ Sub Import_Taches_Simples_AvecTitre()
                 a.Text4 = typ
                 a.Text5 = entreprise
                 a.Text6 = niveau
-                a.Text7 = onduleur
+                a.Number5 = qteOnduleurs
                 a.Text8 = ptr
                 
                 logStream.WriteLine "     Tags copiés: Tranche=" & tranche & " | Zone=" & zone & " | Type=" & typ
                 logStream.WriteLine "     Vérif lecture: a.Text1=" & a.Text1 & " | a.Text2=" & a.Text2
                 logStream.WriteLine "     Assignment Matériau - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
+            End If
+            
+            ' Onduleurs (L) : Ressource Material "ONDULEUR" avec quantité
+            If qteOnduleurs > 0 Then
+                ' Créer/récupérer la ressource Material "ONDULEUR"
+                Dim rOnduleur As Resource
+                Set rOnduleur = GetOrCreateMaterialResourceCached("ONDULEUR", resourceCache)
+                
+                Set a = t.Assignments.Add(ResourceID:=rOnduleur.ID)
+                a.Units = qteOnduleurs  ' Quantité d'onduleurs
+                a.WorkContour = pjFlat  ' Répartition régulière
+                
+                ' Synchroniser les dates avec Monteurs si présents
+                If hasMonteursAssignment Then
+                    a.Start = dateDebutMonteurs
+                    a.Finish = dateFinMonteurs
+                    logStream.WriteLine "  -> ONDULEURS: " & qteOnduleurs & " unités (dates synchronisées avec Monteurs)"
+                Else
+                    logStream.WriteLine "  -> ONDULEURS: " & qteOnduleurs & " unités (dates par défaut)"
+                End If
+                
+                ' Copie tags
+                a.Text1 = tranche
+                a.Text2 = zone
+                a.Text3 = sousZone
+                a.Text4 = typ
+                a.Text5 = entreprise
+                a.Text6 = niveau
+                a.Number5 = qteOnduleurs
+                a.Text8 = ptr
+                
+                logStream.WriteLine "     Tags Onduleurs copiés | Assignment Onduleur - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
             End If
 
             ' Qualité (J) : Logique hybride OMX/SST
@@ -566,7 +614,7 @@ Sub Import_Taches_Simples_AvecTitre()
                     a.Text4 = typ
                     a.Text5 = entreprise
                     a.Text6 = niveau
-                    a.Text7 = onduleur
+                    a.Number5 = qteOnduleurs
                     a.Text8 = ptr
                     
                     logStream.WriteLine "     Tags CQ copiés | Assignment CQ - Début: " & Format(a.Start, "dd/mm/yyyy hh:nn") & " | Fin: " & Format(a.Finish, "dd/mm/yyyy hh:nn")
@@ -602,7 +650,7 @@ Sub Import_Taches_Simples_AvecTitre()
                     tCQ.Text4 = "CQ"
                     tCQ.Text5 = "OMEXOM"  ' CQ porté par OMX
                     tCQ.Text6 = niveau
-                    tCQ.Text7 = onduleur
+                    tCQ.Number5 = qteOnduleurs
                     tCQ.Text8 = ptr
                     
                     ' Ressource matérielle CQ
@@ -656,7 +704,7 @@ Sub Import_Taches_Simples_AvecTitre()
                 tCQ.Text4 = "CQ"
                 tCQ.Text5 = "OMEXOM"
                 tCQ.Text6 = niveau
-                tCQ.Text7 = onduleur
+                tCQ.Number5 = qteOnduleurs
                 tCQ.Text8 = ptr
                 
                 ' Ressource matérielle CQ
@@ -705,7 +753,7 @@ NextRow:
             Dim tagInfo As String
             tagInfo = ""
             If tDebug.Text6 <> "" Then tagInfo = tagInfo & " | Niveau=" & tDebug.Text6
-            If tDebug.Text7 <> "" Then tagInfo = tagInfo & " | Ond=" & tDebug.Text7
+            If tDebug.Number5 > 0 Then tagInfo = tagInfo & " | QteOnd=" & tDebug.Number5
             If tDebug.Text2 <> "" Then tagInfo = tagInfo & " | Zone=" & tDebug.Text2
             If tDebug.Text3 <> "" Then tagInfo = tagInfo & " | SsZone=" & tDebug.Text3
             If tDebug.Text8 <> "" Then tagInfo = tagInfo & " | PTR=" & tDebug.Text8
@@ -827,7 +875,7 @@ ContinueCheck:
     On Error GoTo 0
 
     pjApp.DisplayAlerts = True ' Réactive les alertes pour l'utilisateur
-    MsgBox "Import terminé: tâches, ressources, tags (Zone/Sous-zone/Tranche/Type/Entreprise/Niveau/Onduleur/PTR) et Qualité hybride." & vbCrLf & vbCrLf & "Fichier log créé: " & logFile, vbInformation
+    MsgBox "Import terminé: tâches, ressources, tags (Zone/Sous-zone/Tranche/Type/Entreprise/Niveau/Qté Onduleurs/PTR) et Qualité hybride." & vbCrLf & vbCrLf & "Fichier log créé: " & logFile, vbInformation
 
 End Sub
 
@@ -980,7 +1028,7 @@ End Function
 ' ==== FONCTION HELPER: COPIE DES TAGS DE LA TACHE VERS L'ASSIGNMENT ====
 ' Cette fonction copie automatiquement les champs Text1 à Text7 (tags métier)
 ' de la tâche source vers l'assignment, permettant de filtrer les ressources
-' par Tranche/Zone/Sous-Zone/Type/Entreprise/Niveau/Onduleur au niveau des affectations.
+' par Tranche/Zone/Sous-Zone/Type/Entreprise/Niveau/Qté Onduleurs au niveau des affectations.
 Sub CopyTaskTagsToAssignment(ByVal tSource As Task, ByVal a As Assignment)
     ' Tentative de copie SANS masquage d'erreur pour détecter le problème
     On Error GoTo ErrHandler
@@ -988,14 +1036,14 @@ Sub CopyTaskTagsToAssignment(ByVal tSource As Task, ByVal a As Assignment)
     ' MS Project nécessite parfois un délai pour que l'assignment soit "prêt"
     DoEvents
     
-    ' Copie des champs texte
+    ' Copie des champs texte et numériques
     a.Text1 = tSource.Text1  ' Tranche
     a.Text2 = tSource.Text2  ' Zone
     a.Text3 = tSource.Text3  ' Sous-Zone
     a.Text4 = tSource.Text4  ' Type/Métier
     a.Text5 = tSource.Text5  ' Entreprise
     a.Text6 = tSource.Text6  ' Niveau
-    a.Text7 = tSource.Text7  ' Onduleur
+    a.Number5 = tSource.Number5  ' Quantité Onduleurs
     a.Text8 = tSource.Text8  ' PTR
     
     Exit Sub
