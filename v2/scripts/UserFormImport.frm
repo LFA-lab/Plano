@@ -92,8 +92,8 @@ End Sub
 Private Sub btnDownloadTemplate_Click()
     On Error Resume Next
     Dim url As String, dest As String
-    url = "https://lfa-lab.github.io/Plano/templates/Mod%C3%A8leImport.mpt"
-    dest = DownloadsFolder() & "PlanningTemplate.xlsx"
+    url = "https://lfa-lab.github.io/Plano/templates/FichierTypearemplir.xlsx"
+    dest = DownloadsFolder() & "FichierTypearemplir.xlsx"
 
     SilentDownload url, dest
     If DEBUG_LOG Then Debug.Print "Template saved to:", dest
