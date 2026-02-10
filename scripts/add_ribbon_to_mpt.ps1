@@ -11,36 +11,34 @@
   - Reads input TemplateBase.mpt (one folder above /scripts by default).
   - Writes output TemplateBase_WithRibbon.mpt with the Ribbon embedded.
   - Uses CustomUI14 (2009/07) schema and verifies success.
+  - Deliberately omits the Ribbon onLoad attribute to avoid callback binding failures
+    when the corresponding VBA macro is not present (classic MS Project ribbon issue).
 
 .EXAMPLE
   .\scripts\add_ribbon_to_mpt.ps1
+
+.EXAMPLE
   .\scripts\add_ribbon_to_mpt.ps1 -Force -TabLabel "Plano" -OnAction "GenerateDashboard"
 #>
 
 [CmdletBinding()]
 param(
-    # NOTE: Do NOT reference $PSScriptRoot in defaults; it may be empty at binding time.
     [string]$InputPath,
     [string]$OutputPath,
 
     [string]$TabLabel = "Plano",
     [string]$OnAction = "GenerateDashboard",
-    [string]$OnLoad   = "OnRibbonLoad",
 
     [switch]$Force
 )
 
-# --- Only code AFTER param() ---
-
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-# Robust fallback in case $PSScriptRoot is empty (some hosts / invocations)
 if (-not $PSScriptRoot) {
     $PSScriptRoot = Split-Path -Parent -LiteralPath $MyInvocation.MyCommand.Path
 }
 
-# Default paths if caller didn’t pass them
 if (-not $InputPath)  { $InputPath  = Join-Path (Join-Path $PSScriptRoot "..") "TemplateBase.mpt" }
 if (-not $OutputPath) { $OutputPath = Join-Path (Join-Path $PSScriptRoot "..") "TemplateBase_WithRibbon.mpt" }
 
@@ -100,11 +98,14 @@ function Try-CloseProject {
     } catch { }
 }
 
-# ---------------- Ribbon XML + validation ----------------
+# ---------------- Ribbon XML (PATCHED: removed onLoad) ----------------
 function Get-RibbonXml {
-    param([string]$TabLabel,[string]$OnAction,[string]$OnLoad)
+    param([string]$TabLabel,[string]$OnAction)
+
+    $ns = 'http://schemas.microsoft.com/office/2009/07/customui'
+
 @"
-<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="$OnLoad">
+<customUI xmlns="$ns">
   <ribbon>
     <tabs>
       <tab id="tabCustom" label="$TabLabel">
@@ -121,6 +122,7 @@ function Get-RibbonXml {
 </customUI>
 "@
 }
+
 function Test-CustomUiNamespace {
     param([string]$XmlText)
     if ($XmlText -notmatch 'http://schemas\.microsoft\.com/office/2009/07/customui') {
@@ -142,7 +144,7 @@ function Test-XmlWellFormed {
     }
 }
 
-# ------------- OpenMCDF loader (PS 5.1 / net40) -------------
+# ------------- OpenMCDF loader (unchanged) -------------
 $script:OpenMcdfAssembly = $null
 $script:OpenMcdfDllPath  = $null
 
@@ -198,7 +200,7 @@ function Ensure-OpenMcdfLoaded {
     Write-OK ("OpenMcdf loaded: " + $script:OpenMcdfAssembly.FullName)
 }
 
-# ---------------- C# helper (single-quoted here-string) ----------------
+# ---------------- C# helper (unchanged) ----------------
 function Ensure-CSharpInjector {
     $typeExists = [Type]::GetType('MptRuntime.MptRibbonWriter')
     if ($typeExists) { return }
@@ -214,25 +216,20 @@ namespace MptRuntime
     {
         public static void Inject(string path, byte[] data)
         {
-            // Open in Update mode so we can commit in-place
             using (var cf = new CompoundFile(path, CFSUpdateMode.Update, CFSConfiguration.Default))
             {
                 var root = cf.RootStorage;
 
-                // Replace existing customUI14 stream if present
                 try { root.Delete("customUI14"); } catch {}
-
                 var s = root.AddStream("customUI14");
                 s.SetData(data);
 
-                // Persist changes to the same file
                 cf.Commit();
             }
         }
 
         public static bool Verify(string path)
         {
-            // Read-only is fine for verification
             using (var cf = new CompoundFile(path, CFSUpdateMode.ReadOnly, CFSConfiguration.Default))
             {
                 try
@@ -287,9 +284,9 @@ try {
     Ensure-OpenMcdfLoaded
     Ensure-CSharpInjector
 
-    $xml = Get-RibbonXml -TabLabel $TabLabel -OnAction $OnAction -OnLoad $OnLoad
+    # Generate Ribbon XML WITHOUT onLoad (Option A)
+    $xml = Get-RibbonXml -TabLabel $TabLabel -OnAction $OnAction
 
-    # Cleanly overwrite output
     if (Test-Path -LiteralPath $OutputPath) {
         if ($Force) {
             Write-Info "Removing existing output (Force): $OutputPath"
@@ -300,18 +297,15 @@ try {
         }
     }
 
-    # Copy base template to output
     Copy-Item -LiteralPath $inFull -Destination $OutputPath -Force
     Write-OK "Copied base template to output."
 
-    # Extra wait before opening via OpenMCDF (AV/scanner may touch it right after copy)
     Wait-ForFileUnlock -Path $OutputPath -TimeoutSeconds 30
 
     Inject-CustomUI14 -TargetPath $OutputPath -XmlText $xml
     Verify-CustomUI14 -TargetPath $OutputPath | Out-Null
     Write-OK "Ribbon (customUI14) embedded successfully."
 
-    # Optionally open the output template in Microsoft Project (best-effort)
     try {
         Write-Info "Opening output template in Microsoft Project..."
         Start-Process -FilePath $OutputPath | Out-Null

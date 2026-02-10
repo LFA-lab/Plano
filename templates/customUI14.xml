@@ -1,0 +1,15 @@
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="OnRibbonLoad">
+  <ribbon>
+    <tabs>
+      <tab id="tabCustom" label="Plano">
+        <group id="grpDashboard" label="Dashboard">
+          <button id="btnGenerate"
+                  label="Generate Dashboard"
+                  size="large"
+                  imageMso="Refresh"
+                  onAction="GenerateDashboard" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
