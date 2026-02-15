@@ -172,10 +172,7 @@ End Sub
 ' This sub wraps the Import_Taches_Simples_AvecTitre call
 ' to pass the pre-selected file path instead of showing dialog
 Private Sub Import_Taches_Simples_AvecTitre_FromUserForm(ByVal preSelectedFile As String)
-    ' TODO: This requires modifying Import_OPTIMISE.vb to accept a parameter
-    ' For now, we call the standard import and rely on the user selecting the file again
-    ' In production, Import_OPTIMISE should be refactored to accept filePath parameter
-
+    ' Call the wrapper function that passes the file parameter
     On Error Resume Next
-    Call Import_Taches_Simples_AvecTitre
+    Call Import_Taches_Simples_AvecTitre_WithFile(preSelectedFile)
 End Sub

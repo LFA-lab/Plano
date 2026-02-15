@@ -14,28 +14,35 @@ Sub Import_Taches_Simples_AvecTitre()
     ' ============================================
 
     ' ==== SELECTION DU FICHIER VIA SELECTEUR NATIF ====
-    Dim xlTempApp As Object
-    Set xlTempApp = CreateObject("Excel.Application")
-    xlTempApp.Visible = False
+    ' Check if file was pre-selected (from UserFormImport)
+    If g_UsePreSelectedFile And Len(g_PreSelectedExcelFile) > 0 Then
+        ' Use pre-selected file (skip dialog)
+        fichierExcel = g_PreSelectedExcelFile
+    Else
+        ' Show file picker dialog
+        Dim xlTempApp As Object
+        Set xlTempApp = CreateObject("Excel.Application")
+        xlTempApp.Visible = False
 
-    With xlTempApp.FileDialog(msoFileDialogFilePicker)
-        .Title = "Sélectionnez le fichier Excel à importer"
-        .InitialFileName = Environ$("USERPROFILE") & "\Downloads\"
-        .Filters.Clear
-        .Filters.Add "Fichiers Excel", "*.xlsx;*.xls"
-        .AllowMultiSelect = False
-        If .Show = -1 Then
-            fichierExcel = .SelectedItems(1)
-        Else
-            MsgBox "Aucun fichier sélectionné. Import annulé.", vbExclamation
-            xlTempApp.Quit
-            Set xlTempApp = Nothing
-            Exit Sub
-        End If
-    End With
+        With xlTempApp.FileDialog(msoFileDialogFilePicker)
+            .Title = "Sélectionnez le fichier Excel à importer"
+            .InitialFileName = Environ$("USERPROFILE") & "\Downloads\"
+            .Filters.Clear
+            .Filters.Add "Fichiers Excel", "*.xlsx;*.xls"
+            .AllowMultiSelect = False
+            If .Show = -1 Then
+                fichierExcel = .SelectedItems(1)
+            Else
+                MsgBox "Aucun fichier sélectionné. Import annulé.", vbExclamation
+                xlTempApp.Quit
+                Set xlTempApp = Nothing
+                Exit Sub
+            End If
+        End With
 
-    xlTempApp.Quit
-    Set xlTempApp = Nothing
+        xlTempApp.Quit
+        Set xlTempApp = Nothing
+    End If
 
     ' ==== OUVERTURE D'EXCEL (LECTURE) ====
     Set xlApp = CreateObject("Excel.Application")
@@ -1077,3 +1084,29 @@ Function GetOrCreateMaterialResource(nom As String) As Resource
     End If
     Set GetOrCreateMaterialResource = r
 End Function
+
+
+' ========== WRAPPER FUNCTION FOR USERFORM INTEGRATION ==========
+' This function allows UserFormImport to call the import with a pre-selected file
+' avoiding the double file selection dialog
+' =================================================================
+
+Sub Import_Taches_Simples_AvecTitre_WithFile(ByVal preSelectedFile As String)
+    ' This is a wrapper that would ideally refactor Import_Taches_Simples_AvecTitre
+    ' to accept fichierExcel as a parameter. For now, we use a module-level variable.
+
+    ' Store the pre-selected file in a public variable
+    g_PreSelectedExcelFile = preSelectedFile
+    g_UsePreSelectedFile = True
+
+    ' Call the main import
+    Import_Taches_Simples_AvecTitre
+
+    ' Reset flags
+    g_PreSelectedExcelFile = ""
+    g_UsePreSelectedFile = False
+End Sub
+
+' Module-level variables for file pre-selection
+Public g_PreSelectedExcelFile As String
+Public g_UsePreSelectedFile As Boolean
