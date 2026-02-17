@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plano · Developer Documentation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Keep dev docs out of public search results (optional but recommended) -->
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Standalone, page-local styling (does NOT depend on site CSS) -->
+  <style>
+    :root {
+      --ink: #0f172a;        /* slate-900 */
+      --muted: #64748b;      /* slate-500 */
+      --line: #e2e8f0;       /* slate-200 */
+      --bg: #ffffff;
+      --surface: #fafafa;
+      --brand: #003f7f;      /* matches your hover blue */
+      --warn-bg: #fff7ed;    /* orange-50 */
+      --warn-border: #fdba74;/* orange-300 */
+      --warn-ink: #9a3412;   /* orange-800 */
+      --code-bg: #f6f8fa;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 40px auto 72px;
+      padding: 0 16px;
+    }
+
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .back-link {
+      display: inline-block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .back-link:hover { color: var(--brand); }
+
+    h1 { font-size: 28px; margin: 8px 0 6px; }
+    .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+
+    .warning {
+      border: 1px solid var(--warn-border);
+      background: var(--warn-bg);
+      color: var(--warn-ink);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin: 18px 0 28px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 900px) {
+      .grid.two { grid-template-columns: 1fr 1fr; }
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 16px;
+    }
+
+    h2 { font-size: 20px; margin: 8px 0 12px; }
+    h3 { font-size: 16px; margin: 8px 0 8px; color: var(--muted); }
+
+    pre, code {
+      background: var(--code-bg);
+      border-radius: 6px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    pre { padding: 12px; border: 1px solid var(--line); }
+    code.inline { padding: 0 4px; border: 1px solid var(--line); }
+
+    .toc {
+      font-size: 14px;
+      padding: 10px 12px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fff;
+      margin-bottom: 16px;
+    }
+    .toc a { margin-right: 12px; }
+
+    /* Mermaid containers get some breathing space */
+    .mermaid {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    /* Optional: tiny floating dev tag to mirror main page (can remove) */
+    .dev-pill {
+      position: fixed; bottom: 16px; right: 16px;
+      font-size: 11px; color: #aaa; text-decoration: none;
+      padding: 4px 8px; border-radius: 4px; transition: all .2s;
+      z-index: 9999; backdrop-filter: blur(2px);
+      border: 1px solid var(--line); background: rgba(255,255,255,.85);
+    }
+    .dev-pill:hover { background: var(--brand); color: #fff; text-decoration: none; }
+  </style>
+
+  <!-- Mermaid.js (ESM) for diagrams, flowcharts, graph TD -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <!-- 2️⃣ Back Button -->
+    <a href="../index.html" class="back-link">← Back to Plano</a>
+
+    <h1>Developer Documentation</h1>
+    <div class="subtitle">Architecture · Repo Layout · Conventions · Diagrams</div>
+
+    <!-- 3️⃣ Warning Banner -->
+    <div class="warning">
+      ⚠️ <strong>TO UPDATE:</strong> Please keep this page current with each change to macros, templates, scripts, or build steps. Outdated docs will block release.
+    </div>
+
+    <!-- Local TOC -->
+    <div class="toc">
+      <a href="#architecture">Architecture</a>
+      <a href="#repo-structure">Repo Structure</a>
+      <a href="#rules">Key Rules (MS Project / VBA)</a>
+      <a href="#diagrams">Diagrams</a>
+    </div>
+
+    <!-- 4️⃣ Mermaid Diagram Placeholder -->
+    <section id="architecture" class="card">
+      <h2>Architecture</h2>
+      <p>High-level workflow of Plano tooling and artifacts:</p>
+      <div class="mermaid">
+graph TD
+  U[User] -->|Provide input| X[Upload Excel / Data]
+  X --> I[VBA Import Modules]
+  I --> B[Build .MPT Template]
+  B --> E[Export / Save Output]
+  E --> P[Publish to GitHub Pages]
+      </div>
+      <h3>Notes</h3>
+      <ul>
+        <li>Replace the placeholder nodes with your precise modules and file names when ready.</li>
+        <li>Keep the diagram source here; export SVG/PNG to <code>docs/diagrams/</code> if needed elsewhere.</li>
+      </ul>
+    </section>
+
+    <!-- 5️⃣ Repo Structure Section -->
+    <section id="repo-structure" class="card">
+      <h2>Repo Structure</h2>
+      <p>Core directories and scripts relevant to build and documentation:</p>
+      <pre>
+/macros/
+  /production/
+    └─ (VBA modules used in the .mpt)
+/scripts/
+  ├─ build_mpt.ps1
+  ├─ add_ribbon_to_mpt.ps1
+  └─ push.ps1
+/templates/
+  └─ (Base .mpt and any supporting template files)
+/docs/
+  ├─ dev.html   ← (this page)
+  └─ diagrams/  ← (architecture sources & exports)
+/assets/
+  └─ (images, logos, exported diagrams if shared)
+/index.html
+/style.css
+      </pre>
+      <p>Update this tree if you add or move components so contributors know where to make changes.</p>
+    </section>
+
+    <!-- 6️⃣ Key Rules Section -->
+    <section id="rules" class="card">
+      <h2>Key Rules (Microsoft Project / VBA)</h2>
+      <p>These rules avoid common runtime issues when working inside an <code>.mpt</code> environment.</p>
+
+      <h3>Project Application Object</h3>
+      <p><strong>Never use (inside .mpt):</strong></p>
+      <pre><code>Dim pjApp
+Set pjApp = CreateObject("MSProject.Application")  ' ❌ Avoid
+      </code></pre>
+
+      <p><strong>Always prefer:</strong></p>
+      <pre><code>Dim pjApp As Application
+Set pjApp = Application  ' ✅ Use host application
+      </code></pre>
+
+      <h3>General Conventions</h3>
+      <ul>
+        <li>Scope macros to modules in <code>/macros/production/</code> only for shipped features.</li>
+        <li>Keep UI-related customizations (e.g., Ribbon XML) versioned; apply via scripts (e.g., <code>add_ribbon_to_mpt.ps1</code>).</li>
+        <li>Use <code>Option Explicit</code> and explicit types in all modules.</li>
+        <li>Document any Project options or trust settings required to run macros.</li>
+        <li>Follow Conventional Commits for changes: <code>feat:</code>, <code>fix:</code>, <code>docs:</code>, <code>chore:</code>, etc.</li>
+      </ul>
+    </section>
+
+    <!-- Extra: diagrams area developers can expand -->
+    <section id="diagrams" class="card">
+      <h2>Diagrams</h2>
+      <p>Add architecture, data flow, and deployment diagrams below. Use Mermaid for live docs.</p>
+      <div class="mermaid">
+flowchart LR
+  Dev[Developer] --> Code[Edit Macros & Templates]
+  Code --> Build[Run build_mpt.ps1]
+  Build --> Ribbon[add_ribbon_to_mpt.ps1]
+  Ribbon --> Commit[Commit & Push]
+  Commit --> Pages[GitHub Pages Deploy]
+      </div>
+    </section>
+  </div>
+
+  <!-- Optional tiny badge to indicate Dev context -->
+  <a class="dev-pill" href="./dev.html" title="You are on the Dev Docs">⚙️ Dev</a>
+</body>
+</html>
