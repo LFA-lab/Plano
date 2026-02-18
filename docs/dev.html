@@ -128,13 +128,13 @@
 </head>
 <body>
   <div class="container">
-    <!-- 2️⃣ Back Button -->
+    <!-- Back Button -->
     <a href="../index.html" class="back-link">← Back to Plano</a>
 
     <h1>Developer Documentation</h1>
     <div class="subtitle">Architecture · Repo Layout · Conventions · Diagrams</div>
 
-    <!-- 3️⃣ Warning Banner -->
+    <!-- Warning Banner -->
     <div class="warning">
       ⚠️ <strong>TO UPDATE:</strong> Please keep this page current with each change to macros, templates, scripts, or build steps. Outdated docs will block release.
     </div>
@@ -142,31 +142,83 @@
     <!-- Local TOC -->
     <div class="toc">
       <a href="#architecture">Architecture</a>
+      <a href="#build-workflow">Developer Build Workflow</a>
       <a href="#repo-structure">Repo Structure</a>
       <a href="#rules">Key Rules (MS Project / VBA)</a>
       <a href="#diagrams">Diagrams</a>
     </div>
 
-    <!-- 4️⃣ Mermaid Diagram Placeholder -->
+    <!-- Architecture Diagram (End-user workflow .mpt -> .mpp -> daily use) -->
     <section id="architecture" class="card">
       <h2>Architecture</h2>
-      <p>High-level workflow of Plano tooling and artifacts:</p>
+      <p>End‑user workflow from .mpt import through daily .mpp usage:</p>
       <div class="mermaid">
-graph TD
-  U[User] -->|Provide input| X[Upload Excel / Data]
-  X --> I[VBA Import Modules]
-  I --> B[Build .MPT Template]
-  B --> E[Export / Save Output]
-  E --> P[Publish to GitHub Pages]
+flowchart TD
+  %% STEP 1 — Opening the .MPT
+  A1["User double-clicks TemplateImport.mpt"] --> A2["MS Project opens .mpt"]
+  A2 --> A3["ThisProject.Project_Open()"]
+  A3 --> A4{Extension = .mpt?}
+  A4 -->|Yes| A5["Show UserFormImport"]
+  A4 -->|No| B1["Open .mpp path"]
+
+  %% STEP 2 — Excel → Create Project
+  A5 --> A6["User selects Excel file"]
+  A6 --> A7["User clicks Create Project"]
+  A7 --> A8["1) Read Excel<br/>2) Create Tasks<br/>3) FileSaveAs .mpp<br/>4) VBA copied"]
+  A8 --> A9["Close Import Form"]
+  A9 --> A10["Open generated .mpp"]
+
+  %% STEP 3 — Opening new .mpp
+  A10 --> B1
+  B1 --> B2["ThisProject.Project_Open()"]
+  B2 --> B3{Extension = .mpp?}
+  B3 -->|Yes| B4["Run CreatePlanoMenu()"]
+  B4 --> B5["Display Plano menu"]
+  B3 -->|No| C1["No action"]
+
+  %% STEP 4 — Daily Use
+  B5 --> D1["User opens .mpp on later days"]
+  D1 --> D2["Plano menu loads automatically"]
+  D2 --> D3["User → Plano → Generate Dashboard"]
+  D3 --> D4["Macros run / Dashboard generated"]
       </div>
       <h3>Notes</h3>
       <ul>
-        <li>Replace the placeholder nodes with your precise modules and file names when ready.</li>
-        <li>Keep the diagram source here; export SVG/PNG to <code>docs/diagrams/</code> if needed elsewhere.</li>
+        <li>This diagram intentionally focuses on user-facing runtime across <code>.mpt</code> and <code>.mpp</code>.</li>
+        <li>The import form appears only for <code>.mpt</code>; the Plano menu appears only for <code>.mpp</code>.</li>
       </ul>
     </section>
 
-    <!-- 5️⃣ Repo Structure Section -->
+    <!-- Developer Build Workflow -->
+    <section id="build-workflow" class="card">
+      <h2>Developer Build Workflow</h2>
+      <p>This diagram is strictly for developers to build, test, validate the template, and deploy. It intentionally excludes end‑user flows and business logic.</p>
+
+      <div class="mermaid">
+flowchart TD
+  A["STEP 1: Local Setup<br/><br/>Prereqs: Windows, Git, PowerShell 7+, MS Project<br/><br/>Commands:<br/>git clone https://github.com/lfa-lab/Plano.git<br/>cd Plano<br/>pwsh -NoProfile -Command Set-ExecutionPolicy -Scope Process Bypass"] --> B
+
+  B["STEP 2: Rebuild Artifacts<br/><br/>From repo root:<br/>./scripts/build_mpt.ps1<br/><br/>Result: .mpt updated with latest macros"] --> C0
+
+  %% STEP 3 — EXACT TEXT, split into short nodes (no syntax errors)
+  C0["STEP 3: Validate Template"] --> C1["Open /templates/TemplateImport.mpt"]
+  C1 --> C2["Confirm Import Form appears"]
+  C2 --> C3["Import test Excel"]
+  C3 --> C4["Save as .mpp"]
+  C4 --> C5["Reopen .mpp"]
+  C5 --> C6["Confirm:"]
+  C6 --> C7["No import form"]
+  C6 --> C8["Plano command under Add-Ins"]
+  C6 --> C9["Dashboard runs without error"]
+  C9 --> D
+
+  D["STEP 4: Deploy<br/><br/>git checkout -b docs/dev-workflow<br/>git add index.html style.css docs/dev.html<br/>git commit -m docs:add-developer-build-workflow<br/>git push -u origin docs/dev-workflow<br/>Open PR → merge to main (Pages updates)<br/>Or: ./scripts/push.ps1"]
+      </div>
+
+      <p><em>Validation:</em> A new developer should be able to build, validate the template behavior in Project, and deploy by following these four steps — no additional guidance needed.</p>
+    </section>
+
+    <!-- Repo Structure Section -->
     <section id="repo-structure" class="card">
       <h2>Repo Structure</h2>
       <p>Core directories and scripts relevant to build and documentation:</p>
@@ -176,7 +228,6 @@ graph TD
     └─ (VBA modules used in the .mpt)
 /scripts/
   ├─ build_mpt.ps1
-  ├─ add_ribbon_to_mpt.ps1
   └─ push.ps1
 /templates/
   └─ (Base .mpt and any supporting template files)
@@ -191,7 +242,7 @@ graph TD
       <p>Update this tree if you add or move components so contributors know where to make changes.</p>
     </section>
 
-    <!-- 6️⃣ Key Rules Section -->
+    <!-- Key Rules Section -->
     <section id="rules" class="card">
       <h2>Key Rules (Microsoft Project / VBA)</h2>
       <p>These rules avoid common runtime issues when working inside an <code>.mpt</code> environment.</p>
@@ -208,28 +259,63 @@ Set pjApp = Application  ' ✅ Use host application
       </code></pre>
 
       <h3>General Conventions</h3>
+
+      <h4>Production Macros Scope</h4>
       <ul>
-        <li>Scope macros to modules in <code>/macros/production/</code> only for shipped features.</li>
-        <li>Keep UI-related customizations (e.g., Ribbon XML) versioned; apply via scripts (e.g., <code>add_ribbon_to_mpt.ps1</code>).</li>
-        <li>Use <code>Option Explicit</code> and explicit types in all modules.</li>
-        <li>Document any Project options or trust settings required to run macros.</li>
-        <li>Follow Conventional Commits for changes: <code>feat:</code>, <code>fix:</code>, <code>docs:</code>, <code>chore:</code>, etc.</li>
+        <li>Only modules located in <code>/macros/production/</code> are included in the shipped <code>.mpt</code>.</li>
+        <li>Experimental or test macros must never be committed to production builds.</li>
+      </ul>
+
+      <h4>UI Injection Strategy</h4>
+      <ul>
+        <li>The Plano command is created dynamically via VBA using legacy <strong>CommandBars</strong>.</li>
+        <li>The command appears under the <strong>Add-Ins</strong> tab.</li>
+        <li>No Ribbon XML customization is used in the current architecture.</li>
+      </ul>
+
+      <h4>Single Entry Point Rule</h4>
+      <ul>
+        <li>All runtime behavior must originate from <code>ThisProject.Project_Open()</code>.</li>
+        <li>Extension-based detection (<code>.mpt</code> vs <code>.mpp</code>) controls system mode.</li>
+      </ul>
+
+      <h4>Strict VBA Discipline</h4>
+      <ul>
+        <li>Use <strong>Option Explicit</strong> in all modules.</li>
+        <li>Declare explicit types for all variables.</li>
+        <li>Avoid <code>Variant</code> unless strictly necessary.</li>
+      </ul>
+
+      <h4>Application Object Usage</h4>
+      <ul>
+        <li>Always use the host <strong>Application</strong> object.</li>
+        <li>Never instantiate a new MS Project instance inside template code.</li>
+      </ul>
+
+      <h4>Template → Project Integrity</h4>
+      <ul>
+        <li>All required modules and forms must exist inside the <code>.mpt</code> so they propagate automatically when saving to <code>.mpp</code>.</li>
+      </ul>
+
+      <h4>Macro Trust Requirements</h4>
+      <ul>
+        <li>Document required <strong>Trust Center</strong> settings for macro execution.</li>
+        <li>The template must fail gracefully if macros are disabled.</li>
+      </ul>
+
+      <h4>Commit Standards</h4>
+      <ul>
+        <li>Follow Conventional Commits:</li>
+        <ul>
+          <li><code>feat:</code> new functionality</li>
+          <li><code>fix:</code> bug fixes</li>
+          <li><code>docs:</code> documentation updates</li>
+          <li><code>chore:</code> refactoring or maintenance</li>
+        </ul>
       </ul>
     </section>
 
-    <!-- Extra: diagrams area developers can expand -->
-    <section id="diagrams" class="card">
-      <h2>Diagrams</h2>
-      <p>Add architecture, data flow, and deployment diagrams below. Use Mermaid for live docs.</p>
-      <div class="mermaid">
-flowchart LR
-  Dev[Developer] --> Code[Edit Macros & Templates]
-  Code --> Build[Run build_mpt.ps1]
-  Build --> Ribbon[add_ribbon_to_mpt.ps1]
-  Ribbon --> Commit[Commit & Push]
-  Commit --> Pages[GitHub Pages Deploy]
-      </div>
-    </section>
+    
   </div>
 
   <!-- Optional tiny badge to indicate Dev context -->
