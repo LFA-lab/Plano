@@ -268,8 +268,8 @@ Set pjApp = Application  ' ✅ Use host application
 
       <h4>Production Macros Scope</h4>
       <ul>
-        <li>Only modules located in <code>/macros/production/</code> are included in the shipped <code>.mpt</code>.</li>
-        <li>Experimental or test macros must never be committed to production builds.</li>
+        <li>Production builds only include macros sourced from <code>/macros/import/</code>, <code>/macros/export/</code>, <code>/macros/reports/</code>, and <code>/macros/utils/</code> in the shipped <code>.mpt</code>.</li>
+        <li>Experimental or test macros must never be placed in these production directories or committed into production builds.</li>
       </ul>
 
       <h4>UI Injection Strategy</h4>
