@@ -352,7 +352,18 @@ Sub Import_Taches_Simples_AvecTitre()
             On Error GoTo 0
             ' =============================================================
             
-            logStream.WriteLine "  -> TITRE créé: " & nom & " (Niveau " & tGroup.OutlineLevel & " auto)"
+            ' Renseigner les champs texte sur la tâche récapitulative
+            ' (nécessaire pour que le filtrage par zone fonctionne sur les niveaux 2+)
+            tGroup.Text1 = tranche
+            tGroup.Text2 = zone
+            tGroup.Text3 = sousZone
+            tGroup.Text4 = typ
+            tGroup.Text5 = entreprise
+            tGroup.Text6 = niveau
+            tGroup.Text7 = onduleur
+            tGroup.Text8 = ptr
+            
+            logStream.WriteLine "  -> TITRE créé: " & nom & " (Niveau " & tGroup.OutlineLevel & " | Zone=" & zone & " | SousZone=" & sousZone & ")"
             GoTo NextRow
         End If
         
