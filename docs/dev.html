@@ -224,8 +224,14 @@ flowchart TD
       <p>Core directories and scripts relevant to build and documentation:</p>
       <pre>
 /macros/
-  /production/
-    └─ (VBA modules used in the .mpt)
+  /import/
+    └─ (VBA modules for importing data)
+  /export/
+    └─ (VBA modules for exporting/reporting data)
+  /reports/
+    └─ (VBA modules for report generation)
+  /utils/
+    └─ (shared helper/utility VBA modules)
 /scripts/
   ├─ build_mpt.ps1
   └─ push.ps1
