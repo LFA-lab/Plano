@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Plano · Developer Documentation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Keep dev docs out of public search results (optional but recommended) -->
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Standalone, page-local styling (does NOT depend on site CSS) -->
+  <style>
+    :root {
+      --ink: #0f172a;        /* slate-900 */
+      --muted: #64748b;      /* slate-500 */
+      --line: #e2e8f0;       /* slate-200 */
+      --bg: #ffffff;
+      --surface: #fafafa;
+      --brand: #003f7f;      /* matches your hover blue */
+      --warn-bg: #fff7ed;    /* orange-50 */
+      --warn-border: #fdba74;/* orange-300 */
+      --warn-ink: #9a3412;   /* orange-800 */
+      --code-bg: #f6f8fa;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 40px auto 72px;
+      padding: 0 16px;
+    }
+
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .back-link {
+      display: inline-block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .back-link:hover { color: var(--brand); }
+
+    h1 { font-size: 28px; margin: 8px 0 6px; }
+    .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+
+    .warning {
+      border: 1px solid var(--warn-border);
+      background: var(--warn-bg);
+      color: var(--warn-ink);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin: 18px 0 28px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 900px) {
+      .grid.two { grid-template-columns: 1fr 1fr; }
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 16px;
+    }
+
+    h2 { font-size: 20px; margin: 8px 0 12px; }
+    h3 { font-size: 16px; margin: 8px 0 8px; color: var(--muted); }
+
+    pre, code {
+      background: var(--code-bg);
+      border-radius: 6px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    pre { padding: 12px; border: 1px solid var(--line); }
+    code.inline { padding: 0 4px; border: 1px solid var(--line); }
+
+    .toc {
+      font-size: 14px;
+      padding: 10px 12px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fff;
+      margin-bottom: 16px;
+    }
+    .toc a { margin-right: 12px; }
+
+    /* Mermaid containers get some breathing space */
+    .mermaid {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    /* Optional: tiny floating dev tag to mirror main page (can remove) */
+    .dev-pill {
+      position: fixed; bottom: 16px; right: 16px;
+      font-size: 11px; color: #aaa; text-decoration: none;
+      padding: 4px 8px; border-radius: 4px; transition: all .2s;
+      z-index: 9999; backdrop-filter: blur(2px);
+      border: 1px solid var(--line); background: rgba(255,255,255,.85);
+    }
+    .dev-pill:hover { background: var(--brand); color: #fff; text-decoration: none; }
+  </style>
+
+  <!-- Mermaid.js (ESM) for diagrams, flowcharts, graph TD -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <!-- Back Button -->
+    <a href="../index.html" class="back-link">← Back to Plano</a>
+
+    <h1>Developer Documentation</h1>
+    <div class="subtitle">Architecture · Repo Layout · Conventions · Diagrams</div>
+
+    <!-- Warning Banner -->
+    <div class="warning">
+      ⚠️ <strong>TO UPDATE:</strong> Please keep this page current with each change to macros, templates, scripts, or build steps. Outdated docs will block release.
+    </div>
+
+    <!-- Local TOC -->
+    <div class="toc">
+      <a href="#architecture">Architecture</a>
+      <a href="#build-workflow">Developer Build Workflow</a>
+      <a href="#repo-structure">Repo Structure</a>
+      <a href="#rules">Key Rules (MS Project / VBA)</a>
+      <a href="#diagrams">Diagrams</a>
+    </div>
+
+    <!-- Architecture Diagram (End-user workflow .mpt -> .mpp -> daily use) -->
+    <section id="architecture" class="card">
+      <h2>Architecture</h2>
+      <p>End‑user workflow from .mpt import through daily .mpp usage:</p>
+      <div class="mermaid">
+flowchart TD
+  %% STEP 1 — Opening the .MPT
+  A1["User double-clicks ModèleImport.mpt"] --> A2["MS Project opens .mpt"]
+  A2 --> A3["ThisProject.Project_Open()"]
+  A3 --> A4{Extension = .mpt?}
+  A4 -->|Yes| A5["Show UserFormImport"]
+  A4 -->|No| B1["Open .mpp path"]
+
+  %% STEP 2 — Excel → Create Project
+  A5 --> A6["User selects Excel file"]
+  A6 --> A7["User clicks Create Project"]
+  A7 --> A8["1) Read Excel<br/>2) Create Tasks<br/>3) FileSaveAs .mpp<br/>4) VBA copied"]
+  A8 --> A9["Close Import Form"]
+  A9 --> A10["Open generated .mpp"]
+
+  %% STEP 3 — Opening new .mpp
+  A10 --> B1
+  B1 --> B2["ThisProject.Project_Open()"]
+  B2 --> B3{Extension = .mpp?}
+  B3 -->|Yes| B4["Run CreatePlanoMenu()"]
+  B4 --> B5["Display Plano menu"]
+  B3 -->|No| C1["No action"]
+
+  %% STEP 4 — Daily Use
+  B5 --> D1["User opens .mpp on later days"]
+  D1 --> D2["Plano menu loads automatically"]
+  D2 --> D3["User → Plano → Generate Dashboard"]
+  D3 --> D4["Macros run / Dashboard generated"]
+      </div>
+      <h3>Notes</h3>
+      <ul>
+        <li>This diagram intentionally focuses on user-facing runtime across <code>.mpt</code> and <code>.mpp</code>.</li>
+        <li>The import form appears only for <code>.mpt</code>; the Plano menu appears only for <code>.mpp</code>.</li>
+      </ul>
+    </section>
+
+    <!-- Developer Build Workflow -->
+    <section id="build-workflow" class="card">
+      <h2>Developer Build Workflow</h2>
+      <p>This diagram is strictly for developers to build, test, validate the template, and deploy. It intentionally excludes end‑user flows and business logic.</p>
+
+      <div class="mermaid">
+flowchart TD
+  A["STEP 1: Local Setup<br/><br/>Prereqs: Windows, Git, PowerShell 5+, MS Project<br/><br/>Commands:<br/>git clone https://github.com/lfa-lab/Plano.git<br/>cd Plano<br/>pwsh -NoProfile -Command Set-ExecutionPolicy -Scope Process Bypass"] --> B
+
+  B["STEP 2: Rebuild Artifacts<br/><br/>From repo root:<br/>./scripts/build_mpt.ps1<br/><br/>Result: .mpt updated with latest macros"] --> C0
+
+  %% STEP 3 — EXACT TEXT, split into short nodes (no syntax errors)
+  C0["STEP 3: Validate Template"] --> C1["Open /templates/ModèleImport.mpt"]
+  C1 --> C2["Confirm Import Form appears"]
+  C2 --> C3["Import test Excel"]
+  C3 --> C4["Save as .mpp"]
+  C4 --> C5["Reopen .mpp"]
+  C5 --> C6["Confirm:"]
+  C6 --> C7["No import form"]
+  C6 --> C8["Plano command under Add-Ins"]
+  C6 --> C9["Dashboard runs without error"]
+  C9 --> D
+
+  D["STEP 4: Deploy<br/><br/>git checkout -b docs/dev-workflow<br/>git add index.html style.css docs/dev.html<br/>git commit -m &quot;docs: add developer build workflow&quot;<br/>git push -u origin docs/dev-workflow<br/>Open PR → merge to main (Pages updates)<br/>Or: ./scripts/push.ps1"]
+      </div>
+
+      <p><em>Validation:</em> A new developer should be able to build, validate the template behavior in Project, and deploy by following these four steps — no additional guidance needed.</p>
+    </section>
+
+    <!-- Repo Structure Section -->
+    <section id="repo-structure" class="card">
+      <h2>Repo Structure</h2>
+      <p>Core directories and scripts relevant to build and documentation:</p>
+      <pre>
+/macros/
+  /import/
+    └─ (VBA modules for importing data)
+  /export/
+    └─ (VBA modules for exporting/reporting data)
+  /reports/
+    └─ (VBA modules for report generation)
+  /utils/
+    └─ (shared helper/utility VBA modules)
+/scripts/
+  ├─ build_mpt.ps1
+  └─ push.ps1
+/templates/
+  └─ (Base .mpt and any supporting template files)
+/docs/
+  └─ dev.html   ← (this page)
+/assets/
+  └─ (images, logos, exported diagrams if shared)
+/index.html
+/style.css
+      </pre>
+      <p>Update this tree if you add or move components so contributors know where to make changes.</p>
+    </section>
+
+    <!-- Key Rules Section -->
+    <section id="rules" class="card">
+      <h2>Key Rules (Microsoft Project / VBA)</h2>
+      <p>These rules avoid common runtime issues when working inside an <code>.mpt</code> environment.</p>
+
+      <h3>Project Application Object</h3>
+      <p><strong>Never use (inside .mpt):</strong></p>
+      <pre><code>Dim pjApp
+Set pjApp = CreateObject("MSProject.Application")  ' ❌ Avoid
+      </code></pre>
+
+      <p><strong>Always prefer:</strong></p>
+      <pre><code>Dim pjApp As Application
+Set pjApp = Application  ' ✅ Use host application
+      </code></pre>
+
+      <h3>General Conventions</h3>
+
+      <h4>Production Macros Scope</h4>
+      <ul>
+        <li>Production builds only include macros sourced from <code>/macros/import/</code>, <code>/macros/export/</code>, <code>/macros/reports/</code>, and <code>/macros/utils/</code> in the shipped <code>.mpt</code>.</li>
+        <li>Experimental or test macros must never be placed in these production directories or committed into production builds.</li>
+      </ul>
+
+      <h4>UI Injection Strategy</h4>
+      <ul>
+        <li>The Plano command is created dynamically via VBA using legacy <strong>CommandBars</strong>.</li>
+        <li>The command appears under the <strong>Add-Ins</strong> tab.</li>
+        <li>No Ribbon XML customization is used in the current architecture.</li>
+      </ul>
+
+      <h4>Single Entry Point Rule</h4>
+      <ul>
+        <li>All runtime behavior must originate from <code>ThisProject.Project_Open()</code>.</li>
+        <li>Extension-based detection (<code>.mpt</code> vs <code>.mpp</code>) controls system mode.</li>
+      </ul>
+
+      <h4>Strict VBA Discipline</h4>
+      <ul>
+        <li>Use <strong>Option Explicit</strong> in all modules.</li>
+        <li>Declare explicit types for all variables.</li>
+        <li>Avoid <code>Variant</code> unless strictly necessary.</li>
+      </ul>
+
+      <h4>Application Object Usage</h4>
+      <ul>
+        <li>Always use the host <strong>Application</strong> object.</li>
+        <li>Never instantiate a new MS Project instance inside template code.</li>
+      </ul>
+
+      <h4>Template → Project Integrity</h4>
+      <ul>
+        <li>All required modules and forms must exist inside the <code>.mpt</code> so they propagate automatically when saving to <code>.mpp</code>.</li>
+      </ul>
+
+      <h4>Macro Trust Requirements</h4>
+      <ul>
+        <li>Document required <strong>Trust Center</strong> settings for macro execution.</li>
+        <li>The template must fail gracefully if macros are disabled.</li>
+      </ul>
+
+      <h4>Commit Standards</h4>
+      <ul>
+        <li>Follow Conventional Commits:</li>
+        <ul>
+          <li><code>feat:</code> new functionality</li>
+          <li><code>fix:</code> bug fixes</li>
+          <li><code>docs:</code> documentation updates</li>
+          <li><code>chore:</code> refactoring or maintenance</li>
+        </ul>
+      </ul>
+    </section>
+
+    <section id="diagrams" aria-labelledby="diagrams-heading">
+      <h2 id="diagrams-heading">Diagrams</h2>
+      <p>
+        This section documents high-level architecture and data flow using diagrams.
+        Keep diagrams updated whenever significant structural changes are made so that
+        they remain a reliable reference for developers.
+      </p>
+      <ul>
+        <li>Include module and component relationship diagrams for the VBA macros.</li>
+        <li>Document the lifecycle from template (<code>.mpt</code>) to project (<code>.mpp</code>).</li>
+        <li>Highlight external dependencies and integration points.</li>
+      </ul>
+    </section>
+  </div>
+
+  <!-- Optional tiny badge to indicate Dev context -->
+  <span class="dev-pill" aria-current="page" title="You are on the Dev Docs">⚙️ Dev</span>
+</body>
+</html>

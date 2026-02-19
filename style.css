@@ -806,3 +806,22 @@ header p {
         font-size: 0.9rem;
     }
 }
+
+.dev-link {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  font-size: 11px;
+  color: #aaa;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  z-index: 9999;           /* ensures it stays above canvases/plots */
+  backdrop-filter: blur(2px);
+}
+
+.dev-link:hover {
+  background: #003f7f;
+  color: #fff;
+}
