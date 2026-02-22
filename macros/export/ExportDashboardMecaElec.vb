@@ -1,6 +1,12 @@
 Option Explicit
 
 ' ============================================================================
+'  CONFIGURATION : dossier de sortie des fichiers générés
+'  Correspond au dossier du source VB sur la machine de dev (via WSL UNC)
+' ============================================================================
+Private Const OUTPUT_DIR As String = "\\wsl.localhost\Ubuntu\home\ntoi\LFA-lab\Plano\macros\export\"
+
+' ============================================================================
 '  MODULE : ExportDashboardMecaElec
 '  OBJET  : Exporter un dashboard HTML style "Dashboard Interne" depuis MS Project
 '           Style visuel identique à dashboard.html (bordures noires, barres jaunes)
@@ -34,9 +40,9 @@ Sub ExportDashboardMecaElec()
         End If
     Next t
     
-    ' Chemins des fichiers
-    filePath = Environ$("USERPROFILE") & "\Documents\dashboard_mecaelec.html"
-    logPath = Environ$("USERPROFILE") & "\Documents\dashboard_mecaelec_DEBUG.txt"
+    ' Chemins de sortie — dans le dossier du source VB (voir constante OUTPUT_DIR en haut)
+    filePath = OUTPUT_DIR & "dashboard_mecaelec.html"
+    logPath  = OUTPUT_DIR & "dashboard_mecaelec_DEBUG.txt"
     
     ' Génération du HTML complet
     Dim htmlContent As String
@@ -180,10 +186,7 @@ Private Function BuildHTMLBody() As String
     html = html & "  <button class='tab-button' data-view='client'>Dashboard Client</button>" & vbCrLf
     html = html & "</div>" & vbCrLf
     
-    ' Sélecteur de zone
-    html = html & BuildZoneSelector()
-    
-    ' Vue Métiers (VRD/MECA/ELEC)
+    ' Vue Métiers — le sélecteur de sous-zone est encapsulé DANS cette vue
     html = html & BuildViewMetiers()
     
     ' Vue Client
@@ -197,7 +200,8 @@ End Function
 '  SÉLECTEUR DE ZONE
 ' ============================================================================
 
-Private Function BuildZoneSelector() As String
+Private Function BuildZoneSelector(Optional ByVal selectId As String = "zoneFilter", _
+                                    Optional ByVal infoId As String = "zoneInfo") As String
     Dim html As String
     Dim t As Task
     Dim zone As String
@@ -208,7 +212,7 @@ Private Function BuildZoneSelector() As String
     
     Set zones = CreateObject("Scripting.Dictionary")
     
-    ' Collecter toutes les sous-zones uniques (colonne F = Text3)
+    ' Collecter toutes les sous-zones uniques depuis les tâches feuilles (Text3)
     For Each t In ActiveProject.Tasks
         If Not t Is Nothing And Not t.Summary Then
             zone = IIf(Len(t.Text3) > 0, CStr(t.Text3), "")
@@ -227,7 +231,6 @@ Private Function BuildZoneSelector() As String
             i = i + 1
         Next zoneKey
         
-        ' Tri à bulles
         For i = 0 To UBound(sortedZones) - 1
             For j = i + 1 To UBound(sortedZones)
                 If sortedZones(i) > sortedZones(j) Then
@@ -240,11 +243,10 @@ Private Function BuildZoneSelector() As String
     End If
     
     html = "<div style='margin:15px 0;padding:12px;border:2px solid #000;background:#f9f9f9;'>" & vbCrLf
-    html = html & "  <label style='font-size:11px;font-weight:600;margin-right:10px;'>Affichage par zone :</label>" & vbCrLf
-    html = html & "  <select id='zoneFilter' style='padding:6px 12px;font-size:11px;border:2px solid #000;background:white;cursor:pointer;min-width:200px;'>" & vbCrLf
-    html = html & "    <option value='all' selected>✓ Toutes les zones (consolidé)</option>" & vbCrLf
+    html = html & "  <label style='font-size:11px;font-weight:600;margin-right:10px;'>Affichage par sous-zone :</label>" & vbCrLf
+    html = html & "  <select id='" & selectId & "' style='padding:6px 12px;font-size:11px;border:2px solid #000;background:white;cursor:pointer;min-width:200px;'>" & vbCrLf
+    html = html & "    <option value='all' selected>&#10003; Toutes les zones (consolidé)</option>" & vbCrLf
     
-    ' Ajouter une option pour chaque sous-zone
     If zones.Count > 0 Then
         For i = 0 To UBound(sortedZones)
             html = html & "    <option value='" & EncodeHTML(sortedZones(i)) & "'>" & EncodeHTML(sortedZones(i)) & "</option>" & vbCrLf
@@ -252,7 +254,7 @@ Private Function BuildZoneSelector() As String
     End If
     
     html = html & "  </select>" & vbCrLf
-    html = html & "  <span id='zoneInfo' style='margin-left:15px;font-size:10px;color:#666;'></span>" & vbCrLf
+    html = html & "  <span id='" & infoId & "' style='margin-left:15px;font-size:10px;color:#666;'></span>" & vbCrLf
     html = html & "</div>" & vbCrLf
     
     BuildZoneSelector = html
@@ -267,6 +269,8 @@ Private Function BuildViewMetiers() As String
     Dim html As String
     
     html = "<div class='view-section active' data-view='metiers'>" & vbCrLf
+    ' Sélecteur de sous-zone : encapsulé dans la vue Métiers uniquement
+    html = html & BuildZoneSelector()
     html = html & "  <div style='display:grid;grid-template-columns:repeat(3,1fr);gap:15px;padding:15px;'>" & vbCrLf
     
     ' Section TRANCHÉES (VRD)
@@ -296,104 +300,92 @@ End Function
 
 ' ============================================================================
 '  HELPER : Générer une section métier (VRD/MECA/ELEC)
+'
+'  Approche : itérer directement sur les tâches FEUILLES filtrées par Text4.
+'  Chaque tâche feuille devient une ligne indépendante (son nom propre, sa zone,
+'  son % MSProject direct). Pas de groupement par récapitulatif.
+'  "Avancement général" = moyenne pondérée par durée de toutes les feuilles du métier.
 ' ============================================================================
 
 Private Function BuildMetierSection(ByVal metierType As String) As String
-    Dim html As String
-    Dim t As Task
-    Dim summaryData As Object
-    Dim hasMatchingLot As Boolean
-    Dim subTask As Task
-    Dim lot As String
-    Dim pct As Double
-    Dim key As Variant
-    Dim totalPct As Double
-    Dim taskName As String
-    Dim taskPct As Double
-    Dim avgPct As Double
-    Dim taskZone As String
-    Dim zoneAttr As String
+    Dim html         As String
+    Dim t            As Task
+    Dim lot          As String
+    Dim subZone      As String
+    Dim dur          As Double
+    Dim pct          As Double
+    Dim avgPct       As Double
+    Dim pctStr       As String
+    Dim genSumPctDur As Double
+    Dim genSumDur    As Double
+    Dim genCount     As Long
+    Dim genSumPct    As Double
+    Dim hasRows      As Boolean
     
-    Set summaryData = CreateObject("Scripting.Dictionary")
+    hasRows = False
     
-    ' Collecter les tâches récapitulatives ayant des subordonnées avec le bon Lot
+    ' ----------------------------------------------------------------
+    ' Itération unique sur toutes les tâches feuilles
+    ' ----------------------------------------------------------------
     For Each t In ActiveProject.Tasks
-        If Not t Is Nothing And t.Summary Then
-            ' Exclure la tâche récapitulative du projet (niveau 1)
-            If t.OutlineLevel > 1 Then
-            ' Vérifier si cette tâche récapitulative a des sous-tâches avec le bon métier
-            hasMatchingLot = False
-            taskZone = "SANS_ZONE"
+        If Not t Is Nothing And Not t.Summary Then
+            lot = LCase$(Trim$(IIf(Len(t.Text4) > 0, CStr(t.Text4), "")))
             
-            For Each subTask In ActiveProject.Tasks
-                If Not subTask Is Nothing And Not subTask.Summary Then
-                    ' Vérifier si c'est une sous-tâche de t
-                    If subTask.OutlineLevel > t.OutlineLevel And _
-                       subTask.ID > t.ID And _
-                       (subTask.OutlineParent Is Nothing Or subTask.OutlineParent.ID = t.ID Or _
-                        IsSubTaskOf(subTask, t)) Then
-                        
-                        lot = LCase$(Trim$(IIf(Len(subTask.Text4) > 0, CStr(subTask.Text4), "")))
-                        
-                        ' Vérifier le mapping
-                        If (metierType = "vrd" And InStr(lot, "vrd") > 0) Or _
-                           (metierType = "meca" And (InStr(lot, "meca") > 0 Or InStr(lot, "mecanique") > 0)) Or _
-                           (metierType = "elec" And (InStr(lot, "elec") > 0 Or InStr(lot, "electrique") > 0)) Then
-                            hasMatchingLot = True
-                            ' Récupérer la zone de la première sous-tâche qui match
-                            If taskZone = "SANS_ZONE" And Len(subTask.Text3) > 0 Then
-                                taskZone = CStr(subTask.Text3)
-                            End If
-                        End If
-                    End If
+            If MetierMatch(metierType, lot) Then
+                subZone = IIf(Len(t.Text3) > 0, CStr(t.Text3), "SANS_ZONE")
+                
+                dur = 0
+                On Error Resume Next
+                If Not IsEmpty(t.Duration) And Not IsNull(t.Duration) Then
+                    dur = CDbl(t.Duration)
                 End If
-            Next subTask
-            
-            If hasMatchingLot Then
+                On Error GoTo 0
+                
                 pct = 0
+                On Error Resume Next
                 If Not IsEmpty(t.PercentComplete) And Not IsNull(t.PercentComplete) Then
                     pct = CDbl(t.PercentComplete)
                 End If
+                On Error GoTo 0
                 
-                ' Ajouter même si pct = 0 pour afficher toutes les catégories
-                If Not summaryData.Exists(t.ID) Then
-                    summaryData.Add t.ID, Array(t.Name, pct, taskZone)
-                End If
-            End If
+                ' Accumuler pour l'avancement général
+                genSumPctDur = genSumPctDur + pct * dur
+                genSumDur    = genSumDur    + dur
+                genCount     = genCount     + 1
+                genSumPct    = genSumPct    + pct
+                
+                ' Ligne HTML : nom réel de la tâche feuille
+                pctStr = Replace(CStr(pct), ",", ".")
+                html = html & "      <div class='mechanical-progress-row' data-zone='" & EncodeHTML(subZone) & "' data-pct='" & pctStr & "'>" & vbCrLf
+                html = html & "        <div class='mechanical-progress-label'>" & EncodeHTML(t.Name) & "</div>" & vbCrLf
+                html = html & "        <div class='mechanical-progress-bar-container'>" & vbCrLf
+                html = html & "          <div class='mechanical-progress-bar' style='width:" & pctStr & "%;'></div>" & vbCrLf
+                html = html & "        </div>" & vbCrLf
+                html = html & "        <div class='mechanical-progress-percentage'>" & Replace(CStr(Round(pct, 1)), ".", ",") & "%</div>" & vbCrLf
+                html = html & "      </div>" & vbCrLf
+                
+                hasRows = True
             End If
         End If
     Next t
     
-    ' Générer les barres de progression
-    If summaryData.Count > 0 Then
-        totalPct = 0
-        
-        For Each key In summaryData.Keys
-            taskName = summaryData(key)(0)
-            taskPct = summaryData(key)(1)
-            zoneAttr = summaryData(key)(2)
-            totalPct = totalPct + taskPct
-            
-            html = html & "      <div class='mechanical-progress-row' data-zone='" & EncodeHTML(zoneAttr) & "' data-pct='" & taskPct & "'>" & vbCrLf
-            html = html & "        <div class='mechanical-progress-label'>" & EncodeHTML(taskName) & "</div>" & vbCrLf
-            html = html & "        <div class='mechanical-progress-bar-container'>" & vbCrLf
-            html = html & "          <div class='mechanical-progress-bar' style='width:" & taskPct & "%;'></div>" & vbCrLf
-            html = html & "        </div>" & vbCrLf
-            html = html & "        <div class='mechanical-progress-percentage'>" & Replace(CStr(Round(taskPct, 1)), ".", ",") & "%</div>" & vbCrLf
-            html = html & "      </div>" & vbCrLf
-        Next key
-        
-        ' Ajouter la barre "Avancement général" (sera masquée en mode filtré)
-        If summaryData.Count > 0 Then
-            avgPct = totalPct / summaryData.Count
+    ' ----------------------------------------------------------------
+    ' Ligne "Avancement général" — pondérée par durée, fallback simple
+    ' ----------------------------------------------------------------
+    If hasRows Then
+        If genSumDur > 0 Then
+            avgPct = genSumPctDur / genSumDur
+        ElseIf genCount > 0 Then
+            avgPct = genSumPct / genCount
         Else
             avgPct = 0
         End If
         
-        html = html & "      <div class='mechanical-progress-row general' data-zone='__GENERAL__' data-pct='" & avgPct & "'>" & vbCrLf
+        pctStr = Replace(CStr(avgPct), ",", ".")
+        html = html & "      <div class='mechanical-progress-row general' data-zone='__GENERAL__' data-pct='" & pctStr & "'>" & vbCrLf
         html = html & "        <div class='mechanical-progress-label'>Avancement général</div>" & vbCrLf
         html = html & "        <div class='mechanical-progress-bar-container'>" & vbCrLf
-        html = html & "          <div class='mechanical-progress-bar' style='width:" & avgPct & "%;'></div>" & vbCrLf
+        html = html & "          <div class='mechanical-progress-bar' style='width:" & pctStr & "%;'></div>" & vbCrLf
         html = html & "        </div>" & vbCrLf
         html = html & "        <div class='mechanical-progress-percentage'>" & Replace(CStr(Round(avgPct, 1)), ".", ",") & "%</div>" & vbCrLf
         html = html & "      </div>" & vbCrLf
@@ -432,6 +424,24 @@ End Function
 
 
 ' ============================================================================
+'  HELPER : Tester si un lot (Text4 en minuscules/trimé) correspond au métier
+' ============================================================================
+
+Private Function MetierMatch(ByVal metierType As String, ByVal lotLower As String) As Boolean
+    Select Case metierType
+        Case "vrd"
+            MetierMatch = (InStr(lotLower, "vrd") > 0)
+        Case "meca"
+            MetierMatch = (InStr(lotLower, "meca") > 0 Or InStr(lotLower, "mecanique") > 0)
+        Case "elec"
+            MetierMatch = (InStr(lotLower, "elec") > 0 Or InStr(lotLower, "electrique") > 0)
+        Case Else
+            MetierMatch = False
+    End Select
+End Function
+
+
+' ============================================================================
 '  JAVASCRIPT : Gestion des onglets
 ' ============================================================================
 
@@ -461,11 +471,11 @@ Private Function BuildJavaScript() As String
     js = js & "    });" & vbCrLf
     js = js & "  });" & vbCrLf
     js = js & vbCrLf
-    js = js & "  // Gestion du filtrage par zone" & vbCrLf
+    js = js & "  // Gestion du filtrage par zone — Vue Métiers" & vbCrLf
     js = js & "  if (zoneFilter) {" & vbCrLf
     js = js & "    zoneFilter.addEventListener('change', function() {" & vbCrLf
     js = js & "      const selectedZone = this.value;" & vbCrLf
-    js = js & "      const rows = document.querySelectorAll('[data-zone]');" & vbCrLf
+    js = js & "      const rows = document.querySelectorAll('[data-view=""metiers""] [data-zone]');" & vbCrLf
     js = js & "      let visibleCount = 0;" & vbCrLf
     js = js & "      let totalCount = 0;" & vbCrLf
     js = js & "      let sumPct = 0;" & vbCrLf
@@ -499,7 +509,7 @@ Private Function BuildJavaScript() As String
     js = js & "      });" & vbCrLf
     js = js & vbCrLf
     js = js & "      // Recalculer avancement général" & vbCrLf
-    js = js & "      const generalRows = document.querySelectorAll('.mechanical-progress-row.general');" & vbCrLf
+    js = js & "      const generalRows = document.querySelectorAll('[data-view=""metiers""] .mechanical-progress-row.general');" & vbCrLf
     js = js & "      generalRows.forEach(generalRow => {" & vbCrLf
     js = js & "        if (selectedZone !== 'all') {" & vbCrLf
     js = js & "          const avgPct = visibleDataRows > 0 ? sumPct / visibleDataRows : 0;" & vbCrLf
@@ -511,6 +521,17 @@ Private Function BuildJavaScript() As String
     js = js & "          if (label) label.textContent = 'Avancement ' + selectedZone;" & vbCrLf
     js = js & "          generalRow.style.display = '';" & vbCrLf
     js = js & "          generalRow.setAttribute('data-zone', selectedZone);" & vbCrLf
+    js = js & "        } else {" & vbCrLf
+    js = js & "          // Retour à 'Toutes les zones' : restaurer l'état initial de la ligne générale" & vbCrLf
+    js = js & "          const origPct = parseFloat(generalRow.getAttribute('data-pct')) || 0;" & vbCrLf
+    js = js & "          generalRow.setAttribute('data-zone', '__GENERAL__');" & vbCrLf
+    js = js & "          generalRow.style.display = '';" & vbCrLf
+    js = js & "          const bar = generalRow.querySelector('.mechanical-progress-bar');" & vbCrLf
+    js = js & "          const percentage = generalRow.querySelector('.mechanical-progress-percentage');" & vbCrLf
+    js = js & "          const label = generalRow.querySelector('.mechanical-progress-label');" & vbCrLf
+    js = js & "          if (bar) bar.style.width = origPct + '%';" & vbCrLf
+    js = js & "          if (percentage) percentage.textContent = origPct.toFixed(1).replace('.', ',') + '%';" & vbCrLf
+    js = js & "          if (label) label.textContent = 'Avancement général';" & vbCrLf
     js = js & "        }" & vbCrLf
     js = js & "      });" & vbCrLf
     js = js & vbCrLf
@@ -525,9 +546,41 @@ Private Function BuildJavaScript() As String
     js = js & "    });" & vbCrLf
     js = js & vbCrLf
     js = js & "    // Initialiser le compteur" & vbCrLf
-    js = js & "    const totalRows = document.querySelectorAll('[data-zone]:not([data-zone=""__GENERAL__""])').length;" & vbCrLf
+    js = js & "    const totalRows = document.querySelectorAll('[data-view=""metiers""] [data-zone]:not([data-zone=""__GENERAL__""])').length;" & vbCrLf
     js = js & "    if (zoneInfo) {" & vbCrLf
     js = js & "      zoneInfo.textContent = totalRows + ' ligne' + (totalRows > 1 ? 's' : '') + ' (toutes zones agrégées)';" & vbCrLf
+    js = js & "    }" & vbCrLf
+    js = js & "  }" & vbCrLf
+    js = js & vbCrLf
+    js = js & "  // Gestion du filtrage par zone — Dashboard Client" & vbCrLf
+    js = js & "  const zoneFilterClient = document.getElementById('zoneFilterClient');" & vbCrLf
+    js = js & "  const zoneInfoClient   = document.getElementById('zoneInfoClient');" & vbCrLf
+    js = js & "  if (zoneFilterClient) {" & vbCrLf
+    js = js & "    zoneFilterClient.addEventListener('change', function() {" & vbCrLf
+    js = js & "      const selectedZone = this.value;" & vbCrLf
+    js = js & "      const rows = document.querySelectorAll('[data-view=""client""] [data-zone]');" & vbCrLf
+    js = js & "      let visible = 0;" & vbCrLf
+    js = js & "      rows.forEach(row => {" & vbCrLf
+    js = js & "        const rz = row.getAttribute('data-zone');" & vbCrLf
+    js = js & "        if (selectedZone === 'all' || rz === selectedZone) {" & vbCrLf
+    js = js & "          row.style.display = '';" & vbCrLf
+    js = js & "          visible++;" & vbCrLf
+    js = js & "        } else {" & vbCrLf
+    js = js & "          row.style.display = 'none';" & vbCrLf
+    js = js & "        }" & vbCrLf
+    js = js & "      });" & vbCrLf
+    js = js & "      if (zoneInfoClient) {" & vbCrLf
+    js = js & "        if (selectedZone === 'all') {" & vbCrLf
+    js = js & "          zoneInfoClient.textContent = rows.length + ' lot' + (rows.length > 1 ? 's' : '') + ' (toutes zones)';" & vbCrLf
+    js = js & "        } else {" & vbCrLf
+    js = js & "          zoneInfoClient.textContent = visible + ' lot' + (visible > 1 ? 's' : '') + ' affiché' + (visible > 1 ? 's' : '');" & vbCrLf
+    js = js & "        }" & vbCrLf
+    js = js & "      }" & vbCrLf
+    js = js & "    });" & vbCrLf
+    js = js & "    // Init compteur Dashboard Client" & vbCrLf
+    js = js & "    const totalClient = document.querySelectorAll('[data-view=""client""] [data-zone]').length;" & vbCrLf
+    js = js & "    if (zoneInfoClient) {" & vbCrLf
+    js = js & "      zoneInfoClient.textContent = totalClient + ' lot' + (totalClient > 1 ? 's' : '') + ' (toutes zones)';" & vbCrLf
     js = js & "    }" & vbCrLf
     js = js & "  }" & vbCrLf
     js = js & "});" & vbCrLf
@@ -545,7 +598,10 @@ Private Function BuildViewClient() As String
     Dim html As String
     
     html = "<div class='view-section' data-view='client'>" & vbCrLf
-    html = html & "  <h2 style='text-align:center;margin-bottom:40px;'>DASHBOARD CLIENT - EDF RE</h2>" & vbCrLf
+    html = html & "  <h2 style='text-align:center;margin-bottom:20px;'>DASHBOARD CLIENT - EDF RE</h2>" & vbCrLf
+    
+    ' Sélecteur de zone — même logique que Vue Métiers, IDs distincts
+    html = html & BuildZoneSelector("zoneFilterClient", "zoneInfoClient")
     
     ' Section 1 : Histogramme par grande catégorie
     html = html & BuildClientSection1_Histogramme()
@@ -573,53 +629,59 @@ End Function
 ' ============================================================================
 
 Private Function BuildClientSection1_Histogramme() As String
-    Dim html As String
-    Dim t As Task
+    Dim html     As String
+    Dim t        As Task
+    Dim child    As Task
     Dim summaryTasks As Object
-    Dim pct As Double
-    Dim i As Long
-    Dim k As Variant
-    Dim j As Long, temp As Variant
-    Dim taskName As String, taskPct As Double
+    Dim pct      As Double
+    Dim i As Long, j As Long
+    Dim k As Variant, temp As Variant
+    Dim taskName As String, taskPct As Double, taskZone As String
+    Dim recapZone As String
+    Dim pctStr   As String
     
     Set summaryTasks = CreateObject("Scripting.Dictionary")
     
     html = "<h3 style='font-size:14px;font-weight:bold;margin-bottom:20px;'>AVANCEMENT PAR GRANDE CATÉGORIE</h3>" & vbCrLf
     html = html & "<div class='mechanical-progress-grid' style='max-width:900px;margin:0 auto;'>" & vbCrLf
     
-    ' Collecter toutes les tâches récapitulatives (sauf niveau 1)
+    ' Récapitulatifs de niveau 2 uniquement (lots directs : VRD, Meca, MALT…)
     For Each t In ActiveProject.Tasks
         On Error Resume Next
         If Not t Is Nothing Then
-            If t.Summary Then
-                ' Exclure la tâche récapitulative du projet (niveau 1)
-                If t.OutlineLevel > 1 Then
-                    pct = 0
-                    
-                    If Not IsEmpty(t.PercentComplete) And Not IsNull(t.PercentComplete) Then
-                        pct = CDbl(t.PercentComplete)
-                    End If
-                    
-                    ' Ajouter TOUTES les tâches récapitulatives, même à 0%
-                    summaryTasks.Add t.ID, Array(t.Name, pct)
+            If t.Summary And t.OutlineLevel = 2 Then
+                pct = 0
+                If Not IsEmpty(t.PercentComplete) And Not IsNull(t.PercentComplete) Then
+                    pct = CDbl(t.PercentComplete)
                 End If
+                
+                ' Détecter la zone : première tâche feuille enfant
+                recapZone = "SANS_ZONE"
+                For Each child In ActiveProject.Tasks
+                    If Not child Is Nothing And Not child.Summary Then
+                        If IsSubTaskOf(child, t) Then
+                            recapZone = IIf(Len(child.Text3) > 0, CStr(child.Text3), "SANS_ZONE")
+                            Exit For
+                        End If
+                    End If
+                Next child
+                
+                summaryTasks.Add t.ID, Array(t.Name, pct, recapZone)
             End If
         End If
         On Error GoTo 0
     Next t
     
-    ' Trier par % décroissant (tri à bulles)
+    ' Trier par % décroissant
     If summaryTasks.Count > 0 Then
         Dim keys() As Variant
         ReDim keys(summaryTasks.Count - 1)
-        
         i = 0
         For Each k In summaryTasks.Keys
             keys(i) = k
             i = i + 1
         Next k
         
-        ' Tri à bulles par % décroissant
         For i = 0 To UBound(keys) - 1
             For j = i + 1 To UBound(keys)
                 If summaryTasks(keys(i))(1) < summaryTasks(keys(j))(1) Then
@@ -630,21 +692,23 @@ Private Function BuildClientSection1_Histogramme() As String
             Next j
         Next i
         
-        ' Générer les barres
+        ' Générer les barres avec data-zone + data-pct pour le filtre JS
         For i = 0 To UBound(keys)
             taskName = summaryTasks(keys(i))(0)
-            taskPct = summaryTasks(keys(i))(1)
+            taskPct  = summaryTasks(keys(i))(1)
+            taskZone = CStr(summaryTasks(keys(i))(2))
+            pctStr   = Replace(CStr(taskPct), ",", ".")
             
-            html = html & "  <div class='mechanical-progress-row'>" & vbCrLf
+            html = html & "  <div class='mechanical-progress-row' data-zone='" & EncodeHTML(taskZone) & "' data-pct='" & pctStr & "'>" & vbCrLf
             html = html & "    <div class='mechanical-progress-label'>" & EncodeHTML(taskName) & "</div>" & vbCrLf
             html = html & "    <div class='mechanical-progress-bar-container'>" & vbCrLf
-            html = html & "      <div class='mechanical-progress-bar' style='width:" & taskPct & "%;'></div>" & vbCrLf
+            html = html & "      <div class='mechanical-progress-bar' style='width:" & pctStr & "%;'></div>" & vbCrLf
             html = html & "    </div>" & vbCrLf
             html = html & "    <div class='mechanical-progress-percentage'>" & Replace(CStr(Round(taskPct, 1)), ".", ",") & "%</div>" & vbCrLf
             html = html & "  </div>" & vbCrLf
         Next i
     Else
-        html = html & "  <p style='text-align:center;color:#666;'>Aucune tâche récapitulative avec avancement trouvée</p>" & vbCrLf
+        html = html & "  <p style='text-align:center;color:#666;'>Aucune tâche récapitulative trouvée</p>" & vbCrLf
     End If
     
     html = html & "</div>" & vbCrLf
@@ -1683,6 +1747,23 @@ Private Function CreateDebugLog() As String
     Next t
     
     ' ========================================================================
+    ' ETAPE 6 : COHERENCE ENTRE VUE METIERS ET DASHBOARD CLIENT
+    ' ========================================================================
+    ' Hypothese : le % affiche dans Vue Metiers est le PercentComplete GLOBAL
+    ' d'une tache recapitulative. Si cette recap contient des sous-taches de
+    ' PLUSIEURS metiers, le % affiché est "pollue" par les autres metiers.
+    ' C'est la cause principale des chiffres illogiques entre les deux vues.
+    ' ========================================================================
+    log = log & vbCrLf & String(80, "=") & vbCrLf
+    log = log & "ETAPE 6 : COHERENCE VUE METIERS vs DASHBOARD CLIENT" & vbCrLf
+    log = log & String(80, "=") & vbCrLf & vbCrLf
+    log = log & "  >> Text3 = Zone | Text4 = Metier" & vbCrLf & vbCrLf
+    
+    log = log & LogMetierSection("vrd",  "TRANCHEES  (VRD)")
+    log = log & LogMetierSection("meca", "STRUCTURES (MECA)")
+    log = log & LogMetierSection("elec", "ELECTRICITE (ELEC)")
+    
+    ' ========================================================================
     ' CONCLUSION
     ' ========================================================================
     log = log & vbCrLf & String(80, "=") & vbCrLf
@@ -1699,6 +1780,150 @@ Private Function CreateDebugLog() As String
     log = log & vbCrLf & "Fin du diagnostic." & vbCrLf
     
     CreateDebugLog = log
+End Function
+
+
+' ============================================================================
+'  DEBUG HELPER : Analyse d'un metier pour duckdebugging
+'
+'  Reproduit la logique de BuildMetierSection et expose l'incohérence centrale :
+'  Une tache recapitulative peut contenir des sous-taches de PLUSIEURS metiers.
+'  Son PercentComplete MSProject est un agregat de TOUS ses metiers.
+'  => Le % affiche dans Vue Metiers n'est pas le vrai % du metier seul.
+'  => C'est la source des chiffres divergents entre Vue Metiers et Dashboard Client.
+' ============================================================================
+
+Private Function LogMetierSection(ByVal metierType As String, ByVal metierLabel As String) As String
+    Dim log As String
+    Dim t As Task, sub1 As Task
+    Dim hasMatchingLot As Boolean
+    Dim taskZone As String, subLot As String
+    Dim pct As Double
+    Dim foundList As Object
+    Dim key As Variant
+    Dim tName As String, tPct As Double, tZone As String
+    Dim tLevel As Integer, tOutline As String
+    Dim subCountMatch As Long, subCountOther As Long, subCountNone As Long
+    Dim sumPctMatch As Double, pctPur As Double
+    Dim otherMetiers As String, subPct As Double
+    Dim isMatch As Boolean, totalSub As Long
+    Dim alertMsg As String
+    
+    Set foundList = CreateObject("Scripting.Dictionary")
+    
+    log = "+--- " & metierLabel & " " & String(74 - Len(metierLabel), "-") & vbCrLf
+    
+    ' Reproduire la même logique de détection que BuildMetierSection
+    For Each t In ActiveProject.Tasks
+        If Not t Is Nothing And t.Summary And t.OutlineLevel > 1 Then
+            hasMatchingLot = False
+            taskZone = "SANS_ZONE"
+            
+            For Each sub1 In ActiveProject.Tasks
+                If Not sub1 Is Nothing And Not sub1.Summary Then
+                    If sub1.OutlineLevel > t.OutlineLevel And sub1.ID > t.ID And _
+                       (sub1.OutlineParent Is Nothing Or sub1.OutlineParent.ID = t.ID Or _
+                        IsSubTaskOf(sub1, t)) Then
+                        subLot = LCase$(Trim$(IIf(Len(sub1.Text4) > 0, CStr(sub1.Text4), "")))
+                        If (metierType = "vrd"  And InStr(subLot, "vrd") > 0) Or _
+                           (metierType = "meca" And (InStr(subLot, "meca") > 0 Or InStr(subLot, "mecanique") > 0)) Or _
+                           (metierType = "elec" And (InStr(subLot, "elec") > 0 Or InStr(subLot, "electrique") > 0)) Then
+                            hasMatchingLot = True
+                            If taskZone = "SANS_ZONE" And Len(sub1.Text3) > 0 Then taskZone = CStr(sub1.Text3)
+                        End If
+                    End If
+                End If
+            Next sub1
+            
+            If hasMatchingLot And Not foundList.Exists(t.ID) Then
+                pct = 0
+                If Not IsEmpty(t.PercentComplete) And Not IsNull(t.PercentComplete) Then pct = CDbl(t.PercentComplete)
+                foundList.Add t.ID, Array(t.Name, pct, taskZone, t.OutlineLevel, t.OutlineNumber)
+            End If
+        End If
+    Next t
+    
+    log = log & "| Recap detectees pour ce metier : " & foundList.Count & vbCrLf
+    If foundList.Count = 0 Then
+        log = log & "| => AUCUNE - verifier que Text4 des sous-taches contient '" & metierType & "'" & vbCrLf
+        log = log & "+" & String(79, "-") & vbCrLf & vbCrLf
+        LogMetierSection = log
+        Exit Function
+    End If
+    log = log & "|" & vbCrLf
+    
+    For Each key In foundList.Keys
+        tName    = foundList(key)(0)
+        tPct     = foundList(key)(1)
+        tZone    = foundList(key)(2)
+        tLevel   = foundList(key)(3)
+        tOutline = foundList(key)(4)
+        
+        log = log & "| [ID=" & key & " Niv=" & tLevel & " Plan=" & tOutline & "] " & tName & vbCrLf
+        log = log & "|   Zone : " & tZone & vbCrLf
+        log = log & "|   % AFFICHE dans Vue Metiers  = " & Format(tPct, "0.0") & _
+                    "% (PercentComplete GLOBAL MSProject - tous metiers confondus)" & vbCrLf
+        
+        ' ---- Décomposer les sous-tâches par métier ----
+        subCountMatch = 0 : subCountOther = 0 : subCountNone = 0
+        sumPctMatch = 0 : otherMetiers = ""
+        
+        For Each sub1 In ActiveProject.Tasks
+            If Not sub1 Is Nothing And Not sub1.Summary Then
+                If IsSubTaskOf(sub1, ActiveProject.Tasks(CLng(key))) Then
+                    subPct = 0
+                    If Not IsEmpty(sub1.PercentComplete) And Not IsNull(sub1.PercentComplete) Then
+                        subPct = CDbl(sub1.PercentComplete)
+                    End If
+                    subLot = LCase$(Trim$(IIf(Len(sub1.Text4) > 0, CStr(sub1.Text4), "")))
+                    isMatch = False
+                    If (metierType = "vrd"  And InStr(subLot, "vrd") > 0) Then isMatch = True
+                    If (metierType = "meca" And (InStr(subLot, "meca") > 0 Or InStr(subLot, "mecanique") > 0)) Then isMatch = True
+                    If (metierType = "elec" And (InStr(subLot, "elec") > 0 Or InStr(subLot, "electrique") > 0)) Then isMatch = True
+                    
+                    If isMatch Then
+                        subCountMatch = subCountMatch + 1
+                        sumPctMatch = sumPctMatch + subPct
+                    ElseIf Len(subLot) = 0 Then
+                        subCountNone = subCountNone + 1
+                    Else
+                        subCountOther = subCountOther + 1
+                        If InStr(otherMetiers, sub1.Text4) = 0 Then
+                            otherMetiers = otherMetiers & IIf(Len(otherMetiers) > 0, " + ", "") & sub1.Text4
+                        End If
+                    End If
+                End If
+            End If
+        Next sub1
+        
+        totalSub = subCountMatch + subCountOther + subCountNone
+        log = log & "|   Sous-taches : " & totalSub & " total"
+        log = log & " | " & subCountMatch & " " & UCase(metierType)
+        If subCountOther > 0 Then log = log & " | " & subCountOther & " AUTRE (" & otherMetiers & ")"
+        If subCountNone  > 0 Then log = log & " | " & subCountNone & " sans Text4"
+        log = log & vbCrLf
+        
+        alertMsg = ""
+        If subCountOther > 0 Then
+            pctPur = IIf(subCountMatch > 0, sumPctMatch / subCountMatch, 0)
+            log = log & "|   % pur " & UCase(metierType) & " (sous-taches " & metierType & " seulement) = " & Format(pctPur, "0.0") & "%" & vbCrLf
+            alertMsg = "INCOHERENCE : recap mixte (" & otherMetiers & " inclus)."
+            alertMsg = alertMsg & " Affiche=" & Format(tPct, "0.0") & "% vs Pur-" & UCase(metierType) & "=" & Format(pctPur, "0.0") & "%."
+            alertMsg = alertMsg & " Ecart=" & Format(Abs(tPct - pctPur), "0.0") & "%."
+        ElseIf totalSub = 0 Then
+            alertMsg = "ATTENTION : aucune sous-tache directe trouvee (verifier niveaux de plan OutlineNumber)."
+        End If
+        
+        If Len(alertMsg) > 0 Then
+            log = log & "|   >>> " & alertMsg & vbCrLf
+        Else
+            log = log & "|   >>> OK : toutes les sous-taches sont du metier " & UCase(metierType) & ", % coherent." & vbCrLf
+        End If
+        log = log & "|" & vbCrLf
+    Next key
+    
+    log = log & "+" & String(79, "-") & vbCrLf & vbCrLf
+    LogMetierSection = log
 End Function
 
 

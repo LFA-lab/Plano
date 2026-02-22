@@ -327,12 +327,10 @@ Sub Import_Taches_Simples_AvecTitre()
             
             ' ==== DETERMINATION DU NIVEAU DU TITRE ====
             Dim targetGroupLevel As Integer
-            ' Si le nom contient "ZONE" -> Niveau 2, sinon Niveau 3 (sous-groupe)
-            If InStr(1, nom, "ZONE", vbTextCompare) > 0 Then
-                targetGroupLevel = 2
-            Else
-                targetGroupLevel = 3
-            End If
+            ' Tous les lots (VRD, MECA, ELEC...) au même niveau 2, directement
+            ' sous le projet. Plus de distinction par mot-clé "ZONE" — la structure
+            ' plate garantit que chaque récap ne contient qu'un seul métier.
+            targetGroupLevel = 2
             
             ' ========== OPTIMISATION: INDENTATION INTELLIGENTE ==========
             ' Vérifier d'abord si on doit indenter/désindenter
