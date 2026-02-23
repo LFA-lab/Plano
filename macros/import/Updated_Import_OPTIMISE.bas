@@ -6,368 +6,541 @@ Sub Import_Taches_Simples_AvecTitre()
     ' ==============================
     ' DECLARATIONS
     ' ==============================
-    
-    Dim xlApp As Object
-    Dim xlBook As Object
-    Dim xlSheet As Object
-    
-    Dim pjApp As MSProject.Application
-    Dim pjProj As MSProject.Project
-    
+    Dim xlApp As Object, xlBook As Object, xlSheet As Object
+    Dim pjApp As MSProject.Application, pjProj As MSProject.Project
     Dim dataArr As Variant
     Dim resourceCache As Object
-    
-    Dim i As Long, lastRow As Long
-    Dim t As Task
-    Dim tCQ As Task
-    Dim a As Assignment
-    
-    Dim fichierExcel As String
     Dim oldScreenUpdating As Boolean
-    
+    Dim oldCalculation As Boolean
+    Dim fichierExcel As String
+    Dim lastRow As Long
+    Dim i As Long
+    Dim t As Task, tCQ As Task, tGroup As Task, tRoot As Task
+    Dim a As Assignment
+    Dim listSep As String  ' <-- System list separator for resource name sanitization
+
+    ' Log file
+    Dim fso As Object, logStream As Object
+    Dim logFile As String
+
     ' ==============================
-    ' USE CURRENT PROJECT (NO CREATION)
+    ' USE CURRENT PROJECT
     ' ==============================
-    
     Set pjApp = Application
     Set pjProj = pjApp.ActiveProject
-    
+
     If pjProj Is Nothing Then
         MsgBox "Aucun projet actif.", vbCritical
         Exit Sub
     End If
-    
+
     pjApp.DisplayAlerts = False
-    
+
     On Error Resume Next
     oldScreenUpdating = pjApp.ScreenUpdating
     pjApp.ScreenUpdating = False
+    oldCalculation = pjApp.Calculation
+    pjApp.Calculation = False
     On Error GoTo 0
-    
+
     ' ==============================
     ' SELECT EXCEL FILE
     ' ==============================
-    
     Set xlApp = CreateObject("Excel.Application")
     xlApp.Visible = False
-    
-    fichierExcel = xlApp.GetOpenFilename("Fichiers Excel (*.xlsx), *.xlsx")
-    
+    fichierExcel = xlApp.GetOpenFilename("Fichiers Excel (*.xlsx;*.xls), *.xlsx;*.xls")
     If fichierExcel = "False" Then
         MsgBox "Import annulé.", vbInformation
         GoTo CleanExit
     End If
-    
-    Set xlBook = xlApp.Workbooks.Open(fichierExcel)
+
+    ' Get Windows list separator from Excel (xlListSeparator = 5)
+    On Error Resume Next
+    listSep = xlApp.Application.International(5)
+    If Err.Number <> 0 Or listSep = "" Then listSep = ","
+    Err.Clear
+    On Error GoTo 0
+
+    Set xlBook = xlApp.Workbooks.Open(FileName:=fichierExcel, ReadOnly:=True, UpdateLinks:=False)
     Set xlSheet = xlBook.Sheets(1)
-    
+
     ' ==============================
-    ' LOAD DATA INTO MEMORY ARRAY
+    ' LOAD DATA INTO MEMORY ARRAY (A1:M<lastRow>)
     ' ==============================
-    
     lastRow = xlSheet.Cells(xlSheet.Rows.Count, 1).End(-4162).Row ' xlUp
-    
     If lastRow < 2 Then
         MsgBox "Fichier Excel vide.", vbExclamation
         GoTo CleanExit
     End If
-    
-    dataArr = xlSheet.Range("A2:O" & lastRow).Value
-    
+
+    ' Include header row so that A2 = dataArr(2,1)
+    dataArr = xlSheet.Range("A1:M" & lastRow).Value
+
     ' ==============================
-    ' RESOURCE CACHE (FAST LOOKUP)
+    ' RESOURCE CACHE (OBJECT DICTIONARY)
     ' ==============================
-    
     Set resourceCache = CreateObject("Scripting.Dictionary")
-    
-    Dim r As Resource
+
+    Dim r As Resource, safe As String
     For Each r In pjProj.Resources
-        resourceCache(r.Name) = r
+        If Not r Is Nothing Then
+            ' Cache raw name
+            If Not resourceCache.Exists(r.Name) Then resourceCache.Add r.Name, r
+            ' Cache sanitized name (so helpers can hit the cache)
+            safe = CleanResourceName(r.Name, listSep)
+            If Not resourceCache.Exists(safe) Then resourceCache.Add safe, r
+            ' Also pre-fill MAT_ key for materials (same name)
+            If r.Type = pjResourceTypeMaterial Then
+                If Not resourceCache.Exists("MAT_" & r.Name) Then resourceCache.Add "MAT_" & r.Name, r
+                If Not resourceCache.Exists("MAT_" & safe) Then resourceCache.Add "MAT_" & safe, r
+            End If
+        End If
     Next r
-    
+
     ' ==============================
     ' RENAME CUSTOM FIELDS
     ' ==============================
-    
     pjApp.CustomFieldRename pjCustomTaskText1, "Tranche"
     pjApp.CustomFieldRename pjCustomTaskText2, "Zone"
     pjApp.CustomFieldRename pjCustomTaskText3, "Sous-Zone"
     pjApp.CustomFieldRename pjCustomTaskText4, "Metier"
     pjApp.CustomFieldRename pjCustomTaskText5, "Entreprise"
     pjApp.CustomFieldRename pjCustomTaskText6, "Niveau"
-    pjApp.CustomFieldRename pjCustomTaskText7, "Onduleur"
+    pjApp.CustomFieldRename pjCustomTaskNumber5, "Qté Onduleurs"
     pjApp.CustomFieldRename pjCustomTaskText8, "PTR"
-    
+
     ' ==============================
-    ' CREATE TASKS (IMPORT_OPTIMISE style)
+    ' ROOT TASK FROM A2
     ' ==============================
-
-    ' Ensure Monteurs resource exists in cache (will be created on demand)
-    Dim rMonteurs As Resource
-    ' loop through data rows (dataArr row 1 = Excel row 2)
-    Dim tGroup As Task
-    Set tGroup = Nothing
-
-    For i = 1 To UBound(dataArr, 1)
-
-        Dim nom As String, qte As Variant, pers As Variant, h As Variant
-        Dim zone As String, sousZone As String, tranche As String, typ As String, entreprise As String
-        Dim qualite As String, niveau As String, onduleur As String, ptr As String
-        Dim dateDebutMonteurs As Date, dateFinMonteurs As Date
-        Dim hasMonteursAssignment As Boolean
-
-        nom = Trim$(CStr(dataArr(i, 1)))           ' A
-        qte = dataArr(i, 2)                        ' B
-        pers = dataArr(i, 3)                       ' C
-        h = dataArr(i, 4)                          ' D
-        zone = Trim$(CStr(dataArr(i, 5)))          ' E
-        sousZone = Trim$(CStr(dataArr(i, 6)))      ' F
-        tranche = Trim$(CStr(dataArr(i, 7)))       ' G
-        typ = Trim$(CStr(dataArr(i, 8)))           ' H
-        entreprise = Trim$(CStr(dataArr(i, 9)))    ' I
-        qualite = UCase$(Trim$(CStr(dataArr(i, 10)))) ' J
-        niveau = UCase$(Trim$(CStr(dataArr(i, 11))))  ' K
-        onduleur = UCase$(Trim$(CStr(dataArr(i, 12)))) ' L
+    Dim projTitle As String
+    projTitle = Trim$(CStr(dataArr(2, 1)))
+    If projTitle <> "" Then
         On Error Resume Next
-        ptr = Trim$(CStr(dataArr(i, 13)))          ' M (optionnel)
-        If Err.Number <> 0 Then ptr = ""
+        Set tRoot = pjProj.Tasks.Add(Name:=projTitle, Before:=1)
+        On Error GoTo 0
+        If Not tRoot Is Nothing Then
+            tRoot.Manual = False
+            On Error Resume Next
+            tRoot.Calendar = pjProj.BaseCalendars("Standard")
+            On Error GoTo 0
+            Set tGroup = tRoot
+        End If
+    End If
+
+    ' ==============================
+    ' LOG FILE SETUP
+    ' ==============================
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    logFile = Replace(fichierExcel, ".xlsx", "_import_log.txt")
+    logFile = Replace(logFile, ".xls", "_import_log.txt")
+    Set logStream = fso.CreateTextFile(logFile, True)
+    logStream.WriteLine "===== DEBUT IMPORT - " & Now & " ====="
+    logStream.WriteLine "Fichier source: " & fichierExcel
+    logStream.WriteLine "Nombre de lignes: " & lastRow
+    logStream.WriteLine "[OPTIMISE] Lecture Array + Cache Ressources + ScreenUpdating OFF"
+    logStream.WriteLine ""
+
+    ' ==============================
+    ' MAIN LOOP: ROWS 3..lastRow
+    ' ==============================
+    Dim nom As String, qte As Variant, pers As Variant, h As Variant
+    Dim zone As String, sousZone As String, tranche As String, typ As String, entreprise As String
+    Dim qualite As String, niveau As String, ptr As String
+    Dim qteOnduleurs As Double
+    Dim dateDebutMonteurs As Date, dateFinMonteurs As Date
+    Dim hasMonteursAssignment As Boolean
+
+    For i = 3 To lastRow
+
+        ' ---- Read row i from dataArr (A..M = 1..13)
+        nom = Trim$(CStr(dataArr(i, 1)))                ' A
+        qte = dataArr(i, 2)                             ' B
+        pers = dataArr(i, 3)                            ' C
+        h = dataArr(i, 4)                               ' D
+        zone = Trim$(CStr(dataArr(i, 5)))               ' E
+        sousZone = Trim$(CStr(dataArr(i, 6)))           ' F
+        tranche = Trim$(CStr(dataArr(i, 7)))            ' G
+        typ = Trim$(CStr(dataArr(i, 8)))                ' H
+        entreprise = Trim$(CStr(dataArr(i, 9)))         ' I
+        qualite = UCase$(Trim$(CStr(dataArr(i, 10))))   ' J: CQ / TACHE / vide
+        niveau = UCase$(Trim$(CStr(dataArr(i, 11))))    ' K: SZ / OND / vide
+
+        ' L: Quantité d'onduleurs (Double)
+        On Error Resume Next
+        qteOnduleurs = 0
+        If Len(Trim$(CStr(dataArr(i, 12)))) > 0 Then
+            qteOnduleurs = CDbl(dataArr(i, 12))
+        End If
+        If Err.Number <> 0 Then qteOnduleurs = 0
+        Err.Clear
+
+        ' M: PTR (optionnel)
+        ptr = ""
+        If Not IsError(dataArr(i, 13)) Then
+            ptr = Trim$(CStr(dataArr(i, 13)))
+        End If
         On Error GoTo 0
 
         hasMonteursAssignment = False
 
+        ' Skip blank name
         If nom = "" Then GoTo NextRow
 
-        ' DETECT TITLE (no qte and no h)
-If IsEmptyOrZero(qte) And IsEmptyOrZero(h) Then
-    
-    Set tGroup = pjProj.Tasks.Add(nom)
-    tGroup.Manual = False
-    
-    ' Indent based on previous task
-    If pjProj.Tasks.Count > 1 Then
-        On Error Resume Next
-        
-        If InStr(1, nom, "ZONE", vbTextCompare) > 0 Then
-            tGroup.OutlineIndent   ' Level 2
-        Else
-            tGroup.OutlineIndent   ' Level 2
-            tGroup.OutlineIndent   ' Level 3
-        End If
-        
-        On Error GoTo 0
-    End If
-    
-    GoTo NextRow
-End If
+        ' ---- TITLE detection (no quantity and no hours) -> create group at level 2
+        If IsEmptyOrZero(qte) And IsEmptyOrZero(h) Then
+            On Error Resume Next
+            Set tGroup = pjProj.Tasks.Add(nom)
+            If Err.Number <> 0 Then
+                logStream.WriteLine "[WARN] Impossible de créer le TITRE pour: " & nom & " (Err " & Err.Number & ": " & Err.Description & ")"
+                Err.Clear
+                On Error GoTo 0
+                GoTo NextRow
+            End If
+            On Error GoTo 0
 
-        ' Create task
+            tGroup.Manual = False
+
+            ' Ensure level 2 (flat under project/root)
+            Call EnsureOutlineLevel(tGroup, 2)
+
+            ' Tag recap to allow filtering at higher levels
+            tGroup.Text1 = tranche
+            tGroup.Text2 = zone
+            tGroup.Text3 = sousZone
+            tGroup.Text4 = typ
+            tGroup.Text5 = entreprise
+            tGroup.Text6 = niveau
+            tGroup.Number5 = qteOnduleurs
+            tGroup.Text8 = ptr
+
+            logStream.WriteLine "TITRE: " & tGroup.Name & " -> Niveau " & tGroup.OutlineLevel
+            GoTo NextRow
+        End If
+
+        ' ---- TASK creation
+        On Error Resume Next
         Set t = pjProj.Tasks.Add(nom)
-        If t Is Nothing Then GoTo NextRow
+        If Err.Number <> 0 Or t Is Nothing Then
+            logStream.WriteLine "[ERREUR] Tasks.Add(): " & nom & " | " & Err.Number & " - " & Err.Description
+            Err.Clear
+            On Error GoTo 0
+            GoTo NextRow
+        End If
+        On Error GoTo 0
 
         t.Manual = False
+        On Error Resume Next
         t.Calendar = pjProj.BaseCalendars("Standard")
+        On Error GoTo 0
         t.LevelingCanSplit = False
 
-        ' Tags
+        ' Determine target outline level
+        Dim targetLevel As Integer
+        If niveau = "OND" Then
+            targetLevel = 4
+        ElseIf niveau = "SZ" Then
+            targetLevel = 3
+        Else
+            If Not tGroup Is Nothing Then
+                targetLevel = tGroup.OutlineLevel + 1
+            Else
+                targetLevel = 3
+            End If
+        End If
+        Call EnsureOutlineLevel(t, targetLevel)
+
+        ' Tag task
         t.Text1 = tranche
         t.Text2 = zone
         t.Text3 = sousZone
         t.Text4 = typ
         t.Text5 = entreprise
         t.Text6 = niveau
-        t.Text7 = onduleur
+        t.Number5 = qteOnduleurs
         t.Text8 = ptr
 
-        ' WORK before Units: set task work if hours specified
+        ' ---- Set Work on task first (minutes)
         Dim workMinutes As Long
+        workMinutes = 0
         If IsNumeric(h) And CDbl(h) > 0 Then
-            workMinutes = CLng(CDbl(h) * 60)
-            t.Type = pjFixedWork
-            t.Work = workMinutes
-        Else
-            ' default = 1 day (assume 8h = 480 minutes)
-            workMinutes = 480
+            workMinutes = CLng(CDbl(h) * 60#)
             t.Type = pjFixedWork
             t.Work = workMinutes
         End If
 
-        ' Assign Monteurs work resource
-        Set rMonteurs = GetOrCreateWorkResourceCached("Monteurs", resourceCache)
-        rMonteurs.MaxUnits = 10
+        ' ---- Assign Monteurs (work resource) if hours present
         If workMinutes > 0 Then
             Dim nbPers As Long
             nbPers = IIf(IsNumeric(pers) And CDbl(pers) > 0, CLng(pers), 1)
 
+            Dim rMonteurs As Resource
+            Set rMonteurs = GetOrCreateWorkResourceCached("Monteurs", resourceCache, listSep)
+            rMonteurs.MaxUnits = 10 ' 1000%
+
             Set a = t.Assignments.Add(ResourceID:=rMonteurs.ID)
-            a.Work = workMinutes
-            a.Units = nbPers
-            a.Work = workMinutes
-            a.WorkContour = pjFlat
+            a.Work = workMinutes         ' Step 1: Work first
+            a.Units = nbPers             ' Step 2: Units
+            a.Work = workMinutes         ' Step 3: Force Work again
+            a.WorkContour = pjFlat       ' Step 4: Flat contour
+
             dateDebutMonteurs = a.Start
             dateFinMonteurs = a.Finish
             hasMonteursAssignment = True
-            ' copy tags to assignment
-            a.Text1 = tranche: a.Text2 = zone: a.Text3 = sousZone: a.Text4 = typ
-            a.Text5 = entreprise: a.Text6 = niveau: a.Text7 = onduleur: a.Text8 = ptr
+
+            ' Copy tags
+            a.Text1 = tranche
+            a.Text2 = zone
+            a.Text3 = sousZone
+            a.Text4 = typ
+            a.Text5 = entreprise
+            a.Text6 = niveau
+            a.Number5 = qteOnduleurs
+            a.Text8 = ptr
         End If
 
-' ==============================
-' ONDULEUR MATERIAL RESOURCE (Column K)
-' ==============================
-Dim qteOnd As Double
+        ' ---- Material quantity (column B)
+        If IsNumeric(qte) And CDbl(qte) > 0 Then
+            Dim rMat As Resource
+            Dim nomRessource As String
 
-If IsNumeric(niveau) Then
-    qteOnd = CDbl(niveau)
-    
-    If qteOnd > 0 Then
-        Dim rOnd As Resource
-        Dim onduleurName As String
-        
-        onduleurName = "Onduleurs " & nom  ' Task name
-        
-        ' Create or get material resource
-        Set rOnd = GetOrCreateMaterialResourceCached(onduleurName, resourceCache)
-        
-        ' Assign resource to task
-        Set a = t.Assignments.Add(ResourceID:=rOnd.ID)
-        a.Units = qteOnd
-        a.WorkContour = pjFlat
-        
-        ' Sync dates with Monteurs if present
-        If hasMonteursAssignment Then
-            a.Start = dateDebutMonteurs
-            a.Finish = dateFinMonteurs
+            If niveau = "OND" And Not tGroup Is Nothing Then
+                nomRessource = tGroup.Name    ' aggregate by group
+            Else
+                nomRessource = t.Name         ' task name
+            End If
+
+            Set rMat = GetOrCreateMaterialResourceCached(nomRessource, resourceCache, listSep)
+            Set a = t.Assignments.Add(ResourceID:=rMat.ID)
+            a.Units = CDbl(qte)
+            a.WorkContour = pjFlat
+
+            If hasMonteursAssignment Then
+                a.Start = dateDebutMonteurs
+                a.Finish = dateFinMonteurs
+            End If
+
+            ' Copy tags
+            a.Text1 = tranche
+            a.Text2 = zone
+            a.Text3 = sousZone
+            a.Text4 = typ
+            a.Text5 = entreprise
+            a.Text6 = niveau
+            a.Number5 = qteOnduleurs
+            a.Text8 = ptr
         End If
-        
-        ' Copy tags Text1-Text8
-        a.Text1 = tranche
-        a.Text2 = zone
-        a.Text3 = sousZone
-        a.Text4 = typ
-        a.Text5 = entreprise
-        a.Text6 = qteOnd   ' numeric quantity
-        a.Text7 = onduleur
-        a.Text8 = ptr
-    End If
-End If
 
+        ' ---- ONDULEUR material (column L)
+        If qteOnduleurs > 0 Then
+            Dim rOnduleur As Resource
+            Set rOnduleur = GetOrCreateMaterialResourceCached("ONDULEUR", resourceCache, listSep)
 
+            Set a = t.Assignments.Add(ResourceID:=rOnduleur.ID)
+            a.Units = qteOnduleurs
+            a.WorkContour = pjFlat
 
-        ' Quality CQ handling (simplified to match original logic)
+            If hasMonteursAssignment Then
+                a.Start = dateDebutMonteurs
+                a.Finish = dateFinMonteurs
+            End If
+
+            ' Copy tags
+            a.Text1 = tranche
+            a.Text2 = zone
+            a.Text3 = sousZone
+            a.Text4 = typ
+            a.Text5 = entreprise
+            a.Text6 = niveau
+            a.Number5 = qteOnduleurs
+            a.Text8 = ptr
+        End If
+
+        ' ---- QUALITE hybrid logic
         Dim isOmx As Boolean
         isOmx = (UCase$(entreprise) = "OMX" Or UCase$(entreprise) = "OMEXOM")
+
         If qualite = "CQ" Then
             Dim rCQMat As Resource
-            Set rCQMat = GetOrCreateMaterialResourceCached("CQ", resourceCache)
+            Set rCQMat = GetOrCreateMaterialResourceCached("CQ", resourceCache, listSep)
+
             If isOmx Then
+                ' Inline CQ as material on the task
                 Set a = t.Assignments.Add(ResourceID:=rCQMat.ID)
                 a.Units = 1
                 a.WorkContour = pjFlat
                 If hasMonteursAssignment Then a.Start = dateDebutMonteurs: a.Finish = dateFinMonteurs
-                a.Text1 = tranche: a.Text2 = zone: a.Text3 = sousZone: a.Text4 = typ
-                a.Text5 = entreprise: a.Text6 = niveau: a.Text7 = onduleur: a.Text8 = ptr
+
+                a.Text1 = tranche
+                a.Text2 = zone
+                a.Text3 = sousZone
+                a.Text4 = typ
+                a.Text5 = entreprise
+                a.Text6 = niveau
+                a.Number5 = qteOnduleurs
+                a.Text8 = ptr
             Else
+                ' Separate CQ task with SS+1d link
                 Set tCQ = pjProj.Tasks.Add("Contrôle Qualité - " & nom)
-                tCQ.Manual = False: tCQ.Calendar = pjProj.BaseCalendars("Standard"): tCQ.LevelingCanSplit = False
-                tCQ.Text1 = tranche: tCQ.Text2 = zone: tCQ.Text3 = sousZone: tCQ.Text4 = "CQ"
-                tCQ.Text5 = "OMEXOM": tCQ.Text6 = niveau: tCQ.Text7 = onduleur: tCQ.Text8 = ptr
+                tCQ.Manual = False
+                On Error Resume Next
+                tCQ.Calendar = pjProj.BaseCalendars("Standard")
+                On Error GoTo 0
+                tCQ.LevelingCanSplit = False
+
+                ' Align outline close to parent task
+                Call EnsureOutlineLevel(tCQ, t.OutlineLevel)
+
+                ' Tags
+                tCQ.Text1 = tranche
+                tCQ.Text2 = zone
+                tCQ.Text3 = sousZone
+                tCQ.Text4 = "CQ"
+                tCQ.Text5 = "OMEXOM"
+                tCQ.Text6 = niveau
+                tCQ.Number5 = qteOnduleurs
+                tCQ.Text8 = ptr
+
+                ' CQ material assignment
                 Set a = tCQ.Assignments.Add(ResourceID:=rCQMat.ID)
-                a.Units = 1: a.WorkContour = pjFlat
-                ' Link start to start +1d
+                a.Units = 1
+                a.WorkContour = pjFlat
+
+                ' Link Start-to-Start +1d
                 On Error Resume Next
                 t.LinkSuccessors tCQ, pjStartToStart, "1d"
                 On Error GoTo 0
             End If
+
         ElseIf qualite = "TACHE" Or qualite = "TÂCHE" Then
-            Set tCQ = pjProj.Tasks.Add("Contrôle Qualité - " & nom)
-            tCQ.Manual = False: tCQ.Calendar = pjProj.BaseCalendars("Standard"): tCQ.LevelingCanSplit = False
-            tCQ.Text1 = tranche: tCQ.Text2 = zone: tCQ.Text3 = sousZone: tCQ.Text4 = "CQ"
-            tCQ.Text5 = "OMEXOM": tCQ.Text6 = niveau: tCQ.Text7 = onduleur: tCQ.Text8 = ptr
+            ' Force separate CQ task
             Dim rCQMat2 As Resource
-            Set rCQMat2 = GetOrCreateMaterialResourceCached("CQ", resourceCache)
+            Set rCQMat2 = GetOrCreateMaterialResourceCached("CQ", resourceCache, listSep)
+
+            Set tCQ = pjProj.Tasks.Add("Contrôle Qualité - " & nom)
+            tCQ.Manual = False
+            On Error Resume Next
+            tCQ.Calendar = pjProj.BaseCalendars("Standard")
+            On Error GoTo 0
+            tCQ.LevelingCanSplit = False
+
+            Call EnsureOutlineLevel(tCQ, t.OutlineLevel)
+
+            tCQ.Text1 = tranche
+            tCQ.Text2 = zone
+            tCQ.Text3 = sousZone
+            tCQ.Text4 = "CQ"
+            tCQ.Text5 = "OMEXOM"
+            tCQ.Text6 = niveau
+            tCQ.Number5 = qteOnduleurs
+            tCQ.Text8 = ptr
+
             Set a = tCQ.Assignments.Add(ResourceID:=rCQMat2.ID)
-            a.Units = 1: a.WorkContour = pjFlat
+            a.Units = 1
+            a.WorkContour = pjFlat
+
             On Error Resume Next
             t.LinkSuccessors tCQ, pjStartToStart, "1d"
             On Error GoTo 0
         End If
 
 NextRow:
-        ' continue loop
+        ' continue
     Next i
-    
+
     ' ==============================
-    ' RECALCULATE PROJECT
+    ' FINALIZE: CALCULATE & SAVE
     ' ==============================
-    
-    pjApp.CalculateProject
-    
-    ' ==============================
-' SAVE PROJECT AS MPP (A2 + Timestamp)
-' ==============================
+    On Error Resume Next
+    pjApp.Calculation = True
+    pjProj.Calculate
+    pjApp.CalculateAll
+    On Error GoTo 0
 
-Dim baseName As String
-Dim timestamp As String
-Dim folderPath As String
-Dim savePath As String
+    ' Save as (A2 + timestamp) in same folder as Excel
+    Dim baseName As String, timestamp As String
+    Dim folderPath As String, savePath As String
 
-' Get project name from Excel A2
-baseName = Trim(xlSheet.Range("A2").Value)
+    baseName = Trim$(CStr(xlSheet.Range("A2").Value))
+    If baseName = "" Then baseName = projTitle
+    If baseName = "" Then baseName = "Projet"
 
-If baseName = "" Then
-    MsgBox "Cell A2 is empty. Cannot generate project name.", vbExclamation
-    GoTo CleanExit
-End If
+    baseName = SanitizeFileName(baseName)
+    timestamp = Format(Now, "yyyymmdd_hhnnss")
+    folderPath = Left$(fichierExcel, InStrRev(fichierExcel, "\"))
+    savePath = folderPath & baseName & "_" & timestamp & ".mpp"
 
-' Remove invalid filename characters
-baseName = Replace(baseName, "/", "-")
-baseName = Replace(baseName, "\", "-")
-baseName = Replace(baseName, ":", "-")
-baseName = Replace(baseName, "*", "-")
-baseName = Replace(baseName, "?", "-")
-baseName = Replace(baseName, """", "-")
-baseName = Replace(baseName, "<", "-")
-baseName = Replace(baseName, ">", "-")
-baseName = Replace(baseName, "|", "-")
+    pjProj.SaveAs Name:=savePath
 
-' Create timestamp
-timestamp = Format(Now, "yyyymmdd_hhnnss")
+    ' UI refresh
+    On Error Resume Next
+    pjApp.ScreenRefresh
+    On Error GoTo 0
 
-' Extract folder from Excel path
-folderPath = Left(fichierExcel, InStrRev(fichierExcel, "\"))
+    logStream.WriteLine ""
+    logStream.WriteLine "===== FIN IMPORT - " & Now & " ====="
+    logStream.Close
+    Set logStream = Nothing
+    Set fso = Nothing
 
-' Final path
-savePath = folderPath & baseName & "_" & timestamp & ".mpp"
-
-' Save project
-pjProj.SaveAs Name:=savePath
-
-    
     ' ==============================
     ' REBUILD PLANO MENU
     ' ==============================
-    
+    On Error Resume Next
     CreatePlanoMenu
-    
-    MsgBox "Projet créé avec succès !" & vbCrLf & savePath, vbInformation
+    On Error GoTo 0
+
+    MsgBox "Import terminé: tâches, ressources, tags (Zone/Sous-zone/Tranche/Type/Entreprise/Niveau/Qté Onduleurs/PTR) et Qualité hybride." & vbCrLf & vbCrLf & _
+           "Projet sauvegardé: " & savePath & vbCrLf & "Fichier log: " & logFile, vbInformation
 
 CleanExit:
-
     On Error Resume Next
-    
     If Not xlBook Is Nothing Then xlBook.Close False
     If Not xlApp Is Nothing Then xlApp.Quit
-    
-    Set xlSheet = Nothing
-    Set xlBook = Nothing
-    Set xlApp = Nothing
-    
-    pjApp.ScreenUpdating = oldScreenUpdating
-    pjApp.DisplayAlerts = True
+    Set xlSheet = Nothing: Set xlBook = Nothing: Set xlApp = Nothing
 
+    pjApp.ScreenUpdating = oldScreenUpdating
+    pjApp.Calculation = oldCalculation
+    pjApp.DisplayAlerts = True
 End Sub
 
-' ======= HELPERS =======
+' ==============================
+' HELPERS
+' ==============================
+
+Private Sub EnsureOutlineLevel(ByVal tsk As Task, ByVal targetLevel As Integer)
+    On Error Resume Next
+    If tsk Is Nothing Then Exit Sub
+    If targetLevel < 1 Then targetLevel = 1
+    If targetLevel > 9 Then targetLevel = 9
+
+    If tsk.OutlineLevel < targetLevel Then
+        Do While tsk.OutlineLevel < targetLevel And tsk.OutlineLevel < 9 And Not tsk.Summary
+            tsk.OutlineIndent
+            If Err.Number <> 0 Then Exit Do
+        Loop
+    ElseIf tsk.OutlineLevel > targetLevel Then
+        Do While tsk.OutlineLevel > targetLevel And tsk.OutlineLevel > 1 And Not tsk.Summary
+            tsk.OutlineOutdent
+            If Err.Number <> 0 Then Exit Do
+        Loop
+    End If
+    Err.Clear
+    On Error GoTo 0
+End Sub
+
+Private Function SanitizeFileName(ByVal s As String) As String
+    s = Replace(s, "/", "-")
+    s = Replace(s, "\", "-")
+    s = Replace(s, ":", "-")
+    s = Replace(s, "*", "-")
+    s = Replace(s, "?", "-")
+    s = Replace(s, """", "-")
+    s = Replace(s, "<", "-")
+    s = Replace(s, ">", "-")
+    s = Replace(s, "|", "-")
+    SanitizeFileName = s
+End Function
+
 Private Function IsEmptyOrZero(v As Variant) As Boolean
     If IsEmpty(v) Then
         IsEmptyOrZero = True
@@ -380,54 +553,235 @@ Private Function IsEmptyOrZero(v As Variant) As Boolean
     End If
 End Function
 
-Function GetOrCreateWorkResourceCached(nom As String, ByRef cache As Object) As Resource
+' ---- Diagnostics from .vb (kept for parity / 1101 debugging)
+Private Function AnalyzeStringCharacters(text As String) As String
+    Dim result As String
+    Dim i As Integer
+    Dim ch As String
+    Dim charCode As Long
+    Dim charName As String
+
+    result = ""
+    For i = 1 To Len(text)
+        ch = Mid$(text, i, 1)
+        charCode = AscW(ch)
+
+        Select Case charCode
+            Case 9: charName = "TAB"
+            Case 10: charName = "LF (Line Feed)"
+            Case 13: charName = "CR (Carriage Return)"
+            Case 32: charName = "SPACE"
+            Case 160: charName = "NBSP (Non-Breaking Space)"
+            Case 0 To 31: charName = "CTRL"
+            Case 127 To 159: charName = "CTRL étendu"
+            Case Else
+                If charCode > 127 Then
+                    charName = "'" & ch & "' (Unicode)"
+                Else
+                    charName = "'" & ch & "'"
+                End If
+        End Select
+
+        result = result & "    Pos " & Format(i, "00") & ": Code=" & Format(charCode, "000") & " (" & charName & ")" & vbCrLf
+    Next i
+
+    AnalyzeStringCharacters = result
+End Function
+
+Private Function IsInvisibleOnlyString(text As String) As Boolean
+    Dim i As Integer
+    Dim ch As String
+    Dim charCode As Long
+    Dim hasVisibleChar As Boolean
+
+    hasVisibleChar = False
+
+    For i = 1 To Len(text)
+        ch = Mid$(text, i, 1)
+        charCode = AscW(ch)
+
+        If (charCode >= 33 And charCode <= 126) Or (charCode > 160) Then
+            hasVisibleChar = True
+            Exit For
+        End If
+    Next i
+
+    IsInvisibleOnlyString = Not hasVisibleChar
+End Function
+
+Private Function IsNumericPattern(text As String) As Boolean
+    Dim i As Integer, ch As String
+    If text = "" Then
+        IsNumericPattern = False
+        Exit Function
+    End If
+    For i = 1 To Len(text)
+        ch = Mid$(text, i, 1)
+        If Not (ch >= "0" And ch <= "9") And ch <> "." Then
+            IsNumericPattern = False
+            Exit Function
+        End If
+    Next i
+    IsNumericPattern = True
+End Function
+
+' Copy tags helper (not strictly required since we inline copy, but kept)
+Private Sub CopyTaskTagsToAssignment(ByVal tSource As Task, ByVal a As Assignment)
+    On Error GoTo ErrHandler
+    DoEvents
+    a.Text1 = tSource.Text1
+    a.Text2 = tSource.Text2
+    a.Text3 = tSource.Text3
+    a.Text4 = tSource.Text4
+    a.Text5 = tSource.Text5
+    a.Text6 = tSource.Text6
+    a.Number5 = tSource.Number5
+    a.Text8 = tSource.Text8
+    Exit Sub
+ErrHandler:
+    Debug.Print "ERREUR CopyTaskTagsToAssignment: " & Err.Description & " (Tâche: " & tSource.Name & ")"
+    Resume Next
+End Sub
+
+' ==============================
+' Resource name sanitization
+' ==============================
+
+Private Function ReplaceMultipleSpaces(ByVal s As String) As String
+    Do While InStr(1, s, "  ") > 0
+        s = Replace(s, "  ", " ")
+    Loop
+    ReplaceMultipleSpaces = s
+End Function
+
+' Remove forbidden characters: [ ] and system list separator; normalize whitespace/control chars; enforce length
+Private Function CleanResourceName(ByVal raw As String, Optional ByVal listSep As String = ",") As String
+    Dim s As String, i As Long, ch As String, code As Long, out As String
+
+    s = Trim$(raw)
+    If s = "" Then
+        CleanResourceName = "Ressource"
+        Exit Function
+    End If
+
+    ' Normalize whitespace and NBSPs
+    s = Replace(s, vbCr, " ")
+    s = Replace(s, vbLf, " ")
+    s = Replace(s, vbTab, " ")
+    s = Replace(s, Chr$(160), " ")
+
+    ' Strip forbidden: [ ] and list separator
+    s = Replace(s, "[", " ")
+    s = Replace(s, "]", " ")
+    If listSep <> "" Then s = Replace(s, listSep, " ")
+
+    ' Remove control characters; keep visible chars
+    out = ""
+    For i = 1 To Len(s)
+        ch = Mid$(s, i, 1)
+        code = AscW(ch)
+        If (code >= 32 And code <> 127 And Not (code >= 128 And code <= 159)) Then
+            out = out & ch
+        Else
+            out = out & " "
+        End If
+    Next i
+
+    ' Collapse spaces and limit length
+    out = Trim$(ReplaceMultipleSpaces(out))
+    If Len(out) > 255 Then out = Left$(out, 255)
+    If out = "" Then out = "Ressource"
+
+    CleanResourceName = out
+End Function
+
+' ---- Resource helpers with sanitization and cache
+
+Function GetOrCreateWorkResourceCached(nom As String, ByRef cache As Object, Optional ByVal listSep As String = ",") As Resource
+    Dim safeName As String
+    safeName = CleanResourceName(nom, listSep)
+
+    ' Cache hit?
+    If cache.Exists(safeName) Then
+        Set GetOrCreateWorkResourceCached = cache(safeName)
+        Exit Function
+    End If
 
     Dim r As Resource
-
-    ' Try to get resource directly from project
     On Error Resume Next
-    Set r = ActiveProject.Resources(nom)
+    Set r = ActiveProject.Resources(safeName)
     On Error GoTo 0
 
-    ' If not found, create it
     If r Is Nothing Then
-        Set r = ActiveProject.Resources.Add(nom)
-        r.Type = pjResourceTypeWork
+        On Error Resume Next
+        Set r = ActiveProject.Resources.Add(safeName)
+        If Err.Number <> 0 Then
+            ' Try with suffix to avoid collision/invalid
+            Err.Clear
+            Set r = ActiveProject.Resources.Add(safeName & " (W)")
+        End If
+        On Error GoTo 0
+
+        If Not r Is Nothing Then
+            On Error Resume Next
+            r.Type = pjResourceTypeWork
+            On Error GoTo 0
+        Else
+            ' Final fallback (rare)
+            Set r = ActiveProject.Resources.Add("Ressource Travail")
+            On Error Resume Next: r.Type = pjResourceTypeWork: On Error GoTo 0
+        End If
     End If
 
-    ' Store only the NAME in cache (not object)
-    If Not cache.Exists(nom) Then
-        cache.Add nom, True
-    End If
-
+    If Not cache.Exists(safeName) Then cache.Add safeName, r
     Set GetOrCreateWorkResourceCached = r
-
 End Function
 
+Function GetOrCreateMaterialResourceCached(nom As String, ByRef cache As Object, Optional ByVal listSep As String = ",") As Resource
+    Dim safeName As String, cacheKey As String
+    safeName = CleanResourceName(nom, listSep)
+    cacheKey = "MAT_" & safeName
 
-
-
-Function GetOrCreateMaterialResourceCached(nom As String, ByRef cache As Object) As Resource
+    If cache.Exists(cacheKey) Then
+        Set GetOrCreateMaterialResourceCached = cache(cacheKey)
+        Exit Function
+    End If
 
     Dim r As Resource
-    Dim cacheKey As String
-    
-    cacheKey = "MAT_" & nom
-
     On Error Resume Next
-    Set r = ActiveProject.Resources(nom)
+    Set r = ActiveProject.Resources(safeName)
     On Error GoTo 0
 
     If r Is Nothing Then
-        Set r = ActiveProject.Resources.Add(nom)
-        r.Type = pjResourceTypeMaterial
+        On Error Resume Next
+        Set r = ActiveProject.Resources.Add(safeName)
+        If Err.Number <> 0 Then
+            ' Try with suffix
+            Err.Clear
+            Set r = ActiveProject.Resources.Add(safeName & " (M)")
+        End If
+        On Error GoTo 0
+
+        If Not r Is Nothing Then
+            On Error Resume Next
+            r.Type = pjResourceTypeMaterial
+            On Error GoTo 0
+        Else
+            ' Final fallback
+            Set r = ActiveProject.Resources.Add("Ressource Matériau")
+            On Error Resume Next: r.Type = pjResourceTypeMaterial: On Error GoTo 0
+        End If
+    Else
+        ' If found but wrong type, create distinct material resource
+        If r.Type <> pjResourceTypeMaterial Then
+            On Error Resume Next
+            Set r = ActiveProject.Resources.Add(safeName & " (M)")
+            Err.Clear
+            r.Type = pjResourceTypeMaterial
+            On Error GoTo 0
+        End If
     End If
 
-    If Not cache.Exists(cacheKey) Then
-        cache.Add cacheKey, True
-    End If
-
+    If Not cache.Exists(cacheKey) Then cache.Add cacheKey, r
     Set GetOrCreateMaterialResourceCached = r
-
 End Function
-

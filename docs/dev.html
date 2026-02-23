@@ -200,7 +200,7 @@ flowchart TD
 
   B["STEP 2: Rebuild Artifacts<br/><br/>From repo root:<br/>./scripts/build_mpt.ps1<br/><br/>Result: .mpt updated with latest macros"] --> C0
 
-  %% STEP 3 — EXACT TEXT, split into short nodes (no syntax errors)
+  %% STEP 3 — Validate Template (short nodes)
   C0["STEP 3: Validate Template"] --> C1["Open /templates/ModèleImport.mpt"]
   C1 --> C2["Confirm Import Form appears"]
   C2 --> C3["Import test Excel"]
@@ -210,10 +210,16 @@ flowchart TD
   C6 --> C7["No import form"]
   C6 --> C8["Plano command under Add-Ins"]
   C6 --> C9["Dashboard runs without error"]
-  C9 --> D
+  C9 --> D0
 
-  D["STEP 4: Deploy<br/><br/>git checkout -b docs/dev-workflow<br/>git add index.html style.css docs/dev.html<br/>git commit -m &quot;docs: add developer build workflow&quot;<br/>git push -u origin docs/dev-workflow<br/>Open PR → merge to main (Pages updates)<br/>Or: ./scripts/push.ps1"]
-      </div>
+  %% STEP 4 — Deploy (split to satisfy linter; quotes escaped)
+  D0["STEP 4: Deploy"] --> D1["git checkout -b docs/dev-workflow"]
+  D1 --> D2["git add index.html style.css docs/dev.html"]
+  D2 --> D3["git commit -m \"docs: add developer build workflow\""]
+  D3 --> D4["git push -u origin docs/dev-workflow"]
+  D4 --> D5["Open PR → merge to main (Pages updates)"]
+  D4 --> D6["Or: ./scripts/push.ps1"]
+</div>
 
       <p><em>Validation:</em> A new developer should be able to build, validate the template behavior in Project, and deploy by following these four steps — no additional guidance needed.</p>
     </section>
@@ -246,6 +252,28 @@ flowchart TD
       </pre>
       <p>Update this tree if you add or move components so contributors know where to make changes.</p>
     </section>
+
+    <section id="downloads" class="card">
+  <h2>Downloads</h2>
+  <p>Latest build artifacts available for manual testing and distribution:</p>
+
+  <ul>
+    <li>
+      <a href="Project1.mpt" download>
+        Download MS Project Template (.mpt)
+      </a>
+    </li>
+    <li>
+      <a href="Template_Excel.xlsx" download>
+        Download Excel Import Template (.xlsx)
+      </a>
+    </li>
+  </ul>
+
+  <p style="font-size:13px; color: var(--muted);">
+    ⚠️ Ensure these files match the latest successful <code>build_mpt.ps1</code> output before deployment.
+  </p>
+</section>
 
     <!-- Key Rules Section -->
     <section id="rules" class="card">
