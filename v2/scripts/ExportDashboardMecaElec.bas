@@ -2,11 +2,13 @@ Option Explicit
 
 ' ============================================================================
 '  CONFIGURATION : dossier de sortie des fichiers générés
-'  1) Essaie OUTPUT_DIR (WSL UNC)
+'  Recommandation : ne pas hardcoder un chemin personnel. Laisser vide pour
+'  forcer les fallbacks (dossier du projet actif ou "Mes Documents").
+'  1) Essaie OUTPUT_DIR si renseigné et accessible
 '  2) Sinon: dossier du projet actif
 '  3) Sinon: Mes Documents utilisateur
 ' ============================================================================
-Private Const OUTPUT_DIR As String = "\\wsl.localhost\Ubuntu\home\ntoi\LFA-lab\Plano\macros\export\"
+Private Const OUTPUT_DIR As String = ""
 
 ' ============================================================================
 '  MODULE : ExportDashboardMecaElec (HTML)
@@ -41,7 +43,7 @@ Public Sub ExportDashboardMecaElec()
     ' Résoudre le dossier de sortie
     Dim fso As Object: Set fso = CreateObject("Scripting.FileSystemObject")
     Dim outDir As String
-    If FolderExistsSafe(fso, OUTPUT_DIR) Then
+    If Len(OUTPUT_DIR) > 0 And FolderExistsSafe(fso, OUTPUT_DIR) Then
         outDir = OUTPUT_DIR
     ElseIf Len(pj.Path) > 0 Then
         outDir = pj.Path
@@ -121,7 +123,11 @@ Private Function BuildHTMLHeader(ByVal projectName As String) As String
     h = h & "  <title>Dashboard Interne - " & EncodeHTML(projectName) & "</title>" & vbCrLf
     ' Chart.js (pour la courbe en S) — peut être retiré si vous n'utilisez pas l'onglet S-Curve
     h = h & "  <script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1'></script>" & vbCrLf
-    h = h & "  <script src='https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3'></script>" & vbCrLf
+    ' Inclure Chart.js uniquement si des données S-Curve existent
+    If HasSCurveData() Then
+        h = h & "  <script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1'></script>" & vbCrLf
+        h = h & "  <script src='https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3'></script>" & vbCrLf
+    End If
     h = h & BuildCSS()
     h = h & "</head>" & vbCrLf
     h = h & "<body>" & vbCrLf
@@ -515,7 +521,7 @@ Private Function BuildJavaScript() As String
 
     js = js & "          generalRow.style.display = '';" & vbCrLf
 
-    js = js & "          generalRow.setAttribute('data-zone', selectedZone);" & vbCrLf
+    js = js & "          generalRow.setAttribute('data-zone', '__GENERAL__');" & vbCrLf
 
     js = js & "        } else {" & vbCrLf
 
@@ -907,7 +913,14 @@ Private Function BuildClientSection4_AvancementSemaine() As String
                 If t.Start <= week4End And t.Finish >= week1Start Then
                     zone = IIf(Len(t.Text3) > 0, CStr(t.Text3), "Sans zone")
                     ' ⚠️ Votre import remplit "Entreprise" dans Text5 ; si c'est le cas, utilisez t.Text5.
-                    entreprise = IIf(Len(t.Text1) > 0, CStr(t.Text1), "Non défini") ' Remplacer par t.Text5 si adéquat.
+                    ' Préférence : Text5 (Entreprise importée) si renseigné, sinon Text1
+                    If Len(t.Text5) > 0 Then
+                        entreprise = CStr(t.Text5)
+                    ElseIf Len(t.Text1) > 0 Then
+                        entreprise = CStr(t.Text1)
+                    Else
+                        entreprise = "Non défini"
+                    End If
 
                     keyZoneEnt = zone & "|" & entreprise
 
@@ -1466,6 +1479,34 @@ Private Function BuildViewSCurve() As String
 
     html = html & "      const actualData = " & actualData & ";" & vbCrLf
 
+' Détecte si des données S-Curve (MECA + ressources matérielles) existent
+Private Function HasSCurveData() As Boolean
+    Dim t As Task, a As Assignment, r As Resource
+    HasSCurveData = False
+    On Error Resume Next
+    For Each t In ActiveProject.Tasks
+        If Not t Is Nothing And Not t.Summary Then
+            If MapGroup(IIf(Len(t.Text4) > 0, CStr(t.Text4), "")) = "meca" Then
+                For Each a In t.Assignments
+                    If Not a Is Nothing Then
+                        Set r = a.Resource
+                        If Not r Is Nothing And r.Type = pjResourceTypeMaterial Then
+                            If Not IsEmpty(a.Units) And Not IsNull(a.Units) Then
+                                If CDbl(a.Units) > 0 Then
+                                    HasSCurveData = True
+                                    Exit For
+                                End If
+                            End If
+                        End If
+                    End If
+                Next a
+            End If
+        End If
+        If HasSCurveData Then Exit For
+    Next t
+    On Error GoTo 0
+End Function
+
     html = html & "      " & vbCrLf
 
     html = html & "      document.addEventListener('DOMContentLoaded', function() {" & vbCrLf
@@ -1756,32 +1797,40 @@ Private Function CreateDebugLog() As String
     ' Etape 3 : stats par zone
     log = log & vbCrLf & String(80, "=") & vbCrLf & "ETAPE 3 : STATISTIQUES PAR ZONE (filtrage individuel)" & vbCrLf & String(80, "=") & vbCrLf & vbCrLf
     Dim zKey As Variant
-    For Each zKey In zoneStatsDict.Keys
-        Set zoneTotal = zoneStatsDict(zKey)
-        log = log & "+--- ZONE : " & zKey & " " & String(60 - Len(CStr(zKey)), "-") & "+" & vbCrLf & _
-                    "| Nombre de taches : " & zoneTotal("taskCount") & vbCrLf & _
-                    "| Heures prevues   : " & Format(zoneTotal("heuresPrevu"), "#,##0.00") & " h" & vbCrLf & _
-                    "| Heures actuelles : " & Format(zoneTotal("heuresActuel"), "#,##0.00") & " h" & vbCrLf
-        zonePct = 0
-        If zoneTotal("heuresPrevu") > 0 Then zonePct = (zoneTotal("heuresActuel") / zoneTotal("heuresPrevu")) * 100
-        log = log & "| Avancement       : " & Format(zonePct, "0.00") & " %" & vbCrLf & "+" & String(70, "-") & "+" & vbCrLf & vbCrLf
-    Next zKey
+    If Not (zoneStatsDict Is Nothing) And zoneStatsDict.Count > 0 Then
+        For Each zKey In zoneStatsDict.Keys
+            Set zoneTotal = zoneStatsDict(zKey)
+            log = log & "+--- ZONE : " & zKey & " " & String(60 - Len(CStr(zKey)), "-") & "+" & vbCrLf & _
+                        "| Nombre de taches : " & zoneTotal("taskCount") & vbCrLf & _
+                        "| Heures prevues   : " & Format(zoneTotal("heuresPrevu"), "#,##0.00") & " h" & vbCrLf & _
+                        "| Heures actuelles : " & Format(zoneTotal("heuresActuel"), "#,##0.00") & " h" & vbCrLf
+            zonePct = 0
+            If zoneTotal("heuresPrevu") > 0 Then zonePct = (zoneTotal("heuresActuel") / zoneTotal("heuresPrevu")) * 100
+            log = log & "| Avancement       : " & Format(zonePct, "0.00") & " %" & vbCrLf & "+" & String(70, "-") & "+" & vbCrLf & vbCrLf
+        Next zKey
+    Else
+        log = log & "Aucune statistique par zone disponible (zoneStatsDict vide ou non initialise)." & vbCrLf & vbCrLf
+    End If
 
     ' Etape 4 : comparaison modes
     log = log & vbCrLf & String(80, "=") & vbCrLf & "ETAPE 4 : COMPARAISON DES MODES DE FILTRAGE" & vbCrLf & String(80, "=") & vbCrLf & vbCrLf
     sumZonesPrevu = 0: sumZonesActuel = 0
-    For Each zKey In zoneStatsDict.Keys
-        Set zoneTotal = zoneStatsDict(zKey)
-        sumZonesPrevu = sumZonesPrevu + zoneTotal("heuresPrevu")
-        sumZonesActuel = sumZonesActuel + zoneTotal("heuresActuel")
-    Next zKey
-    log = log & "MODE 'TOUTES AGREGEES' (toutes taches uniques) :" & vbCrLf & _
-                "  Taches    : " & globalTotal("taskCount") & vbCrLf & _
-                "  Heures P. : " & Format(globalTotal("heuresPrevu"), "#,##0.00") & " h" & vbCrLf & _
-                "  Heures A. : " & Format(globalTotal("heuresActuel"), "#,##0.00") & " h" & vbCrLf & vbCrLf & _
-                "SOMME DES ZONES (addition des filtres individuels) :" & vbCrLf & _
-                "  Heures P. : " & Format(sumZonesPrevu, "#,##0.00") & " h" & vbCrLf & _
-                "  Heures A. : " & Format(sumZonesActuel, "#,##0.00") & " h" & vbCrLf & vbCrLf
+    If Not (zoneStatsDict Is Nothing) And zoneStatsDict.Count > 0 Then
+        For Each zKey In zoneStatsDict.Keys
+            Set zoneTotal = zoneStatsDict(zKey)
+            sumZonesPrevu = sumZonesPrevu + zoneTotal("heuresPrevu")
+            sumZonesActuel = sumZonesActuel + zoneTotal("heuresActuel")
+        Next zKey
+        log = log & "MODE 'TOUTES AGREGEES' (toutes taches uniques) :" & vbCrLf & _
+                    "  Taches    : " & globalTotal("taskCount") & vbCrLf & _
+                    "  Heures P. : " & Format(globalTotal("heuresPrevu"), "#,##0.00") & " h" & vbCrLf & _
+                    "  Heures A. : " & Format(globalTotal("heuresActuel"), "#,##0.00") & " h" & vbCrLf & vbCrLf & _
+                    "SOMME DES ZONES (addition des filtres individuels) :" & vbCrLf & _
+                    "  Heures P. : " & Format(sumZonesPrevu, "#,##0.00") & " h" & vbCrLf & _
+                    "  Heures A. : " & Format(sumZonesActuel, "#,##0.00") & " h" & vbCrLf & vbCrLf
+    Else
+        log = log & "Aucune comparaison des modes de filtrage possible (zoneStatsDict vide ou non initialise)." & vbCrLf & vbCrLf
+    End If
 
     ecartPrevu = sumZonesPrevu - globalTotal("heuresPrevu")
     ecartActuel = sumZonesActuel - globalTotal("heuresActuel")

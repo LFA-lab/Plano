@@ -7,7 +7,7 @@ Public Const PLANO_MENU_TAG As String = "plano_menu_tag"
 Public Const MACRO_DASHBOARD As String = "GenerateDashboard"
 Public Const MACRO_IMPORT As String = "Import_Taches_Simples_AvecTitre"
 Public Const MACRO_EXPORT As String = "ExportData"
-Public Const MACRO_PANEL As String = "ShowPlanoControl"
+
 Public Sub CreatePlanoMenu()
     On Error GoTo ErrHandler
     
@@ -21,7 +21,7 @@ Public Sub CreatePlanoMenu()
     ' 1) Legacy Menu Bar (common in Project Pro 2016/2019/2021)
     Set cb = Application.CommandBars("Menu Bar")
     
-    ' 2) If your build doesn’t expose a visible Menu Bar ? try Menu Commands
+    ' 2) If your build doesn't expose a visible Menu Bar - try Menu Commands
     If cb Is Nothing Then
         Set cb = Application.CommandBars("Menu Commands")
     End If
@@ -49,7 +49,7 @@ Public Sub CreatePlanoMenu()
     sep.BeginGroup = True
     sep.Visible = False
 
-    AddPlanoButton pop, "Open Control Panel…", MACRO_PANEL, 1086
+    AddPlanoButton pop, "Open Control Panel", MACRO_PANEL, 1086
 
     Exit Sub
 
@@ -105,7 +105,7 @@ Public Sub ExportData()
 End Sub
 
 Sub GenerateDashboard()
-    MsgBox "Button Works"
+    MsgBox "Button Triggered"
     ExportDashboardMecaElecModule.ExportDashboardMecaElec
     
 End Sub
