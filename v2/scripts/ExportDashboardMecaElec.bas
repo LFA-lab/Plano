@@ -1,3 +1,5 @@
+Attribute VB_Name = "ExportDashBoardMecaElec"
+
 Option Explicit
 
 ' ============================================================================
@@ -121,8 +123,6 @@ Private Function BuildHTMLHeader(ByVal projectName As String) As String
     h = h & "  <meta charset='UTF-8'>" & vbCrLf
     h = h & "  <meta name='viewport' content='width=device-width, initial-scale=1.0'>" & vbCrLf
     h = h & "  <title>Dashboard Interne - " & EncodeHTML(projectName) & "</title>" & vbCrLf
-    ' Chart.js (pour la courbe en S) — peut être retiré si vous n'utilisez pas l'onglet S-Curve
-    h = h & "  <script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1'></script>" & vbCrLf
     ' Inclure Chart.js uniquement si des données S-Curve existent
     If HasSCurveData() Then
         h = h & "  <script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1'></script>" & vbCrLf
@@ -1479,34 +1479,6 @@ Private Function BuildViewSCurve() As String
 
     html = html & "      const actualData = " & actualData & ";" & vbCrLf
 
-' Détecte si des données S-Curve (MECA + ressources matérielles) existent
-Private Function HasSCurveData() As Boolean
-    Dim t As Task, a As Assignment, r As Resource
-    HasSCurveData = False
-    On Error Resume Next
-    For Each t In ActiveProject.Tasks
-        If Not t Is Nothing And Not t.Summary Then
-            If MapGroup(IIf(Len(t.Text4) > 0, CStr(t.Text4), "")) = "meca" Then
-                For Each a In t.Assignments
-                    If Not a Is Nothing Then
-                        Set r = a.Resource
-                        If Not r Is Nothing And r.Type = pjResourceTypeMaterial Then
-                            If Not IsEmpty(a.Units) And Not IsNull(a.Units) Then
-                                If CDbl(a.Units) > 0 Then
-                                    HasSCurveData = True
-                                    Exit For
-                                End If
-                            End If
-                        End If
-                    End If
-                Next a
-            End If
-        End If
-        If HasSCurveData Then Exit For
-    Next t
-    On Error GoTo 0
-End Function
-
     html = html & "      " & vbCrLf
 
     html = html & "      document.addEventListener('DOMContentLoaded', function() {" & vbCrLf
@@ -1868,6 +1840,33 @@ Private Function CreateDebugLog() As String
     End If
     log = log & vbCrLf & "Fin du diagnostic." & vbCrLf
     CreateDebugLog = log
+End Function
+
+Private Function HasSCurveData() As Boolean
+    Dim t As Task, a As Assignment, r As Resource
+    HasSCurveData = False
+    On Error Resume Next
+    For Each t In ActiveProject.Tasks
+        If Not t Is Nothing And Not t.Summary Then
+            If MapGroup(IIf(Len(t.Text4) > 0, CStr(t.Text4), "")) = "meca" Then
+                For Each a In t.Assignments
+                    If Not a Is Nothing Then
+                        Set r = a.Resource
+                        If Not r Is Nothing And r.Type = pjResourceTypeMaterial Then
+                            If Not IsEmpty(a.Units) And Not IsNull(a.Units) Then
+                                If CDbl(a.Units) > 0 Then
+                                    HasSCurveData = True
+                                    Exit For
+                                End If
+                            End If
+                        End If
+                    End If
+                Next a
+            End If
+        End If
+        If HasSCurveData Then Exit For
+    Next t
+    On Error GoTo 0
 End Function
 
 Private Function LogMetierSection(ByVal metierType As String, ByVal metierLabel As String) As String

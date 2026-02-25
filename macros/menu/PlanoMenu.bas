@@ -49,7 +49,6 @@ Public Sub CreatePlanoMenu()
     sep.BeginGroup = True
     sep.Visible = False
 
-    AddPlanoButton pop, "Open Control Panel", MACRO_PANEL, 1086
 
     Exit Sub
 
@@ -105,7 +104,7 @@ Public Sub ExportData()
 End Sub
 
 Sub GenerateDashboard()
-    MsgBox "Button Triggered"
+    
     ExportDashboardMecaElecModule.ExportDashboardMecaElec
     
 End Sub
