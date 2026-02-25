@@ -1,17 +1,15 @@
 Option Explicit
 
 ' ============================================================================
-'  CONFIGURATION : dossier de sortie des fichiers générés
-'  Correspond au dossier du source VB sur la machine de dev (via WSL UNC)
-' ============================================================================
-Private Const OUTPUT_DIR As String = "\\wsl.localhost\Ubuntu\home\ntoi\LFA-lab\Plano\macros\export\"
-
-' ============================================================================
 '  MODULE : ExportDashboardMecaElec
 '  OBJET  : Exporter un dashboard HTML style "Dashboard Interne" depuis MS Project
 '           Style visuel identique à dashboard.html (bordures noires, barres jaunes)
-'           Données filtrées par colonne H (Text4 = "Mecanique" ou "Electrique")
+'           Données filtrées par colonne H (Text4 = "VRD", "MECA", "ELEC"…)
 '  DATE   : 2025-02-03
+'
+'  SORTIE : Les fichiers sont écrits dans le dossier Téléchargements de l'utilisateur
+'           Windows courant — aucune configuration requise, fonctionne sur toutes
+'           les machines sans modifier le code.
 ' ============================================================================
 
 ' ============================================================================
@@ -23,6 +21,7 @@ Sub ExportDashboardMecaElec()
     
     Dim fso As Object, file As Object
     Dim filePath As String, logPath As String, dashboardTitle As String
+    Dim outputDir As String
     Dim t As Task
     
     ' Vérification du projet actif
@@ -30,6 +29,9 @@ Sub ExportDashboardMecaElec()
         MsgBox "Aucun projet actif !", vbCritical
         Exit Sub
     End If
+    
+    ' Dossier de sortie : Téléchargements de l'utilisateur courant (portable, toutes machines)
+    outputDir = Environ$("USERPROFILE") & "\Downloads\"
     
     ' Récupération du nom du projet
     dashboardTitle = ActiveProject.Name
@@ -40,9 +42,9 @@ Sub ExportDashboardMecaElec()
         End If
     Next t
     
-    ' Chemins de sortie — dans le dossier du source VB (voir constante OUTPUT_DIR en haut)
-    filePath = OUTPUT_DIR & "dashboard_mecaelec.html"
-    logPath  = OUTPUT_DIR & "dashboard_mecaelec_DEBUG.txt"
+    ' Chemins de sortie
+    filePath = outputDir & "dashboard_mecaelec.html"
+    logPath  = outputDir & "dashboard_mecaelec_DEBUG.txt"
     
     ' Génération du HTML complet
     Dim htmlContent As String
