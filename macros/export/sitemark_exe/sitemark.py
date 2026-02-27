@@ -61,7 +61,7 @@ def extract_all(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:
         for pi, page in enumerate(pdf.pages):
             text = page.extract_text() or ""
-            m = re.search(r"^#(\d+)$", text, re.MULTILINE)
+            m = re.search(r"^#(\d+)", text, re.MULTILINE)
             if m:
                 rid = int(m.group(1))
                 page_map[rid] = {"data_page": pi, "photo_page": pi + 1}
@@ -91,8 +91,11 @@ def extract_all(pdf_path):
                 row_words = sorted(rows[y_key], key=lambda w: w["x0"])
                 row_texts = [w["text"] for w in row_words]
 
-                if len(row_words) == 1 and id_re.match(row_texts[0]):
-                    reserves.append({"_id": int(id_re.match(row_texts[0]).group(1))})
+                if row_words and id_re.match(row_texts[0].strip()):
+                    rid = int(id_re.match(row_texts[0].strip()).group(1))
+                    titre_raw = words_text(row_words[1:]).strip() if len(row_words) > 1 else ""
+                    titre_reserve = re.sub(r"^\s*-\s*", "", titre_raw).strip() if titre_raw else ""
+                    reserves.append({"_id": rid, "titre_reserve": titre_reserve})
                     pending_key = None
                     continue
 
@@ -190,7 +193,7 @@ def convert(pdf_path, out_path, on_progress, on_done, on_error):
         ws1.title = "Réserves"
         META = [
             ("ID", "id_reserve", 6), ("Statut", "statut", 14), ("Gravité", "gravite", 9),
-            ("Type Réserve", "type_reserve", 34), ("Description", "description", 32),
+            ("Titre", "titre_reserve", 40), ("Type Réserve", "type_reserve", 34), ("Description", "description", 32),
             ("Localisation", "localisation", 22), ("Zone", "zone", 8), ("Rangée", "rangee", 9),
             ("Tables", "tables", 8), ("Créé Par", "cree_par", 18), ("Attribué À", "attribue_a", 18),
             ("Responsable", "responsable", 16), ("Date Création", "date_creation", 16),
