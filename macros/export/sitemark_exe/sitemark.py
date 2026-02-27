@@ -56,17 +56,25 @@ def seg(row_words, x_min, x_max=9999):
 
 def extract_all(pdf_path):
     reserves, page_map, photo_urls_map = [], {}, {}
-    # Vraies réserves : #N - Titre (tiret obligatoire ; exclut les lignes pièces jointes "#91393 JPEG_...")
-    id_re = re.compile(r"^#(\d+)\s*-\s*(.*)$")
+    # Réserves : "#N - Titre" (ancien format) ou "#N" seul (nouveau format Sitemark ; titre rempli via "Sélectionner")
+    # Exclure les pièces jointes "#91393 JPEG_..." (IDs photo 5 chiffres).
+    id_re_full = re.compile(r"^#(\d+)\s*-\s*(.*)$")
+    id_re_short = re.compile(r"^#(\d{1,4})(?:\s|$)")  # #N ou #N + espace (1–4 chiffres pour exclure #91393)
     doc = fitz.open(pdf_path)
 
     with pdfplumber.open(pdf_path) as pdf:
         for pi, page in enumerate(pdf.pages):
             text = page.extract_text() or ""
-            m = re.search(r"^#(\d+)\s*-\s*", text, re.MULTILINE)
-            if m:
+            for m in re.finditer(r"#(\d+)\s*-\s*", text):
                 rid = int(m.group(1))
-                page_map[rid] = {"data_page": pi, "photo_page": pi + 1}
+                if rid not in page_map and rid < 10000:
+                    page_map[rid] = {"data_page": pi, "photo_page": pi + 1}
+                    break
+            for m in re.finditer(r"^#(\d{1,4})(?:\s|$)", text, re.MULTILINE):
+                rid = int(m.group(1))
+                if rid not in page_map:
+                    page_map[rid] = {"data_page": pi, "photo_page": pi + 1}
+                    break
 
     for pi in range(len(doc)):
         links = doc[pi].get_links()
@@ -93,11 +101,17 @@ def extract_all(pdf_path):
                 row_words = sorted(rows[y_key], key=lambda w: w["x0"])
                 full_row = words_text(row_words).strip()
 
-                m = id_re.match(full_row)
+                m = id_re_full.match(full_row)
                 if m:
                     rid = int(m.group(1))
                     titre_reserve = (m.group(2) or "").strip()
                     reserves.append({"_id": rid, "titre_reserve": titre_reserve})
+                    pending_key = None
+                    continue
+                m = id_re_short.match(full_row)
+                if m and (not reserves or reserves[-1].get("_id") != int(m.group(1))):
+                    rid = int(m.group(1))
+                    reserves.append({"_id": rid, "titre_reserve": ""})
                     pending_key = None
                     continue
 
@@ -138,6 +152,8 @@ def extract_all(pdf_path):
         ir = r.get("id_reserve", "")
         if not ir or not re.match(r"^\d+$", ir.strip()):
             r["id_reserve"] = str(r.get("_id", ""))
+        if not (r.get("titre_reserve") or "").strip() and r.get("type_reserve"):
+            r["titre_reserve"] = (r.get("type_reserve") or "").strip()
         for k in ["photo1_r", "photo2_r", "photo3_r", "photo1_l", "photo2_l", "photo3_l"]:
             r.pop(k, None)
         r.pop("_id", None)
@@ -385,6 +401,14 @@ def convert(pdf_path, out_path, on_progress, on_done, on_error):
         site = os.path.basename(pdf_path).replace(".pdf", "")
         now  = datetime.today().strftime("%d/%m/%Y %H:%M")
         total = sum(len(v) for v in photo_urls_map.values())
+
+        if not reserves:
+            messagebox.showwarning(
+                "Aucune réserve extraite",
+                "Le PDF n'a pas fourni de réserves (format attendu : lignes \"#N - Titre\").\n\n"
+                "Vérifiez que le fichier est bien un rapport Sitemark exporté avec des réserves.\n"
+                "L'Excel sera tout de même généré avec la page d'accueil."
+            )
 
         on_progress(15, f"{len(reserves)} réserves — téléchargement de {total} photos...")
 
