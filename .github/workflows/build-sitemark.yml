@@ -26,8 +26,10 @@ jobs:
           cd macros/export/sitemark_exe
           pyinstaller --onefile --noconsole --name "Sitemark" sitemark.py
 
-      - name: Move EXE to repo
-        run: Copy-Item macros/export/sitemark_exe/dist/Sitemark.exe macros/export/sitemark_exe/Sitemark.exe
+      - name: Move EXE and clean Zone.Identifier
+        run: |
+          Copy-Item macros/export/sitemark_exe/dist/Sitemark.exe macros/export/sitemark_exe/Sitemark.exe
+          Get-ChildItem -Recurse -Filter "*Zone.Identifier*" | Remove-Item -Force
 
       - name: Commit and push EXE
         run: |
@@ -35,4 +37,4 @@ jobs:
           git config user.email "actions@github.com"
           git add macros/export/sitemark_exe/Sitemark.exe
           git commit -m "ci: update Sitemark.exe"
-          git push
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/LFA-lab/Plano.git
