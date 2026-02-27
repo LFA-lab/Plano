@@ -1,0 +1,38 @@
+name: Build Sitemark.exe
+
+on:
+  push:
+    paths:
+      - 'macros/export/sitemark_exe/sitemark.py'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pymupdf pdfplumber openpyxl pillow requests pyinstaller
+
+      - name: Build EXE
+        run: |
+          cd macros/export/sitemark_exe
+          pyinstaller --onefile --noconsole --name "Sitemark" sitemark.py
+
+      - name: Move EXE to repo
+        run: Copy-Item macros/export/sitemark_exe/dist/Sitemark.exe macros/export/sitemark_exe/Sitemark.exe
+
+      - name: Commit and push EXE
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add macros/export/sitemark_exe/Sitemark.exe
+          git commit -m "ci: update Sitemark.exe"
+          git push
