@@ -1,6 +1,7 @@
 """
 Sitemark — PDF Pre-commissioning → Excel avec photos
 Interface graphique, packageable en .exe via PyInstaller
+(CI build: push de ce fichier déclenche Build Sitemark.exe)
 """
 import sys
 import os
