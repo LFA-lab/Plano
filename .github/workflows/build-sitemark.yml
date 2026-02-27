@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'macros/export/sitemark_exe/sitemark.py'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -29,7 +30,7 @@ jobs:
       - name: Move EXE and clean Zone.Identifier
         run: |
           Copy-Item macros/export/sitemark_exe/dist/Sitemark.exe macros/export/sitemark_exe/Sitemark.exe
-          Get-ChildItem -Recurse -Filter "*Zone.Identifier*" | Remove-Item -Force
+          Get-ChildItem -Path macros/export/sitemark_exe -Recurse -Filter "*Zone.Identifier*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 
       - name: Commit and push EXE
         run: |
@@ -37,4 +38,4 @@ jobs:
           git config user.email "actions@github.com"
           git add macros/export/sitemark_exe/Sitemark.exe
           git commit -m "ci: update Sitemark.exe"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/LFA-lab/Plano.git
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
