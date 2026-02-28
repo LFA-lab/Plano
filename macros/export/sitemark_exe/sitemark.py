@@ -20,7 +20,10 @@ from openpyxl import Workbook
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.utils.units import pixels_to_points
 from datetime import datetime
+
+from dashboard import generate_global_dashboard
 
 IMG_W, IMG_H = 220, 165
 STATUS_COLORS  = {"Résolu": "C6EFCE", "En cours": "FFEB9C", "À faire": "FFC7CE"}
@@ -187,10 +190,13 @@ def bdr():
 ACCUEIL_CYAN = "00CED1"
 ACCUEIL_GRAY_HEADER = "E8E8E8"
 # Dimensions cibles pour les images (logo x1.5 pour visibilité, éviter débordement)
-ACCUEIL_LOGO_W, ACCUEIL_LOGO_H = 180, 75
-ACCUEIL_VUE_W, ACCUEIL_VUE_H = 200, 95
-ACCUEIL_BLOC_W, ACCUEIL_BLOC_H = 90, 50
+# PDG : dimensions en pixels (conversion en points pour hauteurs de ligne)
+ACCUEIL_TITRE_H_PX, ACCUEIL_TITRE_W_PX = 181, 1233       # B2 — Titre principal "Inspection du site..."
+ACCUEIL_LOGO_OMEXOM_W_PX, ACCUEIL_LOGO_OMEXOM_H_PX = 567, 156   # G11
+ACCUEIL_BLOC_BLEU_H_PX, ACCUEIL_BLOC_BLEU_W_PX = 206, 695       # E24 — Fond cyan
+ACCUEIL_TEXTE_RAPPORT_H_PX, ACCUEIL_TEXTE_RAPPORT_W_PX = 157, 524  # G24 — "Rapport de pré-commissioning"
 ACCUEIL_NCOLS = 14  # A–N pour équilibre A4
+ACCUEIL_PDG_COLS_BK = 11   # B à K pour Description, Réserves, Gravités
 
 # --- Images embarquées en base64 (un seul exe, pas de fichiers PNG à côté) ---
 # Générer le base64 : base64.b64encode(open("fichier.png","rb").read()).decode()
@@ -267,64 +273,70 @@ def fill_onglet_accueil(ws, site, script_folder):
     gray_fill = PatternFill("solid", start_color=ACCUEIL_GRAY_HEADER)
     lc = get_column_letter(ACCUEIL_NCOLS)
 
-    # Largeurs de colonnes : A et H plus larges pour les libellés de la grille Description
+    # Largeurs de colonnes (B2 titre ~1233px → ~18 cols × ~9.8)
+    titre_cols = 18  # B à S pour 1233px
     for c in range(1, ACCUEIL_NCOLS + 1):
         letter = get_column_letter(c)
-        ws.column_dimensions[letter].width = 24 if c in (1, 8) else 10
+        ws.column_dimensions[letter].width = 9.8 if 2 <= c <= 1 + titre_cols else (24 if c in (1, 8) else 10)
 
-    # ----- Titre principal -----
-    ws.merge_cells(f"A1:{lc}1")
-    ws["A1"].value = "Rapport de pre-commissioning"
-    ws["A1"].font = Font(name="Calibri", bold=True, size=22, color="FFFFFF")
-    ws["A1"].fill = cyan_fill
-    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
-    ws.row_dimensions[1].height = 36
+    # ----- 1) Titre principal "Inspection du site..." — Ancre B2, 181px × 1233px -----
+    row_titre = 2
+    ws.row_dimensions[row_titre].height = pixels_to_points(ACCUEIL_TITRE_H_PX)
+    merge_titre = f"B{row_titre}:{get_column_letter(2 + titre_cols - 1)}{row_titre}"
+    ws.merge_cells(merge_titre)
+    c_titre = ws[f"B{row_titre}"]
+    c_titre.value = f"Inspection du site de {site} avant mise en service et réception en O&M"
+    c_titre.font = Font(name="Calibri", bold=True, size=22, color="FFFFFF")
+    c_titre.fill = cyan_fill
+    c_titre.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-    # ----- Zone images (lignes 2–5) : hauteur augmentée pour le grand logo -----
-    row_img_start, row_img_end = 2, 5
-    for r in range(row_img_start, row_img_end + 1):
-        ws.row_dimensions[r].height = 42
-    # Logo en haut à droite (base64 prioritaire, sinon fichier)
-    logo_path = os.path.join(script_folder, "logoomexom.png")
-    _accueil_image_insert(ws, f"L{row_img_start}", ACCUEIL_LOGO_W, ACCUEIL_LOGO_H, B64_LOGO, logo_path)
-    # Vue aérienne à gauche
+    # ----- 2) Logo de la Centrale — Ancre B10 (proportions adaptées à la zone) -----
+    row_logo_centrale = 10
+    ws.row_dimensions[row_logo_centrale].height = pixels_to_points(95)
     vue_path = os.path.join(script_folder, "vue aerienne centrale solaire.png")
-    _accueil_image_insert(ws, f"A{row_img_start}", ACCUEIL_VUE_W, ACCUEIL_VUE_H, B64_VUE, vue_path)
-    # Bloc couleur au milieu-droite + texte "Rapport de Pre-commissioning de {site}" (fond cyan)
-    bloc_path = os.path.join(script_folder, "bloc couleur.png")
-    _accueil_image_insert(ws, f"H{row_img_start}", ACCUEIL_BLOC_W, ACCUEIL_BLOC_H, B64_BLOC, bloc_path)
-    ws.merge_cells(f"I{row_img_start}:K{row_img_start}")
-    cell_titre_bloc = ws[f"I{row_img_start}"]
-    cell_titre_bloc.value = f"Rapport de Pre-commissioning de {site}"
-    cell_titre_bloc.font = Font(name="Calibri", bold=True, size=10, color="FFFFFF")
-    cell_titre_bloc.fill = cyan_fill
-    cell_titre_bloc.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    _accueil_image_insert(ws, f"B{row_logo_centrale}", 200, 95, B64_VUE, vue_path)
 
-    # ----- Ligne inspection (fusionnée, bordures) -----
-    row_inspection = 6
-    ws.row_dimensions[row_inspection].height = 26
-    ws.merge_cells(f"A{row_inspection}:{lc}{row_inspection}")
-    c_insp = ws[f"A{row_inspection}"]
-    c_insp.value = f"Inspection du site de {site} avant mise en service et réception en O&M"
-    c_insp.font = Font(name="Calibri", bold=True, size=11)
-    c_insp.alignment = Alignment(horizontal="center", vertical="center")
-    c_insp.border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    # ----- 3) Logo Omexom — Ancre G11, 567px × 156px -----
+    row_logo_omexom = 11
+    ws.row_dimensions[row_logo_omexom].height = pixels_to_points(ACCUEIL_LOGO_OMEXOM_H_PX)
+    logo_path = os.path.join(script_folder, "logoomexom.png")
+    _accueil_image_insert(ws, f"G{row_logo_omexom}", ACCUEIL_LOGO_OMEXOM_W_PX, ACCUEIL_LOGO_OMEXOM_H_PX, B64_LOGO, logo_path)
 
-    # ----- Fond blanc (nettoyage) : A à N, lignes 7 à 50 -----
+    # ----- 4) Bloc bleu (fond titre rapport) — Ancre E24, 206px × 695px, cyan, bordures épaisses -----
+    thick = Side(style="thick", color="000000")
+    row_bloc = 24
+    ws.row_dimensions[row_bloc].height = pixels_to_points(ACCUEIL_BLOC_BLEU_H_PX)
+    # 695px ≈ 99 caractères → 11 colonnes à partir de E (E=5 → E:O)
+    col_end_bloc = 5 + 11 - 1  # O
+    merge_bloc_left = f"E{row_bloc}:F{row_bloc}"
+    merge_bloc_text = f"G{row_bloc}:{get_column_letter(col_end_bloc)}{row_bloc}"
+    ws.merge_cells(merge_bloc_left)
+    ws.merge_cells(merge_bloc_text)
+    ws[f"E{row_bloc}"].fill = cyan_fill
+    ws[f"E{row_bloc}"].border = Border(left=thick, right=thick, top=thick, bottom=thick)
+    ws[f"G{row_bloc}"].fill = cyan_fill
+    ws[f"G{row_bloc}"].border = Border(left=thick, right=thick, top=thick, bottom=thick)
+    # ----- 5) Texte "Rapport de pré-commissioning" — Ancre G24 (dans le bloc bleu), 524px × 157px -----
+    cell_rapport = ws[f"G{row_bloc}"]
+    cell_rapport.value = f"Rapport de pré-commissioning de {site}"
+    cell_rapport.font = Font(name="Calibri", bold=True, size=14, color="FFFFFF")
+    cell_rapport.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    # ----- Fond blanc : à partir de la ligne 25 -----
     white_fill = PatternFill("solid", start_color="FFFFFF")
-    for row in range(7, 51):
+    lc_k = get_column_letter(ACCUEIL_PDG_COLS_BK)  # K — tous les blocs Description/Réserves/Gravités : B à K
+    for row in range(25, 55):
         for col in range(1, ACCUEIL_NCOLS + 1):
             ws.cell(row=row, column=col).fill = white_fill
 
-    thick = Side(style="thick", color="000000")
     lc6 = get_column_letter(6)   # F
     lc14 = get_column_letter(14) # N
 
-    # ----- 1) Grille Description (ancien rendu : titre A-N, libellés en A et H, saisie B-G et I-N fusionnées) -----
-    row_desc_title = 7
+    # ----- 6) Blocs Description, Réserves, Gravités : fusion B–K, alignement gauche indent 2, 2 lignes entre sections -----
+    row_desc_title = 26
     ws.row_dimensions[row_desc_title].height = 22
-    ws.merge_cells(f"A{row_desc_title}:{lc}{row_desc_title}")
-    tit_desc = ws.cell(row=row_desc_title, column=1, value="Description du site en quelques chiffres")
+    ws.merge_cells(f"B{row_desc_title}:{lc_k}{row_desc_title}")
+    tit_desc = ws.cell(row=row_desc_title, column=2, value="Description du site en quelques chiffres")
     tit_desc.font = Font(name="Calibri", bold=True, size=12)
     tit_desc.alignment = Alignment(horizontal="center", vertical="center")
     tit_desc.border = b
@@ -353,17 +365,19 @@ def fill_onglet_accueil(ws, site, script_folder):
             cr.fill = gray_label_fill
             cr.alignment = Alignment(horizontal="right", vertical="center")
             cr.border = b
-        ws.merge_cells(f"I{r}:{lc14}{r}")
-        for col in range(9, ACCUEIL_NCOLS + 1):
+        ws.merge_cells(f"I{r}:{lc_k}{r}")
+        for col in range(9, ACCUEIL_PDG_COLS_BK + 1):
             ws.cell(row=r, column=col).fill = white_fill
             ws.cell(row=r, column=col).border = b
+        ws.cell(row=r, column=2).alignment = Alignment(horizontal="left", vertical="center", indent=2)
+        ws.cell(row=r, column=9).alignment = Alignment(horizontal="left", vertical="center", indent=2)
 
-    # ----- 2) Texte d'introduction (ancien : 6 colonnes × 5 lignes, texte long avec thèmes, wrap_text) -----
-    row_intro = row_desc_title + 1 + n_form_rows + 1
+    # ----- 2) Texte d'introduction — fusion B–K, indent 2 ; 2 lignes de séparation avant -----
+    row_intro = row_desc_title + 1 + n_form_rows + 2
     for rr in range(row_intro, row_intro + 5):
         ws.row_dimensions[rr].height = 14
-    ws.merge_cells(f"A{row_intro}:{lc6}{row_intro + 4}")
-    intro_cell = ws.cell(row=row_intro, column=1)
+    ws.merge_cells(f"B{row_intro}:{lc_k}{row_intro + 4}")
+    intro_cell = ws.cell(row=row_intro, column=2)
     intro_cell.value = (
         "Les réserves sont classées par thème : VRD, Structure, Poste, Cheminement, Malt, Onduleurs, TGBT, BJ, "
         "Câbles Alu, PV-Câbles, PV-Connecteurs, PV-Modules, Vidéo-Surveillance, Station Météo. "
@@ -372,12 +386,13 @@ def fill_onglet_accueil(ws, site, script_folder):
         "Les réserves sont réparties selon 3 types de gravité définis ci-dessous."
     )
     intro_cell.font = Font(name="Calibri", size=10)
-    intro_cell.alignment = Alignment(wrap_text=True, vertical="top")
+    intro_cell.alignment = Alignment(wrap_text=True, vertical="top", horizontal="left", indent=2)
 
-    # ----- 3) Tableau Gravité (ancien : nombre en A avec couleur, libellé fusionné B-N à droite, bordure épaisse) -----
-    row_grav_title = row_intro + 6
+    # ----- 3) Tableau Gravité — fusion B–K ; 2 lignes de séparation avant -----
+    row_grav_title = row_intro + 5 + 2
     ws.row_dimensions[row_grav_title].height = 20
-    ws.cell(row=row_grav_title, column=1, value="Gravité").font = Font(name="Calibri", bold=True, size=12)
+    ws.merge_cells(f"B{row_grav_title}:{lc_k}{row_grav_title}")
+    ws.cell(row=row_grav_title, column=2, value="Gravité").font = Font(name="Calibri", bold=True, size=12)
     grav_labels = ("Réserve bloquante", "Réserve majeure", "Réserve mineure")
     grav_formulas = (
         "=COUNTIF('Réserves'!C:C, \"1\")",
@@ -397,22 +412,23 @@ def fill_onglet_accueil(ws, site, script_folder):
         cell_num.border = Border(
             left=thick, right=thin, top=thick if i == 0 else thin, bottom=thick if i == n_grav - 1 else thin
         )
-        # B-N : libellé fusionné
-        ws.merge_cells(f"B{r}:{lc14}{r}")
+        # B–K : libellé fusionné, indent 2
+        ws.merge_cells(f"B{r}:{lc_k}{r}")
         cell_txt = ws.cell(row=r, column=2, value=grav_labels[i])
         cell_txt.font = Font(name="Calibri", bold=True, size=10)
-        cell_txt.alignment = Alignment(horizontal="left", vertical="center")
-        for col in range(2, ACCUEIL_NCOLS + 1):
+        cell_txt.alignment = Alignment(horizontal="left", vertical="center", indent=2)
+        for col in range(2, ACCUEIL_PDG_COLS_BK + 1):
             ws.cell(row=r, column=col).border = Border(
-                left=thin, right=thick if col == ACCUEIL_NCOLS else thin,
+                left=thin, right=thick if col == ACCUEIL_PDG_COLS_BK else thin,
                 top=thick if i == 0 else thin, bottom=thick if i == n_grav - 1 else thin
             )
 
-    # ----- 4) Tableau Statuts (ancien : deux blocs côte à côte, nombre + phrase de résumé par statut, bordure épaisse) -----
-    row_stat_title = row_grav_title + 1 + n_grav + 1
+    # ----- 4) Tableau Statuts — fusion B–K ; 2 lignes de séparation avant -----
+    row_stat_title = row_grav_title + 1 + n_grav + 2
     ws.row_dimensions[row_stat_title].height = 20
-    ws.cell(row=row_stat_title, column=1, value="Statuts").font = Font(name="Calibri", bold=True, size=12)
-    # Bloc gauche A-F : À faire, Résolu (2 lignes) ; Bloc droit H-N : En cours, Ne sera pas fait (2 lignes)
+    ws.merge_cells(f"B{row_stat_title}:{lc_k}{row_stat_title}")
+    ws.cell(row=row_stat_title, column=2, value="Statuts").font = Font(name="Calibri", bold=True, size=12)
+    # Bloc gauche B–G : À faire, Résolu (2 lignes) ; Bloc droit H–K : En cours, Ne sera pas fait (2 lignes)
     stat_left = [
         ("À faire", "=COUNTIF('Réserves'!B:B, \"À faire\")", STATUS_COLORS["À faire"], "Résumé des réserves restantes à lever."),
         ("Résolu", "=COUNTIF('Réserves'!B:B, \"Résolu\")", STATUS_COLORS["Résolu"], "Résumé des réserves résolues."),
@@ -424,47 +440,47 @@ def fill_onglet_accueil(ws, site, script_folder):
     row_stat_start = row_stat_title + 1
     for rr in range(row_stat_start, row_stat_start + 2):
         ws.row_dimensions[rr].height = 22
-    # Ligne 1 : À faire (gauche), En cours (droite) — fond blanc, nombre gras 14 + phrase de résumé
+    # Ligne 1 : À faire (gauche B–G), En cours (droite H–K) — indent 2
     r1 = row_stat_start
-    for col in range(1, 7):
+    for col in range(2, 8):
         ws.cell(row=r1, column=col).fill = white_fill
         ws.cell(row=r1, column=col).border = b
-    ws.cell(row=r1, column=1, value=stat_left[0][1]).font = Font(name="Calibri", bold=True, size=14)
-    ws.cell(row=r1, column=1).alignment = Alignment(horizontal="center", vertical="center")
-    ws.merge_cells(f"B{r1}:F{r1}")
-    ws.cell(row=r1, column=2, value=stat_left[0][3]).alignment = Alignment(horizontal="left", vertical="center")
-    for col in range(8, ACCUEIL_NCOLS + 1):
+    ws.cell(row=r1, column=2, value=stat_left[0][1]).font = Font(name="Calibri", bold=True, size=14)
+    ws.cell(row=r1, column=2).alignment = Alignment(horizontal="center", vertical="center")
+    ws.merge_cells(f"C{r1}:G{r1}")
+    ws.cell(row=r1, column=3, value=stat_left[0][3]).alignment = Alignment(horizontal="left", vertical="center", indent=2)
+    for col in range(8, ACCUEIL_PDG_COLS_BK + 1):
         ws.cell(row=r1, column=col).fill = white_fill
         ws.cell(row=r1, column=col).border = b
     ws.cell(row=r1, column=8, value=stat_right[0][1]).font = Font(name="Calibri", bold=True, size=14)
     ws.cell(row=r1, column=8).alignment = Alignment(horizontal="center", vertical="center")
-    ws.merge_cells(f"I{r1}:{lc14}{r1}")
-    ws.cell(row=r1, column=9, value=stat_right[0][3]).alignment = Alignment(horizontal="left", vertical="center")
-    # Ligne 2 : Résolu (gauche, blanc), Ne sera pas fait (droite, fond 37474F + police blanche)
+    ws.merge_cells(f"I{r1}:{lc_k}{r1}")
+    ws.cell(row=r1, column=9, value=stat_right[0][3]).alignment = Alignment(horizontal="left", vertical="center", indent=2)
+    # Ligne 2 : Résolu (gauche), Ne sera pas fait (droite, fond 37474F)
     r2 = row_stat_start + 1
-    for col in range(1, 7):
+    for col in range(2, 8):
         ws.cell(row=r2, column=col).fill = white_fill
         ws.cell(row=r2, column=col).border = b
-    ws.cell(row=r2, column=1, value=stat_left[1][1]).font = Font(name="Calibri", bold=True, size=14)
-    ws.cell(row=r2, column=1).alignment = Alignment(horizontal="center", vertical="center")
-    ws.merge_cells(f"B{r2}:F{r2}")
-    ws.cell(row=r2, column=2, value=stat_left[1][3]).alignment = Alignment(horizontal="left", vertical="center")
+    ws.cell(row=r2, column=2, value=stat_left[1][1]).font = Font(name="Calibri", bold=True, size=14)
+    ws.cell(row=r2, column=2).alignment = Alignment(horizontal="center", vertical="center")
+    ws.merge_cells(f"C{r2}:G{r2}")
+    ws.cell(row=r2, column=3, value=stat_left[1][3]).alignment = Alignment(horizontal="left", vertical="center", indent=2)
     dark_fill = PatternFill("solid", start_color="37474F")
-    for col in range(8, ACCUEIL_NCOLS + 1):
+    for col in range(8, ACCUEIL_PDG_COLS_BK + 1):
         c = ws.cell(row=r2, column=col)
         c.fill = dark_fill
         c.font = Font(name="Calibri", bold=(col == 8), size=14 if col == 8 else 10, color="FFFFFF")
-        c.alignment = Alignment(horizontal="left" if col > 8 else "center", vertical="center")
+        c.alignment = Alignment(horizontal="left" if col > 8 else "center", vertical="center", indent=2 if col > 8 else 0)
         c.border = b
     ws.cell(row=r2, column=8, value=stat_right[1][1])
-    ws.merge_cells(f"I{r2}:{lc14}{r2}")
+    ws.merge_cells(f"I{r2}:{lc_k}{r2}")
     ws.cell(row=r2, column=9, value=stat_right[1][3])
-    # Bordures épaisses autour des deux blocs Statuts
+    # Bordures épaisses autour des deux blocs Statuts (B–G et H–K)
     for r in (r1, r2):
-        ws.cell(row=r, column=1).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
-        ws.cell(row=r, column=6).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
+        ws.cell(row=r, column=2).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
+        ws.cell(row=r, column=7).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
         ws.cell(row=r, column=8).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
-        ws.cell(row=r, column=ACCUEIL_NCOLS).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
+        ws.cell(row=r, column=ACCUEIL_PDG_COLS_BK).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
 
 
 def convert(pdf_path, out_path, on_progress, on_done, on_error):
@@ -683,6 +699,16 @@ class App(tk.Tk):
             command=self.run)
         self.btn.pack(pady=6)
 
+        self.btn_dashboard = tk.Button(
+            frame,
+            text="  📁 Générer Dashboard Global",
+            font=("Calibri", 11, "bold"),
+            bg="#3D7B2E", fg="white",
+            activebackground="#2A5A1F", activeforeground="white",
+            relief="flat", cursor="hand2", padx=20, pady=10,
+            command=self.run_dashboard)
+        self.btn_dashboard.pack(pady=4)
+
         style = ttk.Style()
         style.theme_use("default")
         style.configure("blue.Horizontal.TProgressbar",
@@ -731,6 +757,42 @@ class App(tk.Tk):
             target=convert,
             args=(pdf_path, out_path, on_progress, on_done, on_error),
             daemon=True).start()
+
+    def run_dashboard(self):
+        folder_path = filedialog.askdirectory(title="Choisir le dossier contenant les fichiers Excel")
+        if not folder_path:
+            return
+        self.btn_dashboard.config(state="disabled")
+        self.progress["value"] = 0
+
+        def on_progress(pct, msg):
+            self.after(0, lambda: _update_progress(pct, msg))
+
+        def _update_progress(pct, msg):
+            self.progress["value"] = pct
+            self.status_var.set(msg)
+            self.update_idletasks()
+
+        def on_status(msg):
+            self.after(0, lambda: _update_progress(self.progress["value"], msg))
+
+        def on_done(path):
+            self.btn_dashboard.config(state="normal")
+            self.status_var.set("✓ Dashboard généré")
+
+        def on_error(msg):
+            self.btn_dashboard.config(state="normal")
+            self.status_var.set("Erreur")
+            messagebox.showerror("Erreur Dashboard", f"Erreur :\n\n{msg[:500]}")
+
+        def run_in_thread():
+            try:
+                generate_global_dashboard(folder_path, on_progress, on_status)
+                self.after(0, on_done)
+            except Exception as e:
+                self.after(0, lambda: on_error(str(e)))
+
+        threading.Thread(target=run_in_thread, daemon=True).start()
 
 
 if __name__ == "__main__":
