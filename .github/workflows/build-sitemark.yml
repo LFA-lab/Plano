@@ -35,10 +35,16 @@ jobs:
         run: |
           Get-ChildItem -Path macros/export/sitemark_exe -Recurse -Filter "*Zone.Identifier*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 
-      - name: Commit and push EXE
+      - name: Update build date in sitemark.html
+        run: |
+          $date = Get-Date -Format "dd/MM/yyyy HH:mm"
+          $path = "macros/export/sitemark_exe/sitemark.html"
+          (Get-Content $path -Raw -Encoding UTF8) -replace '__EXE_BUILD_DATE__', $date | Set-Content $path -Encoding UTF8
+
+      - name: Commit and push EXE and page
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add macros/export/sitemark_exe/Sitemark.exe
-          git commit -m "ci: update Sitemark.exe"
+          git add macros/export/sitemark_exe/Sitemark.exe macros/export/sitemark_exe/sitemark.html
+          git commit -m "ci: update Sitemark.exe and build date"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
