@@ -309,89 +309,113 @@ def fill_onglet_accueil(ws, site, script_folder):
     c_insp.alignment = Alignment(horizontal="center", vertical="center")
     c_insp.border = Border(left=thin, right=thin, top=thin, bottom=thin)
 
-    # ----- Tableau "Description du site en quelques chiffres" (4 colonnes) -----
-    row_table_title = 7
-    ws.row_dimensions[row_table_title].height = 22
-    ws.merge_cells(f"A{row_table_title}:{lc}{row_table_title}")
-    ws[f"A{row_table_title}"].value = "Description du site en quelques chiffres"
-    ws[f"A{row_table_title}"].font = Font(name="Calibri", bold=True, size=12)
-    row_table_hdr = 8
-    ws.row_dimensions[row_table_hdr].height = 20
-    headers = ("Champ", "Valeur", "Champ", "Valeur")
-    for ci, h in enumerate(headers, 1):
-        c = ws.cell(row=row_table_hdr, column=ci, value=h)
-        c.font = Font(name="Calibri", bold=True, size=9)
-        c.fill = gray_fill
-        c.border = b
-        c.alignment = Alignment(horizontal="center", vertical="center")
-    left_keys = ("Client", "Numero d'Affaires", "Puissance totale", "Date", "Nombre de PDL/PTR")
-    right_keys = ("Type Onduleur", "Nombre d'Onduleur", "Type Cablage", "Type de raccordement", "Type de Cheminement", "Type de Tranchee")
-    n_data_rows = max(len(left_keys), len(right_keys))
-    for i in range(n_data_rows):
-        r = row_table_hdr + 1 + i
-        ws.row_dimensions[r].height = 18
-        for col in (1, 2, 3, 4):
-            cell = ws.cell(row=r, column=col, value="")
-            cell.border = b
-            cell.font = Font(name="Calibri", size=9)
-        if i < len(left_keys):
-            ws.cell(row=r, column=1, value=left_keys[i])
-        if i < len(right_keys):
-            ws.cell(row=r, column=3, value=right_keys[i])
+    # ----- Règle 2 : fond blanc sur toute la zone de travail sous les images -----
+    white_fill = PatternFill("solid", start_color="FFFFFF")
+    for row in range(7, 51):
+        for col in range(1, 11):
+            ws.cell(row=row, column=col).fill = white_fill
 
-    # ----- Bloc de texte explicatif -----
-    row_text = row_table_hdr + 1 + n_data_rows + 1
-    for r in range(row_text, row_text + 3):
-        ws.row_dimensions[r].height = 16
-    ws.merge_cells(f"A{row_text}:{lc}{row_text + 2}")
-    ws[f"A{row_text}"].value = (
-        "Les réserves sont classées par thème. Il s'agit d'une démarche d'amélioration continue. "
-        "Elles sont réparties selon 3 types de gravité."
-    )
-    ws[f"A{row_text}"].font = Font(name="Calibri", size=10)
-    ws[f"A{row_text}"].alignment = Alignment(wrap_text=True, vertical="top")
+    # Bordures : fine et épaisse pour les blocs
+    thick = Side(style="thick", color="000000")
 
-    # ----- Légende Gravité -----
-    row_grav_title = row_text + 4
+    # ----- Règle 3 : Bloc Gravité (libellés à droite, formules centrées gras 12, GRAVITY_COLORS, bordure épaisse) -----
+    row_grav_title = 7
     ws.row_dimensions[row_grav_title].height = 20
-    ws[f"A{row_grav_title}"].value = "Gravité"
-    ws[f"A{row_grav_title}"].font = Font(name="Calibri", bold=True, size=10)
-    grav_items = (
-        ("FF5252", "Réserve bloquante"),
-        ("FF9800", "Réserve majeure"),
-        ("66BB6A", "Réserve mineure"),
+    ws.cell(row=row_grav_title, column=1, value="Gravité").font = Font(name="Calibri", bold=True, size=12)
+    grav_labels = ("Réserve bloquante", "Réserve majeure", "Réserve mineure")
+    grav_formulas = (
+        "=NB.SI('Réserves'!C:C, \"1\")",
+        "=NB.SI('Réserves'!C:C, \"2\")",
+        "=NB.SI('Réserves'!C:C, \"3\")",
     )
-    for i, (color, label) in enumerate(grav_items):
+    n_grav = len(grav_labels)
+    for i in range(n_grav):
         r = row_grav_title + 1 + i
-        ws.row_dimensions[r].height = 18
-        ws.cell(row=r, column=1).fill = PatternFill("solid", start_color=color)
-        ws.cell(row=r, column=1).border = b
-        ws.cell(row=r, column=2, value=label).font = Font(name="Calibri", size=9)
-        ws.cell(row=r, column=2).border = b
+        ws.row_dimensions[r].height = 20
+        # Libellé : aligné à droite
+        cell_label = ws.cell(row=r, column=1, value=grav_labels[i])
+        cell_label.alignment = Alignment(horizontal="right", vertical="center")
+        cell_label.border = Border(
+            left=thick, right=thin, top=thick if i == 0 else thin, bottom=thick if i == n_grav - 1 else thin
+        )
+        # Formule : centré, gras, taille 12, fond GRAVITY_COLORS
+        cell_formula = ws.cell(row=r, column=2)
+        cell_formula.value = grav_formulas[i]
+        cell_formula.fill = PatternFill("solid", start_color=GRAVITY_COLORS[str(i + 1)])
+        cell_formula.font = Font(name="Calibri", bold=True, size=12)
+        cell_formula.alignment = Alignment(horizontal="center", vertical="center")
+        cell_formula.border = Border(
+            left=thin, right=thick, top=thick if i == 0 else thin, bottom=thick if i == n_grav - 1 else thin
+        )
 
-    # ----- Légende Statuts (tableau plusieurs colonnes : un statut par colonne, ligne pour compter) -----
-    row_stat_title = row_grav_title + 1 + len(grav_items) + 1
+    # ----- Règle 4 : Bloc Statuts (en-têtes colorés, ligne formules fond blanc gras 14, bordure épaisse) -----
+    row_stat_title = row_grav_title + 1 + n_grav + 1
     ws.row_dimensions[row_stat_title].height = 20
-    ws[f"A{row_stat_title}"].value = "Statuts"
-    ws[f"A{row_stat_title}"].font = Font(name="Calibri", bold=True, size=10)
-    stat_items = (
-        ("FFC7CE", "À faire"),
-        ("FFEB9C", "En cours"),
-        ("C6EFCE", "Résolu"),
-        ("37474F", "Ne sera pas fait"),
+    ws.cell(row=row_stat_title, column=1, value="Statuts").font = Font(name="Calibri", bold=True, size=12)
+    stat_headers = ("À faire", "En cours", "Résolu", "Ne sera pas fait")
+    stat_formulas = (
+        "=NB.SI('Réserves'!B:B, \"À faire\")",
+        "=NB.SI('Réserves'!B:B, \"En cours\")",
+        "=NB.SI('Réserves'!B:B, \"Résolu\")",
+        "=NB.SI('Réserves'!B:B, \"Ne sera pas fait\")",
     )
+    stat_colors = [STATUS_COLORS["À faire"], STATUS_COLORS["En cours"], STATUS_COLORS["Résolu"], "37474F"]
     row_stat_hdr = row_stat_title + 1
-    ws.row_dimensions[row_stat_hdr].height = 18
-    for ci, (color, label) in enumerate(stat_items, 1):
-        c = ws.cell(row=row_stat_hdr, column=ci, value=label)
+    ws.row_dimensions[row_stat_hdr].height = 20
+    n_stat_cols = len(stat_headers)
+    for ci in range(n_stat_cols):
+        color = stat_colors[ci]
+        c = ws.cell(row=row_stat_hdr, column=ci + 1, value=stat_headers[ci])
         c.font = Font(name="Calibri", bold=True, size=9, color="FFFFFF" if color == "37474F" else "000000")
         c.fill = PatternFill("solid", start_color=color)
-        c.border = b
         c.alignment = Alignment(horizontal="center", vertical="center")
-    row_stat_count = row_stat_hdr + 1
-    ws.row_dimensions[row_stat_count].height = 18
-    for ci in range(1, len(stat_items) + 1):
-        ws.cell(row=row_stat_count, column=ci, value="").border = b  # espace pour compter les réserves
+        c.border = Border(
+            left=thick if ci == 0 else thin, right=thick if ci == n_stat_cols - 1 else thin,
+            top=thick, bottom=thin
+        )
+    row_stat_values = row_stat_hdr + 1
+    ws.row_dimensions[row_stat_values].height = 22
+    for ci in range(n_stat_cols):
+        c = ws.cell(row=row_stat_values, column=ci + 1)
+        c.value = stat_formulas[ci]
+        c.fill = white_fill
+        c.font = Font(name="Calibri", bold=True, size=14)
+        c.alignment = Alignment(horizontal="center", vertical="center")
+        c.border = Border(
+            left=thick if ci == 0 else thin, right=thick if ci == n_stat_cols - 1 else thin,
+            top=thin, bottom=thick
+        )
+
+    # ----- Règle 5 : Grille Description du site (libellés D9D9D9 gras, cellules saisie blanches, quadrillage fin) -----
+    row_desc_title = row_stat_values + 2
+    ws.row_dimensions[row_desc_title].height = 22
+    ws.merge_cells(f"A{row_desc_title}:D{row_desc_title}")
+    ws.cell(row=row_desc_title, column=1, value="Description du site en quelques chiffres").font = Font(name="Calibri", bold=True, size=12)
+    left_fields = ("Client", "Numero d'Affaires", "Puissance totale", "Date", "Nombre de PDL/PTR")
+    right_fields = ("Type Onduleur", "Nombre d'Onduleur", "Type Cablage", "Type de raccordement", "Type de Cheminement", "Type de Tranchee")
+    gray_label_fill = PatternFill("solid", start_color="D9D9D9")
+    n_form_rows = max(len(left_fields), len(right_fields))
+    for i in range(n_form_rows):
+        r = row_desc_title + 1 + i
+        ws.row_dimensions[r].height = 18
+        # Colonne 1 : libellé gris gras ; colonne 2 : saisie blanche
+        if i < len(left_fields):
+            c_label = ws.cell(row=r, column=1, value=left_fields[i])
+            c_label.font = Font(name="Calibri", bold=True)
+            c_label.fill = gray_label_fill
+            c_label.alignment = Alignment(horizontal="right", vertical="center")
+        for col in (1, 2):
+            ws.cell(row=r, column=col).border = b
+        ws.cell(row=r, column=2).fill = white_fill
+        # Colonne 3 : libellé gris gras ; colonne 4 : saisie blanche
+        if i < len(right_fields):
+            c_label2 = ws.cell(row=r, column=3, value=right_fields[i])
+            c_label2.font = Font(name="Calibri", bold=True)
+            c_label2.fill = gray_label_fill
+            c_label2.alignment = Alignment(horizontal="right", vertical="center")
+        for col in (3, 4):
+            ws.cell(row=r, column=col).border = b
+        ws.cell(row=r, column=4).fill = white_fill
 
 
 def convert(pdf_path, out_path, on_progress, on_done, on_error):
@@ -568,10 +592,22 @@ def convert(pdf_path, out_path, on_progress, on_done, on_error):
         on_error(str(e) + "\n" + traceback.format_exc())
 
 
+def _window_title_with_build():
+    """Titre de la fenêtre : date du build si exe, sinon Mode Dev."""
+    if getattr(sys, "frozen", False):
+        try:
+            mtime = os.path.getmtime(sys.executable)
+            build_date = datetime.fromtimestamp(mtime).strftime("%d/%m/%Y %H:%M")
+            return f"Sitemark — Build du {build_date}"
+        except OSError:
+            return "Sitemark — Convertisseur PDF"
+    return "Sitemark — Mode Dev"
+
+
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Sitemark — Convertisseur PDF")
+        self.title(_window_title_with_build())
         self.geometry("520x360")
         self.resizable(False, False)
         self.configure(bg="#1F3864")
