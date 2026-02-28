@@ -197,6 +197,11 @@ ACCUEIL_BLOC_BLEU_H_PX, ACCUEIL_BLOC_BLEU_W_PX = 206, 695       # E24 — Fond c
 ACCUEIL_TEXTE_RAPPORT_H_PX, ACCUEIL_TEXTE_RAPPORT_W_PX = 157, 524  # G24 — "Rapport de pré-commissioning"
 ACCUEIL_NCOLS = 14  # A–N pour équilibre A4
 ACCUEIL_PDG_COLS_BK = 11   # B à K pour Description, Réserves, Gravités
+# Conformité visuelle blueprint PDG : B à J, couleurs manuel
+ACCUEIL_PDG_COLS_BJ = 10   # B à J (colonne 10) pour alignement blueprint
+ACCUEIL_FILL_LABEL = "F2E1D9"   # étiquettes (Client, Type Onduleur…)
+ACCUEIL_FILL_DONNEE = "D9D9D9"   # cellules données (valeurs à remplir)
+ACCUEIL_FILL_BADGE_STATUT = "E7C6B4"  # badges "À faire", "En cours", "Résolu", "Ne sera pas fait"
 
 # --- Images embarquées en base64 (un seul exe, pas de fichiers PNG à côté) ---
 # Générer le base64 : base64.b64encode(open("fichier.png","rb").read()).decode()
@@ -333,59 +338,76 @@ def fill_onglet_accueil(ws, site, script_folder):
 
     # ----- Fond blanc : à partir de la ligne 25 -----
     white_fill = PatternFill("solid", start_color="FFFFFF")
-    lc_k = get_column_letter(ACCUEIL_PDG_COLS_BK)  # K — tous les blocs Description/Réserves/Gravités : B à K
+    lc_j = get_column_letter(ACCUEIL_PDG_COLS_BJ)  # J — conformité blueprint (blocs B à J)
+    lc_k = get_column_letter(ACCUEIL_PDG_COLS_BK)
     for row in range(25, 55):
         for col in range(1, ACCUEIL_NCOLS + 1):
             ws.cell(row=row, column=col).fill = white_fill
 
-    lc6 = get_column_letter(6)   # F
-    lc14 = get_column_letter(14) # N
+    fill_label = PatternFill("solid", start_color=ACCUEIL_FILL_LABEL)
+    fill_donnee = PatternFill("solid", start_color=ACCUEIL_FILL_DONNEE)
+    fill_badge_statut = PatternFill("solid", start_color=ACCUEIL_FILL_BADGE_STATUT)
 
-    # ----- 6) Blocs Description, Réserves, Gravités : fusion B–K, alignement gauche indent 2, 2 lignes entre sections -----
+    # ----- 6) Bloc Description (conformité blueprint) : B:C label, D:E donnée | G:H label, I:J donnée -----
     row_desc_title = 26
     ws.row_dimensions[row_desc_title].height = 22
-    ws.merge_cells(f"B{row_desc_title}:{lc_k}{row_desc_title}")
+    ws.merge_cells(f"B{row_desc_title}:{lc_j}{row_desc_title}")
     tit_desc = ws.cell(row=row_desc_title, column=2, value="Description du site en quelques chiffres")
     tit_desc.font = Font(name="Calibri", bold=True, size=12)
     tit_desc.alignment = Alignment(horizontal="center", vertical="center")
     tit_desc.border = b
-    left_fields = ("Client", "Numero d'Affaires", "Puissance totale", "Date", "Nombre de PDL/PTR")
-    right_fields = ("Type Onduleur", "Nombre d'Onduleur", "Type Cablage", "Type de raccordement", "Type de Cheminement", "Type de Tranchee")
-    gray_label_fill = PatternFill("solid", start_color="D9D9D9")
-    n_form_rows = max(len(left_fields), len(right_fields))
+    left_labels = (
+        "Client",
+        "Numéro d'Affaires :",
+        "Puissance totale de la centrale",
+        "Date :",
+        "Nombre de PDL / PTR",
+        "Nombre de PTR",
+    )
+    right_labels = (
+        "Type Onduleur : Cent/Décentralisé",
+        "Nombre d' Onduleur",
+        "Type Câblage solaire",
+        "Type de raccordement solaire",
+        "Type de Cheminement : Tranchée/CDC",
+        "Type Tranchée : Gaines TPC / Enterrabilité directe ",
+    )
+    n_form_rows = max(len(left_labels), len(right_labels))
     for i in range(n_form_rows):
         r = row_desc_title + 1 + i
         ws.row_dimensions[r].height = 18
-        # Colonne A : libellé gris ; B-G : saisie fusionnée blanche
-        if i < len(left_fields):
-            cl = ws.cell(row=r, column=1, value=left_fields[i])
-            cl.font = Font(name="Calibri", bold=True)
-            cl.fill = gray_label_fill
-            cl.alignment = Alignment(horizontal="right", vertical="center")
+        # Gauche : B:C label (F2E1D9), D:E donnée (D9D9D9) — colonne F libre
+        if i < len(left_labels):
+            ws.merge_cells(f"B{r}:C{r}")
+            cl = ws.cell(row=r, column=2, value=left_labels[i])
+            cl.font = Font(name="Calibri", bold=False, size=12)
+            cl.fill = fill_label
+            cl.alignment = Alignment(horizontal="center", vertical="center")
             cl.border = b
-        ws.merge_cells(f"B{r}:G{r}")
-        for col in range(2, 8):
-            ws.cell(row=r, column=col).fill = white_fill
+        ws.merge_cells(f"D{r}:E{r}")
+        for col in range(4, 6):
+            ws.cell(row=r, column=col).fill = fill_donnee
             ws.cell(row=r, column=col).border = b
-        # Colonne H : libellé gris ; I-N : saisie fusionnée blanche
-        if i < len(right_fields):
-            cr = ws.cell(row=r, column=8, value=right_fields[i])
-            cr.font = Font(name="Calibri", bold=True)
-            cr.fill = gray_label_fill
-            cr.alignment = Alignment(horizontal="right", vertical="center")
+            ws.cell(row=r, column=col).alignment = Alignment(horizontal="center", vertical="center")
+        # Droite : G:H label (F2E1D9), I:J donnée (D9D9D9)
+        if i < len(right_labels):
+            ws.merge_cells(f"G{r}:H{r}")
+            cr = ws.cell(row=r, column=7, value=right_labels[i])
+            cr.font = Font(name="Calibri", bold=False, size=12)
+            cr.fill = fill_label
+            cr.alignment = Alignment(horizontal="center", vertical="center")
             cr.border = b
-        ws.merge_cells(f"I{r}:{lc_k}{r}")
-        for col in range(9, ACCUEIL_PDG_COLS_BK + 1):
-            ws.cell(row=r, column=col).fill = white_fill
+        ws.merge_cells(f"I{r}:J{r}")
+        for col in range(9, 11):
+            ws.cell(row=r, column=col).fill = fill_donnee
             ws.cell(row=r, column=col).border = b
-        ws.cell(row=r, column=2).alignment = Alignment(horizontal="left", vertical="center", indent=2)
-        ws.cell(row=r, column=9).alignment = Alignment(horizontal="left", vertical="center", indent=2)
+            ws.cell(row=r, column=col).alignment = Alignment(horizontal="center", vertical="center")
 
-    # ----- 2) Texte d'introduction — fusion B–K, indent 2 ; 2 lignes de séparation avant -----
+    # ----- 2) Texte d'introduction — fusion B–J, indent 2 ; 2 lignes de séparation avant -----
     row_intro = row_desc_title + 1 + n_form_rows + 2
     for rr in range(row_intro, row_intro + 5):
         ws.row_dimensions[rr].height = 14
-    ws.merge_cells(f"B{row_intro}:{lc_k}{row_intro + 4}")
+    ws.merge_cells(f"B{row_intro}:{lc_j}{row_intro + 4}")
     intro_cell = ws.cell(row=row_intro, column=2)
     intro_cell.value = (
         "Les réserves sont classées par thème : VRD, Structure, Poste, Cheminement, Malt, Onduleurs, TGBT, BJ, "
@@ -397,10 +419,10 @@ def fill_onglet_accueil(ws, site, script_folder):
     intro_cell.font = Font(name="Calibri", size=10)
     intro_cell.alignment = Alignment(wrap_text=True, vertical="top", horizontal="left", indent=2)
 
-    # ----- 3) Tableau Gravité — texte complet, bordure unique autour du bloc -----
+    # ----- 3) Tableau Gravité (conformité blueprint) — compteur en B, libellé C:J, fond blanc -----
     row_grav_title = row_intro + 5 + 2
     ws.row_dimensions[row_grav_title].height = 22
-    ws.merge_cells(f"B{row_grav_title}:{lc_k}{row_grav_title}")
+    ws.merge_cells(f"B{row_grav_title}:{lc_j}{row_grav_title}")
     ws.cell(row=row_grav_title, column=2, value="Gravité").font = Font(name="Calibri", bold=True, size=12)
     grav_labels = (
         "Réserve(s) bloquante(s) affectant la sécurité des biens ou des personnes et/ou le non respect de normes de construction. Réserve(s) à lever au plus vite.",
@@ -416,81 +438,115 @@ def fill_onglet_accueil(ws, site, script_folder):
     for i in range(n_grav):
         r = row_grav_title + 1 + i
         ws.row_dimensions[r].height = 32
-        # A : compteur avec couleur, bordure gauche + top/bottom
-        cell_num = ws.cell(row=r, column=1)
+        # B : compteur (conformité blueprint — fond blanc, colonne B)
+        cell_num = ws.cell(row=r, column=2)
         cell_num.value = grav_formulas[i]
-        cell_num.fill = PatternFill("solid", start_color=GRAVITY_COLORS[str(i + 1)])
-        cell_num.font = Font(name="Calibri", bold=True, size=12)
+        cell_num.fill = white_fill
+        cell_num.font = Font(name="Calibri", bold=False, size=12)
         cell_num.alignment = Alignment(horizontal="center", vertical="center")
         cell_num.border = Border(
             left=thick, right=thin, top=thick if i == 0 else thin, bottom=thick if i == n_grav - 1 else thin
         )
-        # B–K : libellé complet, wrap, une seule bordure droite/haut/bas
-        ws.merge_cells(f"B{r}:{lc_k}{r}")
-        cell_txt = ws.cell(row=r, column=2, value=grav_labels[i])
+        # C–J : libellé complet, wrap
+        ws.merge_cells(f"C{r}:{lc_j}{r}")
+        cell_txt = ws.cell(row=r, column=3, value=grav_labels[i])
         cell_txt.font = Font(name="Calibri", size=10)
         cell_txt.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True, indent=2)
-        for col in range(2, ACCUEIL_PDG_COLS_BK + 1):
+        for col in range(3, ACCUEIL_PDG_COLS_BJ + 1):
             ws.cell(row=r, column=col).border = Border(
-                left=thin, right=thick if col == ACCUEIL_PDG_COLS_BK else thin,
+                left=thin, right=thick if col == ACCUEIL_PDG_COLS_BJ else thin,
                 top=thick if i == 0 else thin, bottom=thick if i == n_grav - 1 else thin
             )
 
-    # ----- 4) Tableau Statuts — bordures unifiées, texte long avec wrap -----
+    # ----- 4) Tableau Statuts (conformité blueprint) — 4 lignes : L1 compteur+texte, L2 badge E7C6B4 -----
     row_stat_title = row_grav_title + 1 + n_grav + 2
     ws.row_dimensions[row_stat_title].height = 22
-    ws.merge_cells(f"B{row_stat_title}:{lc_k}{row_stat_title}")
+    ws.merge_cells(f"B{row_stat_title}:{lc_j}{row_stat_title}")
     ws.cell(row=row_stat_title, column=2, value="Statuts").font = Font(name="Calibri", bold=True, size=12)
     stat_left = [
-        ("À faire", "=COUNTIF('Réserves'!B:B, \"À faire\")", STATUS_COLORS["À faire"], "Résumé des réserves restantes à lever."),
-        ("Résolu", "=COUNTIF('Réserves'!B:B, \"Résolu\")", STATUS_COLORS["Résolu"], "Résumé des réserves résolues."),
+        ("À faire", "=COUNTIF('Réserves'!B:B, \"À faire\")", "Résumé des réserves restantes à lever."),
+        ("Résolu", "=COUNTIF('Réserves'!B:B, \"Résolu\")", "Résumé des réserves résolues."),
     ]
     stat_right = [
-        ("En cours", "=COUNTIF('Réserves'!B:B, \"En cours\")", STATUS_COLORS["En cours"], "Résumé des réserves en cours."),
-        ("Ne sera pas fait", "=COUNTIF('Réserves'!B:B, \"Ne sera pas fait\")", "37474F", "Résumé des réserves qui ne seront pas traitées à la demande du client."),
+        ("En cours", "=COUNTIF('Réserves'!B:B, \"En cours\")", "Résumé des réserves en cours."),
+        ("Ne sera pas fait", "=COUNTIF('Réserves'!B:B, \"Ne sera pas fait\")", "Résumé des réserves qui ne seront pas traitées à la demande du client."),
     ]
     row_stat_start = row_stat_title + 1
-    for rr in range(row_stat_start, row_stat_start + 2):
+    for rr in range(row_stat_start, row_stat_start + 4):
         ws.row_dimensions[rr].height = 28
-    r1 = row_stat_start
-    for col in range(2, 8):
-        ws.cell(row=r1, column=col).fill = white_fill
-        ws.cell(row=r1, column=col).border = b
-    ws.cell(row=r1, column=2, value=stat_left[0][1]).font = Font(name="Calibri", bold=True, size=14)
+    r1, r2 = row_stat_start, row_stat_start + 1
+    r3, r4 = row_stat_start + 2, row_stat_start + 3
+    # Paire 1 : À faire (gauche) / En cours (droite)
+    ws.cell(row=r1, column=2, value=stat_left[0][1]).font = Font(name="Calibri", bold=False, size=12)
+    ws.cell(row=r1, column=2).fill = white_fill
     ws.cell(row=r1, column=2).alignment = Alignment(horizontal="center", vertical="center")
-    ws.merge_cells(f"C{r1}:G{r1}")
-    ws.cell(row=r1, column=3, value=stat_left[0][3]).alignment = Alignment(horizontal="left", vertical="center", indent=2, wrap_text=True)
-    for col in range(8, ACCUEIL_PDG_COLS_BK + 1):
-        ws.cell(row=r1, column=col).fill = white_fill
+    ws.cell(row=r1, column=2).border = b
+    ws.merge_cells(f"C{r1}:E{r2}")
+    ws.cell(row=r1, column=3, value=stat_left[0][2]).alignment = Alignment(horizontal="left", vertical="center", indent=2, wrap_text=True)
+    ws.cell(row=r1, column=3).fill = white_fill
+    for col in range(3, 6):
         ws.cell(row=r1, column=col).border = b
-    ws.cell(row=r1, column=8, value=stat_right[0][1]).font = Font(name="Calibri", bold=True, size=14)
-    ws.cell(row=r1, column=8).alignment = Alignment(horizontal="center", vertical="center")
-    ws.merge_cells(f"I{r1}:{lc_k}{r1}")
-    ws.cell(row=r1, column=9, value=stat_right[0][3]).alignment = Alignment(horizontal="left", vertical="center", indent=2, wrap_text=True)
-    r2 = row_stat_start + 1
-    for col in range(2, 8):
-        ws.cell(row=r2, column=col).fill = white_fill
         ws.cell(row=r2, column=col).border = b
-    ws.cell(row=r2, column=2, value=stat_left[1][1]).font = Font(name="Calibri", bold=True, size=14)
+    ws.cell(row=r1, column=7, value=stat_right[0][1]).font = Font(name="Calibri", bold=False, size=12)
+    ws.cell(row=r1, column=7).fill = white_fill
+    ws.cell(row=r1, column=7).alignment = Alignment(horizontal="center", vertical="center")
+    ws.cell(row=r1, column=7).border = b
+    ws.merge_cells(f"H{r1}:J{r2}")
+    ws.cell(row=r1, column=8, value=stat_right[0][2]).alignment = Alignment(horizontal="left", vertical="center", indent=2, wrap_text=True)
+    ws.cell(row=r1, column=8).fill = white_fill
+    for col in range(8, 11):
+        ws.cell(row=r1, column=col).border = b
+        ws.cell(row=r2, column=col).border = b
+    ws.cell(row=r2, column=2, value=stat_left[0][0]).font = Font(name="Calibri", bold=False, size=11)
+    ws.cell(row=r2, column=2).fill = fill_badge_statut
     ws.cell(row=r2, column=2).alignment = Alignment(horizontal="center", vertical="center")
-    ws.merge_cells(f"C{r2}:G{r2}")
-    ws.cell(row=r2, column=3, value=stat_left[1][3]).alignment = Alignment(horizontal="left", vertical="center", indent=2, wrap_text=True)
+    ws.cell(row=r2, column=2).border = b
+    ws.cell(row=r2, column=7, value=stat_right[0][0]).font = Font(name="Calibri", bold=False, size=11)
+    ws.cell(row=r2, column=7).fill = fill_badge_statut
+    ws.cell(row=r2, column=7).alignment = Alignment(horizontal="center", vertical="center")
+    ws.cell(row=r2, column=7).border = b
+    # Paire 2 : Résolu (gauche) / Ne sera pas fait (droite)
+    ws.cell(row=r3, column=2, value=stat_left[1][1]).font = Font(name="Calibri", bold=False, size=12)
+    ws.cell(row=r3, column=2).fill = white_fill
+    ws.cell(row=r3, column=2).alignment = Alignment(horizontal="center", vertical="center")
+    ws.cell(row=r3, column=2).border = b
+    ws.merge_cells(f"C{r3}:E{r4}")
+    ws.cell(row=r3, column=3, value=stat_left[1][2]).alignment = Alignment(horizontal="left", vertical="center", indent=2, wrap_text=True)
+    ws.cell(row=r3, column=3).fill = white_fill
+    for col in range(3, 6):
+        ws.cell(row=r3, column=col).border = b
+        ws.cell(row=r4, column=col).border = b
     dark_fill = PatternFill("solid", start_color="37474F")
-    for col in range(8, ACCUEIL_PDG_COLS_BK + 1):
-        c = ws.cell(row=r2, column=col)
-        c.fill = dark_fill
-        c.font = Font(name="Calibri", bold=(col == 8), size=14 if col == 8 else 10, color="FFFFFF")
-        c.alignment = Alignment(horizontal="left" if col > 8 else "center", vertical="center", indent=2 if col > 8 else 0, wrap_text=True if col > 8 else False)
-        c.border = b
-    ws.cell(row=r2, column=8, value=stat_right[1][1])
-    ws.merge_cells(f"I{r2}:{lc_k}{r2}")
-    ws.cell(row=r2, column=9, value=stat_right[1][3])
-    # Bordures épaisses autour des deux blocs uniquement (pas de surcharge)
-    for r in (r1, r2):
-        ws.cell(row=r, column=2).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
-        ws.cell(row=r, column=7).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
-        ws.cell(row=r, column=8).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
-        ws.cell(row=r, column=ACCUEIL_PDG_COLS_BK).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
+    ws.cell(row=r3, column=7, value=stat_right[1][1]).font = Font(name="Calibri", bold=False, size=12)
+    ws.cell(row=r3, column=7).fill = white_fill
+    ws.cell(row=r3, column=7).alignment = Alignment(horizontal="center", vertical="center")
+    ws.cell(row=r3, column=7).border = b
+    ws.merge_cells(f"H{r3}:J{r4}")
+    ws.cell(row=r3, column=8, value=stat_right[1][2]).alignment = Alignment(horizontal="left", vertical="center", indent=2, wrap_text=True)
+    ws.cell(row=r3, column=8).fill = dark_fill
+    ws.cell(row=r3, column=8).font = Font(name="Calibri", size=10, color="FFFFFF")
+    for col in range(8, 11):
+        ws.cell(row=r3, column=col).fill = dark_fill
+        ws.cell(row=r3, column=col).font = Font(name="Calibri", size=10, color="FFFFFF")
+        ws.cell(row=r3, column=col).border = b
+        ws.cell(row=r4, column=col).fill = dark_fill
+        ws.cell(row=r4, column=col).border = b
+    ws.cell(row=r4, column=2, value=stat_left[1][0]).font = Font(name="Calibri", bold=False, size=11)
+    ws.cell(row=r4, column=2).fill = fill_badge_statut
+    ws.cell(row=r4, column=2).alignment = Alignment(horizontal="center", vertical="center")
+    ws.cell(row=r4, column=2).border = b
+    ws.cell(row=r4, column=7, value=stat_right[1][0]).font = Font(name="Calibri", bold=False, size=11)
+    ws.cell(row=r4, column=7).fill = fill_badge_statut
+    ws.cell(row=r4, column=7).alignment = Alignment(horizontal="center", vertical="center")
+    ws.cell(row=r4, column=7).border = b
+    ws.cell(row=r4, column=8).fill = dark_fill
+    ws.cell(row=r4, column=8).font = Font(name="Calibri", size=10, color="FFFFFF")
+    # Bordures épaisses autour du bloc Statuts
+    for r in (r1, r2, r3, r4):
+        ws.cell(row=r, column=2).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r4 else thin)
+        ws.cell(row=r, column=6).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r4 else thin)
+        ws.cell(row=r, column=7).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r4 else thin)
+        ws.cell(row=r, column=ACCUEIL_PDG_COLS_BJ).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r4 else thin)
 
 
 def convert(pdf_path, out_path, on_progress, on_done, on_error):
