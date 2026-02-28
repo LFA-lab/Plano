@@ -267,9 +267,10 @@ def fill_onglet_accueil(ws, site, script_folder):
     gray_fill = PatternFill("solid", start_color=ACCUEIL_GRAY_HEADER)
     lc = get_column_letter(ACCUEIL_NCOLS)
 
-    # Largeurs de colonnes pour équilibre visuel et A4
+    # Largeurs de colonnes : A et H plus larges pour les libellés de la grille Description
     for c in range(1, ACCUEIL_NCOLS + 1):
-        ws.column_dimensions[get_column_letter(c)].width = 10
+        letter = get_column_letter(c)
+        ws.column_dimensions[letter].width = 24 if c in (1, 8) else 10
 
     # ----- Titre principal -----
     ws.merge_cells(f"A1:{lc}1")
@@ -316,13 +317,17 @@ def fill_onglet_accueil(ws, site, script_folder):
             ws.cell(row=row, column=col).fill = white_fill
 
     thick = Side(style="thick", color="000000")
-    lc6 = get_column_letter(6)  # F pour fusion 6 colonnes
+    lc6 = get_column_letter(6)   # F
+    lc14 = get_column_letter(14) # N
 
-    # ----- 1) Grille Description du site (en premier sous les images) -----
+    # ----- 1) Grille Description (ancien rendu : titre A-N, libellés en A et H, saisie B-G et I-N fusionnées) -----
     row_desc_title = 7
     ws.row_dimensions[row_desc_title].height = 22
-    ws.merge_cells(f"A{row_desc_title}:D{row_desc_title}")
-    ws.cell(row=row_desc_title, column=1, value="Description du site en quelques chiffres").font = Font(name="Calibri", bold=True, size=12)
+    ws.merge_cells(f"A{row_desc_title}:{lc}{row_desc_title}")
+    tit_desc = ws.cell(row=row_desc_title, column=1, value="Description du site en quelques chiffres")
+    tit_desc.font = Font(name="Calibri", bold=True, size=12)
+    tit_desc.alignment = Alignment(horizontal="center", vertical="center")
+    tit_desc.border = b
     left_fields = ("Client", "Numero d'Affaires", "Puissance totale", "Date", "Nombre de PDL/PTR")
     right_fields = ("Type Onduleur", "Nombre d'Onduleur", "Type Cablage", "Type de raccordement", "Type de Cheminement", "Type de Tranchee")
     gray_label_fill = PatternFill("solid", start_color="D9D9D9")
@@ -330,38 +335,47 @@ def fill_onglet_accueil(ws, site, script_folder):
     for i in range(n_form_rows):
         r = row_desc_title + 1 + i
         ws.row_dimensions[r].height = 18
+        # Colonne A : libellé gris ; B-G : saisie fusionnée blanche
         if i < len(left_fields):
-            c_label = ws.cell(row=r, column=1, value=left_fields[i])
-            c_label.font = Font(name="Calibri", bold=True)
-            c_label.fill = gray_label_fill
-            c_label.alignment = Alignment(horizontal="right", vertical="center")
-        for col in (1, 2):
+            cl = ws.cell(row=r, column=1, value=left_fields[i])
+            cl.font = Font(name="Calibri", bold=True)
+            cl.fill = gray_label_fill
+            cl.alignment = Alignment(horizontal="right", vertical="center")
+            cl.border = b
+        ws.merge_cells(f"B{r}:G{r}")
+        for col in range(2, 8):
+            ws.cell(row=r, column=col).fill = white_fill
             ws.cell(row=r, column=col).border = b
-        ws.cell(row=r, column=2).fill = white_fill
+        # Colonne H : libellé gris ; I-N : saisie fusionnée blanche
         if i < len(right_fields):
-            c_label2 = ws.cell(row=r, column=3, value=right_fields[i])
-            c_label2.font = Font(name="Calibri", bold=True)
-            c_label2.fill = gray_label_fill
-            c_label2.alignment = Alignment(horizontal="right", vertical="center")
-        for col in (3, 4):
+            cr = ws.cell(row=r, column=8, value=right_fields[i])
+            cr.font = Font(name="Calibri", bold=True)
+            cr.fill = gray_label_fill
+            cr.alignment = Alignment(horizontal="right", vertical="center")
+            cr.border = b
+        ws.merge_cells(f"I{r}:{lc14}{r}")
+        for col in range(9, ACCUEIL_NCOLS + 1):
+            ws.cell(row=r, column=col).fill = white_fill
             ws.cell(row=r, column=col).border = b
-        ws.cell(row=r, column=4).fill = white_fill
 
-    # ----- 2) Texte d'introduction (6 colonnes, 2 lignes, wrap_text) -----
+    # ----- 2) Texte d'introduction (ancien : 6 colonnes × 5 lignes, texte long avec thèmes, wrap_text) -----
     row_intro = row_desc_title + 1 + n_form_rows + 1
-    ws.row_dimensions[row_intro].height = 16
-    ws.row_dimensions[row_intro + 1].height = 16
-    ws.merge_cells(f"A{row_intro}:{lc6}{row_intro + 1}")
+    for rr in range(row_intro, row_intro + 5):
+        ws.row_dimensions[rr].height = 14
+    ws.merge_cells(f"A{row_intro}:{lc6}{row_intro + 4}")
     intro_cell = ws.cell(row=row_intro, column=1)
     intro_cell.value = (
-        "Les réserves sont classées par thème. Il s'agit d'une démarche d'amélioration continue. "
-        "Elles sont réparties selon 3 types de gravité."
+        "Les réserves sont classées par thème : VRD, Structure, Poste, Cheminement, Malt, Onduleurs, TGBT, BJ, "
+        "Câbles Alu, PV-Câbles, PV-Connecteurs, PV-Modules, Vidéo-Surveillance, Station Météo. "
+        "Dans le cadre d'une amélioration continue, certains points pourront faire l'objet d'une analyse précise "
+        "afin de réaliser des méthode d'application ou modification de mode opération. "
+        "Les réserves sont réparties selon 3 types de gravité définis ci-dessous."
     )
     intro_cell.font = Font(name="Calibri", size=10)
     intro_cell.alignment = Alignment(wrap_text=True, vertical="top")
 
-    # ----- 3) Tableau Gravité (COUNTIF, gras, centré, 12, GRAVITY_COLORS, bordure épaisse) -----
-    row_grav_title = row_intro + 3
+    # ----- 3) Tableau Gravité (ancien : nombre en A avec couleur, libellé fusionné B-N à droite, bordure épaisse) -----
+    row_grav_title = row_intro + 6
     ws.row_dimensions[row_grav_title].height = 20
     ws.cell(row=row_grav_title, column=1, value="Gravité").font = Font(name="Calibri", bold=True, size=12)
     grav_labels = ("Réserve bloquante", "Réserve majeure", "Réserve mineure")
@@ -374,57 +388,83 @@ def fill_onglet_accueil(ws, site, script_folder):
     for i in range(n_grav):
         r = row_grav_title + 1 + i
         ws.row_dimensions[r].height = 20
-        cell_label = ws.cell(row=r, column=1, value=grav_labels[i])
-        cell_label.alignment = Alignment(horizontal="right", vertical="center")
-        cell_label.border = Border(
+        # A : formule (compteur) avec couleur GRAVITY_COLORS, gras, centré, taille 12
+        cell_num = ws.cell(row=r, column=1)
+        cell_num.value = grav_formulas[i]
+        cell_num.fill = PatternFill("solid", start_color=GRAVITY_COLORS[str(i + 1)])
+        cell_num.font = Font(name="Calibri", bold=True, size=12)
+        cell_num.alignment = Alignment(horizontal="center", vertical="center")
+        cell_num.border = Border(
             left=thick, right=thin, top=thick if i == 0 else thin, bottom=thick if i == n_grav - 1 else thin
         )
-        cell_formula = ws.cell(row=r, column=2)
-        cell_formula.value = grav_formulas[i]
-        cell_formula.fill = PatternFill("solid", start_color=GRAVITY_COLORS[str(i + 1)])
-        cell_formula.font = Font(name="Calibri", bold=True, size=12)
-        cell_formula.alignment = Alignment(horizontal="center", vertical="center")
-        cell_formula.border = Border(
-            left=thin, right=thick, top=thick if i == 0 else thin, bottom=thick if i == n_grav - 1 else thin
-        )
+        # B-N : libellé fusionné
+        ws.merge_cells(f"B{r}:{lc14}{r}")
+        cell_txt = ws.cell(row=r, column=2, value=grav_labels[i])
+        cell_txt.font = Font(name="Calibri", bold=True, size=10)
+        cell_txt.alignment = Alignment(horizontal="left", vertical="center")
+        for col in range(2, ACCUEIL_NCOLS + 1):
+            ws.cell(row=r, column=col).border = Border(
+                left=thin, right=thick if col == ACCUEIL_NCOLS else thin,
+                top=thick if i == 0 else thin, bottom=thick if i == n_grav - 1 else thin
+            )
 
-    # ----- 4) Tableau Statuts (COUNTIF, 37474F + police blanche, ligne résultats blanc/gras/14, bordure épaisse) -----
+    # ----- 4) Tableau Statuts (ancien : deux blocs côte à côte, nombre + phrase de résumé par statut, bordure épaisse) -----
     row_stat_title = row_grav_title + 1 + n_grav + 1
     ws.row_dimensions[row_stat_title].height = 20
     ws.cell(row=row_stat_title, column=1, value="Statuts").font = Font(name="Calibri", bold=True, size=12)
-    stat_headers = ("À faire", "En cours", "Résolu", "Ne sera pas fait")
-    stat_formulas = (
-        "=COUNTIF('Réserves'!B:B, \"À faire\")",
-        "=COUNTIF('Réserves'!B:B, \"En cours\")",
-        "=COUNTIF('Réserves'!B:B, \"Résolu\")",
-        "=COUNTIF('Réserves'!B:B, \"Ne sera pas fait\")",
-    )
-    stat_colors = [STATUS_COLORS["À faire"], STATUS_COLORS["En cours"], STATUS_COLORS["Résolu"], "37474F"]
-    row_stat_hdr = row_stat_title + 1
-    ws.row_dimensions[row_stat_hdr].height = 20
-    n_stat_cols = len(stat_headers)
-    for ci in range(n_stat_cols):
-        color = stat_colors[ci]
-        c = ws.cell(row=row_stat_hdr, column=ci + 1, value=stat_headers[ci])
-        c.font = Font(name="Calibri", bold=True, size=9, color="FFFFFF" if color == "37474F" else "000000")
-        c.fill = PatternFill("solid", start_color=color)
-        c.alignment = Alignment(horizontal="center", vertical="center")
-        c.border = Border(
-            left=thick if ci == 0 else thin, right=thick if ci == n_stat_cols - 1 else thin,
-            top=thick, bottom=thin
-        )
-    row_stat_values = row_stat_hdr + 1
-    ws.row_dimensions[row_stat_values].height = 22
-    for ci in range(n_stat_cols):
-        c = ws.cell(row=row_stat_values, column=ci + 1)
-        c.value = stat_formulas[ci]
-        c.fill = white_fill
-        c.font = Font(name="Calibri", bold=True, size=14)
-        c.alignment = Alignment(horizontal="center", vertical="center")
-        c.border = Border(
-            left=thick if ci == 0 else thin, right=thick if ci == n_stat_cols - 1 else thin,
-            top=thin, bottom=thick
-        )
+    # Bloc gauche A-F : À faire, Résolu (2 lignes) ; Bloc droit H-N : En cours, Ne sera pas fait (2 lignes)
+    stat_left = [
+        ("À faire", "=COUNTIF('Réserves'!B:B, \"À faire\")", STATUS_COLORS["À faire"], "Résumé des réserves restantes à lever."),
+        ("Résolu", "=COUNTIF('Réserves'!B:B, \"Résolu\")", STATUS_COLORS["Résolu"], "Résumé des réserves résolues."),
+    ]
+    stat_right = [
+        ("En cours", "=COUNTIF('Réserves'!B:B, \"En cours\")", STATUS_COLORS["En cours"], "Résumé des réserves en cours."),
+        ("Ne sera pas fait", "=COUNTIF('Réserves'!B:B, \"Ne sera pas fait\")", "37474F", "Résumé des réserves qui ne seront pas traitées à la demande du client."),
+    ]
+    row_stat_start = row_stat_title + 1
+    for rr in range(row_stat_start, row_stat_start + 2):
+        ws.row_dimensions[rr].height = 22
+    # Ligne 1 : À faire (gauche), En cours (droite) — fond blanc, nombre gras 14 + phrase de résumé
+    r1 = row_stat_start
+    for col in range(1, 7):
+        ws.cell(row=r1, column=col).fill = white_fill
+        ws.cell(row=r1, column=col).border = b
+    ws.cell(row=r1, column=1, value=stat_left[0][1]).font = Font(name="Calibri", bold=True, size=14)
+    ws.cell(row=r1, column=1).alignment = Alignment(horizontal="center", vertical="center")
+    ws.merge_cells(f"B{r1}:F{r1}")
+    ws.cell(row=r1, column=2, value=stat_left[0][3]).alignment = Alignment(horizontal="left", vertical="center")
+    for col in range(8, ACCUEIL_NCOLS + 1):
+        ws.cell(row=r1, column=col).fill = white_fill
+        ws.cell(row=r1, column=col).border = b
+    ws.cell(row=r1, column=8, value=stat_right[0][1]).font = Font(name="Calibri", bold=True, size=14)
+    ws.cell(row=r1, column=8).alignment = Alignment(horizontal="center", vertical="center")
+    ws.merge_cells(f"I{r1}:{lc14}{r1}")
+    ws.cell(row=r1, column=9, value=stat_right[0][3]).alignment = Alignment(horizontal="left", vertical="center")
+    # Ligne 2 : Résolu (gauche, blanc), Ne sera pas fait (droite, fond 37474F + police blanche)
+    r2 = row_stat_start + 1
+    for col in range(1, 7):
+        ws.cell(row=r2, column=col).fill = white_fill
+        ws.cell(row=r2, column=col).border = b
+    ws.cell(row=r2, column=1, value=stat_left[1][1]).font = Font(name="Calibri", bold=True, size=14)
+    ws.cell(row=r2, column=1).alignment = Alignment(horizontal="center", vertical="center")
+    ws.merge_cells(f"B{r2}:F{r2}")
+    ws.cell(row=r2, column=2, value=stat_left[1][3]).alignment = Alignment(horizontal="left", vertical="center")
+    dark_fill = PatternFill("solid", start_color="37474F")
+    for col in range(8, ACCUEIL_NCOLS + 1):
+        c = ws.cell(row=r2, column=col)
+        c.fill = dark_fill
+        c.font = Font(name="Calibri", bold=(col == 8), size=14 if col == 8 else 10, color="FFFFFF")
+        c.alignment = Alignment(horizontal="left" if col > 8 else "center", vertical="center")
+        c.border = b
+    ws.cell(row=r2, column=8, value=stat_right[1][1])
+    ws.merge_cells(f"I{r2}:{lc14}{r2}")
+    ws.cell(row=r2, column=9, value=stat_right[1][3])
+    # Bordures épaisses autour des deux blocs Statuts
+    for r in (r1, r2):
+        ws.cell(row=r, column=1).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
+        ws.cell(row=r, column=6).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
+        ws.cell(row=r, column=8).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
+        ws.cell(row=r, column=ACCUEIL_NCOLS).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r2 else thin)
 
 
 def convert(pdf_path, out_path, on_progress, on_done, on_error):

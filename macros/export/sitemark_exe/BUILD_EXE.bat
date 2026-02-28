@@ -13,6 +13,7 @@ python -m PyInstaller --onefile --noconsole --name "Sitemark" sitemark.py
 echo.
 if exist "dist\Sitemark.exe" (
     echo  EXE cree : dist\Sitemark.exe
+    python inject_exe_build_date.py
     echo  Copiez ce fichier ou vous voulez, il fonctionne seul.
     explorer dist
 ) else (

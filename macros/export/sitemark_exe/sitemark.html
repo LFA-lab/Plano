@@ -23,7 +23,7 @@
 <body>
   <div class="container">
     <h1>Sitemark — Convertisseur PDF vers Excel</h1>
-    <p class="build-date">Dernière mise à jour : <span id="build-date">—</span></p>
+    <p class="build-date">Build de l'exe : <span id="build-date">__EXE_BUILD_DATE__</span></p>
     <p>Cette page décrit comment utiliser l’outil <strong>Sitemark</strong> pour convertir un rapport PDF de pré-commissioning Sitemark en fichier Excel avec les photos intégrées.</p>
 
     <div class="section">
@@ -67,15 +67,7 @@
   <script>
     (function () {
       var el = document.getElementById('build-date');
-      if (!el) return;
-      var d = new Date(document.lastModified);
-      if (isNaN(d.getTime())) return;
-      var jj = ('0' + d.getDate()).slice(-2);
-      var mm = ('0' + (d.getMonth() + 1)).slice(-2);
-      var aaaa = d.getFullYear();
-      var h = ('0' + d.getHours()).slice(-2);
-      var min = ('0' + d.getMinutes()).slice(-2);
-      el.textContent = jj + '/' + mm + '/' + aaaa + ' ' + h + ':' + min;
+      if (el && el.textContent.trim() === '__EXE_BUILD_DATE__') el.textContent = '—';
     })();
   </script>
 </body>
