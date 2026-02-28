@@ -2,6 +2,9 @@
 Module de génération du tableau de bord HTML global à partir de fichiers Excel Réserves.
 Utilise les onglets "Réserves" de plusieurs .xlsx, les fusionne et produit des graphiques Plotly.
 Rendu type Power BI : cartes blanches sur fond gris clair.
+
+Dépendances (à inclure via --hidden-import pour PyInstaller) : pandas, plotly, openpyxl.
+Pandas est requis pour pd.read_excel() et les agrégations ; le format .xlsx ne peut pas être lu par le module csv.
 """
 import os
 import glob

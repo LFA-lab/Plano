@@ -519,7 +519,8 @@ def convert(pdf_path, out_path, on_progress, on_done, on_error):
         # Onglet 1 : Accueil (page de garde) ; Onglet 2 : Réserves (données + photos)
         ws_accueil = wb.active
         ws_accueil.title = "Accueil"
-        script_folder = os.path.dirname(sys.executable) if getattr(sys, "frozen", False) else os.path.dirname(os.path.abspath(__file__))
+        # En .exe (PyInstaller) : ressources (logos, etc.) dans le bundle sys._MEIPASS
+        script_folder = sys._MEIPASS if getattr(sys, "frozen", False) else os.path.dirname(os.path.abspath(__file__))
         fill_onglet_accueil(ws_accueil, site, script_folder)
         ws1 = wb.create_sheet("Réserves", 1)
 

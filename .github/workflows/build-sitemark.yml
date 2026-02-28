@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'macros/export/sitemark_exe/sitemark.py'
+      - 'macros/export/sitemark_exe/dashboard.py'
+      - 'macros/export/sitemark_exe/requirements.txt'
   workflow_dispatch:
 
 jobs:
@@ -20,16 +22,17 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install pymupdf pdfplumber openpyxl pillow requests pyinstaller
+        run: |
+          pip install -r macros/export/sitemark_exe/requirements.txt
+          pip install pyinstaller
 
       - name: Build EXE
         run: |
           cd macros/export/sitemark_exe
-          pyinstaller --onefile --noconsole --name "Sitemark" sitemark.py
+          pyinstaller --onefile --noconsole --hidden-import=pandas --hidden-import=plotly --hidden-import=plotly.express --hidden-import=plotly.graph_objects --hidden-import=openpyxl --hidden-import=openpyxl.cell._writer --hidden-import=numpy --add-data "logoomexom.png;." --add-data "vue aerienne centrale solaire.png;." --distpath . --name Sitemark sitemark.py
 
-      - name: Move EXE and clean Zone.Identifier
+      - name: Clean Zone.Identifier
         run: |
-          Copy-Item macros/export/sitemark_exe/dist/Sitemark.exe macros/export/sitemark_exe/Sitemark.exe
           Get-ChildItem -Path macros/export/sitemark_exe -Recurse -Filter "*Zone.Identifier*" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
 
       - name: Commit and push EXE
