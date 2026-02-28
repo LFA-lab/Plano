@@ -17,11 +17,13 @@
     .note { background: #f9f9f9; border: 1px solid #ccc; padding: 10px 12px; margin: 10px 0; font-size: 11px; }
     code { background: #eee; padding: 2px 6px; font-size: 11px; }
     .section { margin-bottom: 24px; }
+    .build-date { font-size: 11px; color: #666; margin-bottom: 12px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Sitemark — Convertisseur PDF vers Excel</h1>
+    <p class="build-date">Dernière mise à jour : <span id="build-date">—</span></p>
     <p>Cette page décrit comment utiliser l’outil <strong>Sitemark</strong> pour convertir un rapport PDF de pré-commissioning Sitemark en fichier Excel avec les photos intégrées.</p>
 
     <div class="section">
@@ -62,5 +64,19 @@
       <p class="note">Vous pouvez aussi utiliser le script <code>BUILD_EXE.bat</code> fourni dans ce dossier pour construire l’exe en une commande.</p>
     </div>
   </div>
+  <script>
+    (function () {
+      var el = document.getElementById('build-date');
+      if (!el) return;
+      var d = new Date(document.lastModified);
+      if (isNaN(d.getTime())) return;
+      var jj = ('0' + d.getDate()).slice(-2);
+      var mm = ('0' + (d.getMonth() + 1)).slice(-2);
+      var aaaa = d.getFullYear();
+      var h = ('0' + d.getHours()).slice(-2);
+      var min = ('0' + d.getMinutes()).slice(-2);
+      el.textContent = jj + '/' + mm + '/' + aaaa + ' ' + h + ':' + min;
+    })();
+  </script>
 </body>
 </html>
