@@ -27,6 +27,7 @@ from dashboard import generate_global_dashboard
 
 IMG_W, IMG_H = 220, 165
 STATUS_COLORS  = {"Résolu": "C6EFCE", "En cours": "FFEB9C", "À faire": "FFC7CE"}
+STATUS_NE_SERA_PAS_FAIT = "37474F"  # fond gris foncé, texte blanc (ancien manuel)
 STATUS_DARK    = {"Résolu": "2E7D32", "En cours": "E65100", "À faire": "C62828"}
 GRAVITY_COLORS = {"1": "FF5252", "2": "FF9800", "3": "FFC107"}
 
@@ -189,19 +190,20 @@ def bdr():
 # --- Page de garde Accueil (rapport pré-commissioning) ---
 ACCUEIL_CYAN = "00CED1"
 ACCUEIL_GRAY_HEADER = "E8E8E8"
+# Mise en forme ancien manuel : titres fond bleu foncé, labels bleu clair, données blanc
+ACCUEIL_TITRE_DARK = "1F3864"   # bleu foncé pour titre principal et sous-titre (comme l'ancien)
+ACCUEIL_FILL_LABEL_DESC = "D9E1F2"   # étiquettes Description (Client, Type Onduleur…) — bleu clair
+ACCUEIL_FILL_DONNEE_DESC = "FFFFFF"  # cellules données Description — blanc comme l'ancien
+ACCUEIL_FILL_BADGE_STATUT = "B4C6E7"  # badges "À faire", "En cours", "Résolu", "Ne sera pas fait" — bleu clair
 # Dimensions cibles pour les images (logo x1.5 pour visibilité, éviter débordement)
 # PDG : dimensions en pixels (conversion en points pour hauteurs de ligne)
 ACCUEIL_TITRE_H_PX, ACCUEIL_TITRE_W_PX = 181, 1233       # B2 — Titre principal "Inspection du site..."
 ACCUEIL_LOGO_OMEXOM_W_PX, ACCUEIL_LOGO_OMEXOM_H_PX = 567, 156   # G11
-ACCUEIL_BLOC_BLEU_H_PX, ACCUEIL_BLOC_BLEU_W_PX = 206, 695       # E24 — Fond cyan
+ACCUEIL_BLOC_BLEU_H_PX, ACCUEIL_BLOC_BLEU_W_PX = 206, 695       # E24 — Fond (bleu foncé = ancien)
 ACCUEIL_TEXTE_RAPPORT_H_PX, ACCUEIL_TEXTE_RAPPORT_W_PX = 157, 524  # G24 — "Rapport de pré-commissioning"
 ACCUEIL_NCOLS = 14  # A–N pour équilibre A4
 ACCUEIL_PDG_COLS_BK = 11   # B à K pour Description, Réserves, Gravités
-# Conformité visuelle blueprint PDG : B à J, couleurs manuel
 ACCUEIL_PDG_COLS_BJ = 10   # B à J (colonne 10) pour alignement blueprint
-ACCUEIL_FILL_LABEL = "F2E1D9"   # étiquettes (Client, Type Onduleur…)
-ACCUEIL_FILL_DONNEE = "D9D9D9"   # cellules données (valeurs à remplir)
-ACCUEIL_FILL_BADGE_STATUT = "E7C6B4"  # badges "À faire", "En cours", "Résolu", "Ne sera pas fait"
 
 # --- Images embarquées en base64 (un seul exe, pas de fichiers PNG à côté) ---
 # Générer le base64 : base64.b64encode(open("fichier.png","rb").read()).decode()
@@ -274,7 +276,7 @@ def fill_onglet_accueil(ws, site, script_folder):
     """
     b = bdr()
     thin = Side(style="thin", color="CCCCCC")
-    cyan_fill = PatternFill("solid", start_color=ACCUEIL_CYAN)
+    dark_title_fill = PatternFill("solid", start_color=ACCUEIL_TITRE_DARK)
     gray_fill = PatternFill("solid", start_color=ACCUEIL_GRAY_HEADER)
     lc = get_column_letter(ACCUEIL_NCOLS)
 
@@ -301,7 +303,7 @@ def fill_onglet_accueil(ws, site, script_folder):
     c_titre = ws[f"B{row_titre}"]
     c_titre.value = f"Rapport de pré-commissioning de {site}"
     c_titre.font = Font(name="Calibri", bold=True, size=22, color="FFFFFF")
-    c_titre.fill = cyan_fill
+    c_titre.fill = dark_title_fill
     c_titre.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
     # ----- 2) Photo centrale (vue aérienne) — Ancre B10, grande taille pour visibilité -----
@@ -326,9 +328,9 @@ def fill_onglet_accueil(ws, site, script_folder):
     merge_bloc_text = f"G{row_bloc}:{get_column_letter(col_end_bloc)}{row_bloc}"
     ws.merge_cells(merge_bloc_left)
     ws.merge_cells(merge_bloc_text)
-    ws[f"E{row_bloc}"].fill = cyan_fill
+    ws[f"E{row_bloc}"].fill = dark_title_fill
     ws[f"E{row_bloc}"].border = Border(left=thick, right=thick, top=thick, bottom=thick)
-    ws[f"G{row_bloc}"].fill = cyan_fill
+    ws[f"G{row_bloc}"].fill = dark_title_fill
     ws[f"G{row_bloc}"].border = Border(left=thick, right=thick, top=thick, bottom=thick)
     # ----- 5) Texte "Inspection du site..." — Ancre G24 (dans le bloc bleu) -----
     cell_rapport = ws[f"G{row_bloc}"]
@@ -344,8 +346,8 @@ def fill_onglet_accueil(ws, site, script_folder):
         for col in range(1, ACCUEIL_NCOLS + 1):
             ws.cell(row=row, column=col).fill = white_fill
 
-    fill_label = PatternFill("solid", start_color=ACCUEIL_FILL_LABEL)
-    fill_donnee = PatternFill("solid", start_color=ACCUEIL_FILL_DONNEE)
+    fill_label = PatternFill("solid", start_color=ACCUEIL_FILL_LABEL_DESC)
+    fill_donnee = PatternFill("solid", start_color=ACCUEIL_FILL_DONNEE_DESC)
     fill_badge_statut = PatternFill("solid", start_color=ACCUEIL_FILL_BADGE_STATUT)
 
     # ----- 6) Bloc Description (conformité blueprint) : B:C label, D:E donnée | G:H label, I:J donnée -----
@@ -353,7 +355,8 @@ def fill_onglet_accueil(ws, site, script_folder):
     ws.row_dimensions[row_desc_title].height = 22
     ws.merge_cells(f"B{row_desc_title}:{lc_j}{row_desc_title}")
     tit_desc = ws.cell(row=row_desc_title, column=2, value="Description du site en quelques chiffres")
-    tit_desc.font = Font(name="Calibri", bold=True, size=12)
+    tit_desc.font = Font(name="Calibri", bold=True, size=12, color="FFFFFF")
+    tit_desc.fill = dark_title_fill
     tit_desc.alignment = Alignment(horizontal="center", vertical="center")
     tit_desc.border = b
     left_labels = (
@@ -376,11 +379,11 @@ def fill_onglet_accueil(ws, site, script_folder):
     for i in range(n_form_rows):
         r = row_desc_title + 1 + i
         ws.row_dimensions[r].height = 18
-        # Gauche : B:C label (F2E1D9), D:E donnée (D9D9D9) — colonne F libre
+        # Gauche : B:C label (bleu clair D9E1F2), D:E donnée (blanc) — comme l'ancien manuel
         if i < len(left_labels):
             ws.merge_cells(f"B{r}:C{r}")
             cl = ws.cell(row=r, column=2, value=left_labels[i])
-            cl.font = Font(name="Calibri", bold=False, size=12)
+            cl.font = Font(name="Calibri", bold=True, size=12)
             cl.fill = fill_label
             cl.alignment = Alignment(horizontal="center", vertical="center")
             cl.border = b
@@ -393,7 +396,7 @@ def fill_onglet_accueil(ws, site, script_folder):
         if i < len(right_labels):
             ws.merge_cells(f"G{r}:H{r}")
             cr = ws.cell(row=r, column=7, value=right_labels[i])
-            cr.font = Font(name="Calibri", bold=False, size=12)
+            cr.font = Font(name="Calibri", bold=True, size=12)
             cr.fill = fill_label
             cr.alignment = Alignment(horizontal="center", vertical="center")
             cr.border = b
@@ -435,14 +438,16 @@ def fill_onglet_accueil(ws, site, script_folder):
         "=COUNTIF('Réserves'!C:C, \"3\")",
     )
     n_grav = len(grav_labels)
+    grav_fills = [PatternFill("solid", start_color=GRAVITY_COLORS["1"]), PatternFill("solid", start_color=GRAVITY_COLORS["2"]), PatternFill("solid", start_color=GRAVITY_COLORS["3"])]
+    grav_font_colors = ["FFFFFF", "FFFFFF", "000000"]  # blanc sur rouge/orange, noir sur jaune (ancien manuel)
     for i in range(n_grav):
         r = row_grav_title + 1 + i
         ws.row_dimensions[r].height = 32
-        # B : compteur (conformité blueprint — fond blanc, colonne B)
+        # B : compteur avec couleur par gravité (rouge, orange, jaune) comme l'ancien manuel
         cell_num = ws.cell(row=r, column=2)
         cell_num.value = grav_formulas[i]
-        cell_num.fill = white_fill
-        cell_num.font = Font(name="Calibri", bold=False, size=12)
+        cell_num.fill = grav_fills[i]
+        cell_num.font = Font(name="Calibri", bold=True, size=12, color=grav_font_colors[i])
         cell_num.alignment = Alignment(horizontal="center", vertical="center")
         cell_num.border = Border(
             left=thick, right=thin, top=thick if i == 0 else thin, bottom=thick if i == n_grav - 1 else thin
@@ -476,9 +481,13 @@ def fill_onglet_accueil(ws, site, script_folder):
         ws.row_dimensions[rr].height = 28
     r1, r2 = row_stat_start, row_stat_start + 1
     r3, r4 = row_stat_start + 2, row_stat_start + 3
-    # Paire 1 : À faire (gauche) / En cours (droite)
-    ws.cell(row=r1, column=2, value=stat_left[0][1]).font = Font(name="Calibri", bold=False, size=12)
-    ws.cell(row=r1, column=2).fill = white_fill
+    fill_statut_a_faire = PatternFill("solid", start_color=STATUS_COLORS["À faire"])
+    fill_statut_en_cours = PatternFill("solid", start_color=STATUS_COLORS["En cours"])
+    fill_statut_resolu = PatternFill("solid", start_color=STATUS_COLORS["Résolu"])
+    fill_statut_ne_pas = PatternFill("solid", start_color=STATUS_NE_SERA_PAS_FAIT)
+    # Paire 1 : À faire (gauche) / En cours (droite) — couleurs compteurs comme l'ancien manuel
+    ws.cell(row=r1, column=2, value=stat_left[0][1]).font = Font(name="Calibri", bold=True, size=12)
+    ws.cell(row=r1, column=2).fill = fill_statut_a_faire
     ws.cell(row=r1, column=2).alignment = Alignment(horizontal="center", vertical="center")
     ws.cell(row=r1, column=2).border = b
     ws.merge_cells(f"C{r1}:E{r2}")
@@ -487,8 +496,8 @@ def fill_onglet_accueil(ws, site, script_folder):
     for col in range(3, 6):
         ws.cell(row=r1, column=col).border = b
         ws.cell(row=r2, column=col).border = b
-    ws.cell(row=r1, column=7, value=stat_right[0][1]).font = Font(name="Calibri", bold=False, size=12)
-    ws.cell(row=r1, column=7).fill = white_fill
+    ws.cell(row=r1, column=7, value=stat_right[0][1]).font = Font(name="Calibri", bold=True, size=12)
+    ws.cell(row=r1, column=7).fill = fill_statut_en_cours
     ws.cell(row=r1, column=7).alignment = Alignment(horizontal="center", vertical="center")
     ws.cell(row=r1, column=7).border = b
     ws.merge_cells(f"H{r1}:J{r2}")
@@ -497,17 +506,17 @@ def fill_onglet_accueil(ws, site, script_folder):
     for col in range(8, 11):
         ws.cell(row=r1, column=col).border = b
         ws.cell(row=r2, column=col).border = b
-    ws.cell(row=r2, column=2, value=stat_left[0][0]).font = Font(name="Calibri", bold=False, size=11)
+    ws.cell(row=r2, column=2, value=stat_left[0][0]).font = Font(name="Calibri", bold=True, size=11)
     ws.cell(row=r2, column=2).fill = fill_badge_statut
     ws.cell(row=r2, column=2).alignment = Alignment(horizontal="center", vertical="center")
     ws.cell(row=r2, column=2).border = b
-    ws.cell(row=r2, column=7, value=stat_right[0][0]).font = Font(name="Calibri", bold=False, size=11)
+    ws.cell(row=r2, column=7, value=stat_right[0][0]).font = Font(name="Calibri", bold=True, size=11)
     ws.cell(row=r2, column=7).fill = fill_badge_statut
     ws.cell(row=r2, column=7).alignment = Alignment(horizontal="center", vertical="center")
     ws.cell(row=r2, column=7).border = b
-    # Paire 2 : Résolu (gauche) / Ne sera pas fait (droite)
-    ws.cell(row=r3, column=2, value=stat_left[1][1]).font = Font(name="Calibri", bold=False, size=12)
-    ws.cell(row=r3, column=2).fill = white_fill
+    # Paire 2 : Résolu (gauche) / Ne sera pas fait (droite) — vert et gris foncé (texte blanc)
+    ws.cell(row=r3, column=2, value=stat_left[1][1]).font = Font(name="Calibri", bold=True, size=12)
+    ws.cell(row=r3, column=2).fill = fill_statut_resolu
     ws.cell(row=r3, column=2).alignment = Alignment(horizontal="center", vertical="center")
     ws.cell(row=r3, column=2).border = b
     ws.merge_cells(f"C{r3}:E{r4}")
@@ -516,31 +525,31 @@ def fill_onglet_accueil(ws, site, script_folder):
     for col in range(3, 6):
         ws.cell(row=r3, column=col).border = b
         ws.cell(row=r4, column=col).border = b
-    dark_fill = PatternFill("solid", start_color="37474F")
-    ws.cell(row=r3, column=7, value=stat_right[1][1]).font = Font(name="Calibri", bold=False, size=12)
-    ws.cell(row=r3, column=7).fill = white_fill
+    # Paire 2 droite : "Ne sera pas fait" — fond gris foncé, texte blanc (ancien manuel)
+    ws.cell(row=r3, column=7, value=stat_right[1][1]).font = Font(name="Calibri", bold=True, size=12, color="FFFFFF")
+    ws.cell(row=r3, column=7).fill = fill_statut_ne_pas
     ws.cell(row=r3, column=7).alignment = Alignment(horizontal="center", vertical="center")
     ws.cell(row=r3, column=7).border = b
     ws.merge_cells(f"H{r3}:J{r4}")
     ws.cell(row=r3, column=8, value=stat_right[1][2]).alignment = Alignment(horizontal="left", vertical="center", indent=2, wrap_text=True)
-    ws.cell(row=r3, column=8).fill = dark_fill
-    ws.cell(row=r3, column=8).font = Font(name="Calibri", size=10, color="FFFFFF")
+    ws.cell(row=r3, column=8).fill = white_fill
+    ws.cell(row=r3, column=8).font = Font(name="Calibri", size=10)
     for col in range(8, 11):
-        ws.cell(row=r3, column=col).fill = dark_fill
-        ws.cell(row=r3, column=col).font = Font(name="Calibri", size=10, color="FFFFFF")
+        ws.cell(row=r3, column=col).fill = white_fill
+        ws.cell(row=r3, column=col).font = Font(name="Calibri", size=10)
         ws.cell(row=r3, column=col).border = b
-        ws.cell(row=r4, column=col).fill = dark_fill
+        ws.cell(row=r4, column=col).fill = white_fill
         ws.cell(row=r4, column=col).border = b
-    ws.cell(row=r4, column=2, value=stat_left[1][0]).font = Font(name="Calibri", bold=False, size=11)
+    ws.cell(row=r4, column=2, value=stat_left[1][0]).font = Font(name="Calibri", bold=True, size=11)
     ws.cell(row=r4, column=2).fill = fill_badge_statut
     ws.cell(row=r4, column=2).alignment = Alignment(horizontal="center", vertical="center")
     ws.cell(row=r4, column=2).border = b
-    ws.cell(row=r4, column=7, value=stat_right[1][0]).font = Font(name="Calibri", bold=False, size=11)
+    ws.cell(row=r4, column=7, value=stat_right[1][0]).font = Font(name="Calibri", bold=True, size=11)
     ws.cell(row=r4, column=7).fill = fill_badge_statut
     ws.cell(row=r4, column=7).alignment = Alignment(horizontal="center", vertical="center")
     ws.cell(row=r4, column=7).border = b
-    ws.cell(row=r4, column=8).fill = dark_fill
-    ws.cell(row=r4, column=8).font = Font(name="Calibri", size=10, color="FFFFFF")
+    ws.cell(row=r4, column=8).fill = white_fill
+    ws.cell(row=r4, column=8).font = Font(name="Calibri", size=10)
     # Bordures épaisses autour du bloc Statuts
     for r in (r1, r2, r3, r4):
         ws.cell(row=r, column=2).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r4 else thin)
