@@ -283,24 +283,24 @@ def fill_onglet_accueil(ws, site, script_folder):
     gray_fill = PatternFill("solid", start_color=ACCUEIL_GRAY_HEADER)
     lc = get_column_letter(ACCUEIL_NCOLS)
 
-    # Largeurs de colonnes (titre B2:N2 ; G/H min 20 pour Description ; I–K pour textes longs)
+    # Largeurs de colonnes (titre B2:K2 ; G/H larges pour Description + données à venir ; I–K textes longs)
     for c in range(1, ACCUEIL_NCOLS + 1):
         letter = get_column_letter(c)
-        if c in (7, 8):  # G, H : élargies pour bloc Description droite
-            ws.column_dimensions[letter].width = 20
-        elif c in (1, 8):
+        if c in (7, 8):  # G, H : bien espacées pour labels + données (photos)
+            ws.column_dimensions[letter].width = 28
+        elif c == 1:
             ws.column_dimensions[letter].width = 24
         elif 9 <= c <= ACCUEIL_PDG_COLS_BK:  # I, J, K : largeur pour absorber les textes longs
             ws.column_dimensions[letter].width = 22
-        elif 2 <= c <= 7:
+        elif 2 <= c <= 6:
             ws.column_dimensions[letter].width = 18
         else:
             ws.column_dimensions[letter].width = 10
 
-    # ----- 1) Titre principal — fusion B2:N2 -----
+    # ----- 1) Titre principal — fusion B2:K2 (aligné sur les autres blocs, ne dépasse pas en N) -----
     row_titre = 2
     ws.row_dimensions[row_titre].height = pixels_to_points(ACCUEIL_TITRE_H_PX)
-    ws.merge_cells(f"B{row_titre}:N{row_titre}")
+    ws.merge_cells(f"B{row_titre}:K{row_titre}")
     c_titre = ws[f"B{row_titre}"]
     c_titre.value = f"Rapport de pré-commissioning de {site}"
     c_titre.font = Font(name="Calibri", bold=True, size=22, color="FFFFFF")
@@ -309,12 +309,12 @@ def fill_onglet_accueil(ws, site, script_folder):
 
     # ----- 2) Photo centrale (vue aérienne) — Ancre B10, grande taille pour visibilité -----
     row_logo_centrale = 10
-    ws.row_dimensions[row_logo_centrale].height = pixels_to_points(220)
+    ws.row_dimensions[row_logo_centrale].height = pixels_to_points(325)
     vue_path = os.path.join(script_folder, "vue aerienne centrale solaire.png")
-    _accueil_image_insert(ws, f"B{row_logo_centrale}", 420, 220, B64_VUE, vue_path)
+    _accueil_image_insert(ws, f"B{row_logo_centrale}", 537, 432, B64_VUE, vue_path)
 
     # ----- 3) Logo Omexom — Ancre G11, 567px × 156px -----
-    row_logo_omexom = 11
+    row_logo_omexom = 13
     ws.row_dimensions[row_logo_omexom].height = pixels_to_points(ACCUEIL_LOGO_OMEXOM_H_PX)
     logo_path = os.path.join(script_folder, "logoomexom.png")
     _accueil_image_insert(ws, f"G{row_logo_omexom}", ACCUEIL_LOGO_OMEXOM_W_PX, ACCUEIL_LOGO_OMEXOM_H_PX, B64_LOGO, logo_path)
@@ -326,7 +326,7 @@ def fill_onglet_accueil(ws, site, script_folder):
     ws.merge_cells(f"B{row_bloc}:{get_column_letter(ACCUEIL_PDG_COLS_BJ)}{row_bloc}")
     cell_rapport = ws.cell(row=row_bloc, column=2)
     cell_rapport.value = f"Inspection du site de {site} avant mise en service et réception en O&M"
-    cell_rapport.font = Font(name="Calibri", bold=True, size=12, color="FFFFFF")
+    cell_rapport.font = Font(name="Calibri", bold=True, size=16, color="FFFFFF")
     cell_rapport.fill = dark_title_fill
     cell_rapport.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
@@ -418,7 +418,7 @@ def fill_onglet_accueil(ws, site, script_folder):
     row_grav_title = row_intro + 5 + 2
     ws.row_dimensions[row_grav_title].height = 22
     ws.merge_cells(f"B{row_grav_title}:{lc_j}{row_grav_title}")
-    ws.cell(row=row_grav_title, column=2, value="Gravité").font = Font(name="Calibri", bold=True, size=12)
+    ws.cell(row=row_grav_title, column=2, value="Gravité").font = Font(name="Calibri", bold=True, size=14)
     grav_labels = (
         "Réserve(s) bloquante(s) affectant la sécurité des biens ou des personnes et/ou le non respect de normes de construction. Réserve(s) à lever au plus vite.",
         "Réserve(s) majeure(s) à lever avant mise en service. Ou nécessitera une consignation au préalable.",
@@ -459,7 +459,7 @@ def fill_onglet_accueil(ws, site, script_folder):
     row_stat_title = row_grav_title + 1 + n_grav + 2
     ws.row_dimensions[row_stat_title].height = 22
     ws.merge_cells(f"B{row_stat_title}:{lc_j}{row_stat_title}")
-    ws.cell(row=row_stat_title, column=2, value="Statuts").font = Font(name="Calibri", bold=True, size=12)
+    ws.cell(row=row_stat_title, column=2, value="Statuts").font = Font(name="Calibri", bold=True, size=14)
     stat_left = [
         ("À faire", "=COUNTIF('Réserves'!B:B, \"À faire\")", "Résumé des réserves restantes à lever."),
         ("Résolu", "=COUNTIF('Réserves'!B:B, \"Résolu\")", "Résumé des réserves résolues."),
