@@ -15,7 +15,7 @@ from tkinter import filedialog, ttk, messagebox
 import fitz
 import pdfplumber
 import requests
-from PIL import Image as PILImage
+from PIL import Image as PILImage, ImageOps
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -168,19 +168,22 @@ def extract_all(pdf_path):
     return reserves, photo_urls_map
 
 def download_image(url):
+    """Télécharge une image, applique l'orientation EXIF, redimensionne (thumbnail). Retourne (buf, width, height) ou (None, None, None)."""
     try:
         resp = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
         resp.raise_for_status()
         img = PILImage.open(io.BytesIO(resp.content))
+        img = ImageOps.exif_transpose(img)  # corrige l'orientation (photos à l'endroit)
         if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
         img.thumbnail((IMG_W, IMG_H), PILImage.LANCZOS)
+        w, h = img.size
         buf = io.BytesIO()
-        img.save(buf, format="JPEG", quality=85)
+        img.save(buf, format="JPEG", quality=90)
         buf.seek(0)
-        return buf
-    except:
-        return None
+        return (buf, w, h)
+    except Exception:
+        return (None, None, None)
 
 def bdr():
     t = Side(style="thin", color="CCCCCC")
@@ -280,12 +283,11 @@ def fill_onglet_accueil(ws, site, script_folder):
     gray_fill = PatternFill("solid", start_color=ACCUEIL_GRAY_HEADER)
     lc = get_column_letter(ACCUEIL_NCOLS)
 
-    # Largeurs de colonnes (B2 titre ~1233px ; H–K plus larges pour les textes longs Gravité/Statuts)
-    titre_cols = 18  # B à S pour 1233px
+    # Largeurs de colonnes (titre B2:N2 ; G/H min 20 pour Description ; I–K pour textes longs)
     for c in range(1, ACCUEIL_NCOLS + 1):
         letter = get_column_letter(c)
-        if 2 <= c <= 1 + titre_cols:
-            ws.column_dimensions[letter].width = 9.8
+        if c in (7, 8):  # G, H : élargies pour bloc Description droite
+            ws.column_dimensions[letter].width = 20
         elif c in (1, 8):
             ws.column_dimensions[letter].width = 24
         elif 9 <= c <= ACCUEIL_PDG_COLS_BK:  # I, J, K : largeur pour absorber les textes longs
@@ -295,11 +297,10 @@ def fill_onglet_accueil(ws, site, script_folder):
         else:
             ws.column_dimensions[letter].width = 10
 
-    # ----- 1) Titre principal en gros "Rapport de pré-commissioning" — Ancre B2, 181px × 1233px -----
+    # ----- 1) Titre principal — fusion B2:N2 -----
     row_titre = 2
     ws.row_dimensions[row_titre].height = pixels_to_points(ACCUEIL_TITRE_H_PX)
-    merge_titre = f"B{row_titre}:{get_column_letter(2 + titre_cols - 1)}{row_titre}"
-    ws.merge_cells(merge_titre)
+    ws.merge_cells(f"B{row_titre}:N{row_titre}")
     c_titre = ws[f"B{row_titre}"]
     c_titre.value = f"Rapport de pré-commissioning de {site}"
     c_titre.font = Font(name="Calibri", bold=True, size=22, color="FFFFFF")
@@ -318,24 +319,15 @@ def fill_onglet_accueil(ws, site, script_folder):
     logo_path = os.path.join(script_folder, "logoomexom.png")
     _accueil_image_insert(ws, f"G{row_logo_omexom}", ACCUEIL_LOGO_OMEXOM_W_PX, ACCUEIL_LOGO_OMEXOM_H_PX, B64_LOGO, logo_path)
 
-    # ----- 4) Bloc bleu (fond titre rapport) — Ancre E24, 206px × 695px, cyan, bordures épaisses -----
+    # ----- 4) Bloc "Inspection du site" — même style que "Description du site..." (fond 1F3864, blanc, bold 12, centré), pas de forme séparée -----
     thick = Side(style="thick", color="000000")
     row_bloc = 24
     ws.row_dimensions[row_bloc].height = pixels_to_points(ACCUEIL_BLOC_BLEU_H_PX)
-    # 695px ≈ 99 caractères → 11 colonnes à partir de E (E=5 → E:O)
-    col_end_bloc = 5 + 11 - 1  # O
-    merge_bloc_left = f"E{row_bloc}:F{row_bloc}"
-    merge_bloc_text = f"G{row_bloc}:{get_column_letter(col_end_bloc)}{row_bloc}"
-    ws.merge_cells(merge_bloc_left)
-    ws.merge_cells(merge_bloc_text)
-    ws[f"E{row_bloc}"].fill = dark_title_fill
-    ws[f"E{row_bloc}"].border = Border(left=thick, right=thick, top=thick, bottom=thick)
-    ws[f"G{row_bloc}"].fill = dark_title_fill
-    ws[f"G{row_bloc}"].border = Border(left=thick, right=thick, top=thick, bottom=thick)
-    # ----- 5) Texte "Inspection du site..." — Ancre G24 (dans le bloc bleu) -----
-    cell_rapport = ws[f"G{row_bloc}"]
+    ws.merge_cells(f"B{row_bloc}:{get_column_letter(ACCUEIL_PDG_COLS_BJ)}{row_bloc}")
+    cell_rapport = ws.cell(row=row_bloc, column=2)
     cell_rapport.value = f"Inspection du site de {site} avant mise en service et réception en O&M"
-    cell_rapport.font = Font(name="Calibri", bold=True, size=14, color="FFFFFF")
+    cell_rapport.font = Font(name="Calibri", bold=True, size=12, color="FFFFFF")
+    cell_rapport.fill = dark_title_fill
     cell_rapport.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
     # ----- Fond blanc : à partir de la ligne 25 -----
@@ -404,7 +396,7 @@ def fill_onglet_accueil(ws, site, script_folder):
         for col in range(9, 11):
             ws.cell(row=r, column=col).fill = fill_donnee
             ws.cell(row=r, column=col).border = b
-            ws.cell(row=r, column=col).alignment = Alignment(horizontal="center", vertical="center")
+            ws.cell(row=r, column=col).alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
     # ----- 2) Texte d'introduction — fusion B–J, indent 2 ; 2 lignes de séparation avant -----
     row_intro = row_desc_title + 1 + n_form_rows + 2
@@ -477,10 +469,12 @@ def fill_onglet_accueil(ws, site, script_folder):
         ("Ne sera pas fait", "=COUNTIF('Réserves'!B:B, \"Ne sera pas fait\")", "Résumé des réserves qui ne seront pas traitées à la demande du client."),
     ]
     row_stat_start = row_stat_title + 1
-    for rr in range(row_stat_start, row_stat_start + 4):
-        ws.row_dimensions[rr].height = 28
     r1, r2 = row_stat_start, row_stat_start + 1
     r3, r4 = row_stat_start + 2, row_stat_start + 3
+    for rr in range(row_stat_start, row_stat_start + 4):
+        ws.row_dimensions[rr].height = 28
+    ws.row_dimensions[r3].height = 36
+    ws.row_dimensions[r4].height = 36  # "Ne sera pas fait" + description longue avec wrap
     fill_statut_a_faire = PatternFill("solid", start_color=STATUS_COLORS["À faire"])
     fill_statut_en_cours = PatternFill("solid", start_color=STATUS_COLORS["En cours"])
     fill_statut_resolu = PatternFill("solid", start_color=STATUS_COLORS["Résolu"])
@@ -544,18 +538,21 @@ def fill_onglet_accueil(ws, site, script_folder):
     ws.cell(row=r4, column=2).fill = fill_badge_statut
     ws.cell(row=r4, column=2).alignment = Alignment(horizontal="center", vertical="center")
     ws.cell(row=r4, column=2).border = b
-    ws.cell(row=r4, column=7, value=stat_right[1][0]).font = Font(name="Calibri", bold=True, size=11)
+    ws.cell(row=r4, column=7, value=stat_right[1][0]).font = Font(name="Calibri", bold=True, size=10)
     ws.cell(row=r4, column=7).fill = fill_badge_statut
-    ws.cell(row=r4, column=7).alignment = Alignment(horizontal="center", vertical="center")
+    ws.cell(row=r4, column=7).alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
     ws.cell(row=r4, column=7).border = b
     ws.cell(row=r4, column=8).fill = white_fill
     ws.cell(row=r4, column=8).font = Font(name="Calibri", size=10)
-    # Bordures épaisses autour du bloc Statuts
+    # Bordure extérieure du tableau Statuts : rectangle continu (thick sur les 4 côtés externes uniquement), bordures internes thin
+    stat_cols = list(range(2, ACCUEIL_PDG_COLS_BJ + 1))
     for r in (r1, r2, r3, r4):
-        ws.cell(row=r, column=2).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r4 else thin)
-        ws.cell(row=r, column=6).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r4 else thin)
-        ws.cell(row=r, column=7).border = Border(left=thick, right=thin, top=thick if r == r1 else thin, bottom=thick if r == r4 else thin)
-        ws.cell(row=r, column=ACCUEIL_PDG_COLS_BJ).border = Border(left=thin, right=thick, top=thick if r == r1 else thin, bottom=thick if r == r4 else thin)
+        for c in stat_cols:
+            left = thick if c == 2 else thin
+            right = thick if c == ACCUEIL_PDG_COLS_BJ else thin
+            top = thick if r == r1 else thin
+            bottom = thick if r == r4 else thin
+            ws.cell(row=r, column=c).border = Border(left=left, right=right, top=top, bottom=bottom)
 
 
 def convert(pdf_path, out_path, on_progress, on_done, on_error):
@@ -581,8 +578,8 @@ def convert(pdf_path, out_path, on_progress, on_done, on_error):
         for rid, urls in photo_urls_map.items():
             photo_images[rid] = []
             for url in urls:
-                buf = download_image(url)
-                photo_images[rid].append(buf)
+                item = download_image(url)
+                photo_images[rid].append(item)
                 done += 1
                 pct = 15 + int(done / max(total, 1) * 55)
                 on_progress(pct, f"Photos : {done}/{total}")
@@ -660,12 +657,12 @@ def convert(pdf_path, out_path, on_progress, on_done, on_error):
                     cell.font = Font(name="Calibri", size=9, bold=True, color="FFFFFF")
                 else:
                     cell.fill = alt
-            ws1.row_dimensions[ri].height = IMG_H_PT if imgs else 22
-            for i, buf in enumerate(imgs):
+            ws1.row_dimensions[ri].height = IMG_H_PT if any(e[0] for e in imgs) else 22
+            for i, (buf, w, h) in enumerate(imgs):
                 if buf is None:
                     continue
                 xl = XLImage(buf)
-                xl.width, xl.height = IMG_W, IMG_H
+                xl.width, xl.height = (w, h) if (w and h) else (IMG_W, IMG_H)
                 col_letter = get_column_letter(nc + 1 + i)
                 ws1.add_image(xl, f"{col_letter}{ri}")
         ws1.freeze_panes = "A4"
