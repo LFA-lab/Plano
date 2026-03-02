@@ -398,11 +398,11 @@ def fill_onglet_accueil(ws, site, script_folder):
             ws.cell(row=r, column=col).border = b
             ws.cell(row=r, column=col).alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-    # ----- 2) Texte d'introduction — fusion B–J, indent 2 ; 2 lignes de séparation avant -----
+    # ----- 2) Texte d'introduction — fusion B–J sur 7 lignes, hauteur 21 pt, bordure noire fine -----
     row_intro = row_desc_title + 1 + n_form_rows + 2
-    for rr in range(row_intro, row_intro + 5):
-        ws.row_dimensions[rr].height = 14
-    ws.merge_cells(f"B{row_intro}:{lc_j}{row_intro + 4}")
+    for rr in range(row_intro, row_intro + 7):
+        ws.row_dimensions[rr].height = 21
+    ws.merge_cells(f"B{row_intro}:{lc_j}{row_intro + 6}")
     intro_cell = ws.cell(row=row_intro, column=2)
     intro_cell.value = (
         "Les réserves sont classées par thème : VRD, Structure, Poste, Cheminement, Malt, Onduleurs, TGBT, BJ, "
@@ -411,11 +411,20 @@ def fill_onglet_accueil(ws, site, script_folder):
         "afin de réaliser des méthode d'application ou modification de mode opération. "
         "Les réserves sont réparties selon 3 types de gravité définis ci-dessous."
     )
-    intro_cell.font = Font(name="Calibri", size=10)
+    intro_cell.font = Font(name="Calibri", size=16)
     intro_cell.alignment = Alignment(wrap_text=True, vertical="top", horizontal="left", indent=2)
+    thin_black = Side(style="thin", color="000000")
+    for rr in range(row_intro, row_intro + 7):
+        for cc in range(2, ACCUEIL_PDG_COLS_BJ + 1):
+            ws.cell(row=rr, column=cc).border = Border(
+                left=thin_black if cc == 2 else thin,
+                right=thin_black if cc == ACCUEIL_PDG_COLS_BJ else thin,
+                top=thin_black if rr == row_intro else thin,
+                bottom=thin_black if rr == row_intro + 6 else thin,
+            )
 
     # ----- 3) Tableau Gravité (conformité blueprint) — compteur en B, libellé C:J, fond blanc -----
-    row_grav_title = row_intro + 5 + 2
+    row_grav_title = row_intro + 7 + 2
     ws.row_dimensions[row_grav_title].height = 22
     ws.merge_cells(f"B{row_grav_title}:{lc_j}{row_grav_title}")
     ws.cell(row=row_grav_title, column=2, value="Gravité").font = Font(name="Calibri", bold=True, size=14)
